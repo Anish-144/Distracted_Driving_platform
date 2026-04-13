@@ -10,10 +10,14 @@ Endpoints:
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, desc
 from pydantic import BaseModel
+from typing import List
 
 from app.database import get_db
 from app.models.user import User
+from app.models.session import Session as DBSession
+from app.models.event import Event, UserResponseType
 from app.routes.auth import get_current_user
 from app.services import session_service
 
@@ -34,6 +38,13 @@ class ScoreResponse(BaseModel):
     session_id: str
     score: float
     message: str
+
+class LatestSessionResponse(BaseModel):
+    id: str | None
+    score: float
+    avg_reaction_time: float
+    driver_type: str
+    mistakes: List[dict]
 
 
 # ─── Routes ──────────────────────────────────────────────────────────────────
@@ -96,6 +107,59 @@ async def end_session(
         score=updated.score,
         start_time=updated.start_time.isoformat(),
         end_time=updated.end_time.isoformat() if updated.end_time else None,
+    )
+
+@router.post("/{session_id}/complete", response_model=SessionResponse)
+async def complete_session(
+    session_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Alias to mark a session as complete and save data."""
+    return await end_session(session_id, db, current_user)
+
+@router.get("/latest", response_model=LatestSessionResponse)
+async def get_latest_session(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Fetch the most recent session's stats for the dashboard."""
+    stmt = select(DBSession).where(DBSession.user_id == current_user.id).order_by(desc(DBSession.created_at)).limit(1)
+    result = await db.execute(stmt)
+    latest = result.scalar_one_or_none()
+
+    if not latest:
+        return LatestSessionResponse(
+            id=None,
+            score=0.0,
+            avg_reaction_time=0.0,
+            driver_type=current_user.profile_type.value.replace("_", " ").title(),
+            mistakes=[]
+        )
+
+    event_stmt = select(Event).where(Event.session_id == latest.id)
+    event_result = await db.execute(event_stmt)
+    events = event_result.scalars().all()
+
+    avg_reaction_time = 0.0
+    valid_times = [e.response_time for e in events if e.response_time is not None]
+    if valid_times:
+        avg_reaction_time = round(sum(valid_times) / len(valid_times), 2)
+
+    mistakes = []
+    for e in events:
+        if e.user_response == UserResponseType.INTERACTED:
+            mistakes.append({
+                "scenario": e.event_type.value,
+                "response": "Unsafe Interaction"
+            })
+
+    return LatestSessionResponse(
+        id=latest.id,
+        score=latest.score,
+        avg_reaction_time=avg_reaction_time,
+        driver_type=current_user.profile_type.value.replace("_", " ").title(),
+        mistakes=mistakes
     )
 
 

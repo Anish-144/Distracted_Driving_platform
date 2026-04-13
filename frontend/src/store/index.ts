@@ -2,11 +2,13 @@ import { configureStore } from '@reduxjs/toolkit';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import authReducer from './authSlice';
 import sessionReducer from './sessionSlice';
+import progressReducer from './progressSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     session: sessionReducer,
+    progress: progressReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

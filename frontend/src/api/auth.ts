@@ -32,7 +32,7 @@ export async function login(email: string, password: string): Promise<LoginRespo
   params.append('username', email);
   params.append('password', password);
 
-  const response = await client.post<LoginResponse>('/api/auth/login', params, {
+  const response = await client.post<LoginResponse>('/auth/login', params, {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   });
   return response.data;
@@ -42,7 +42,7 @@ export async function login(email: string, password: string): Promise<LoginRespo
  * Register a new user account.
  */
 export async function register(payload: RegisterPayload): Promise<LoginResponse> {
-  const response = await client.post<LoginResponse>('/api/auth/register', payload);
+  const response = await client.post<LoginResponse>('/auth/register', payload);
   return response.data;
 }
 
@@ -50,6 +50,6 @@ export async function register(payload: RegisterPayload): Promise<LoginResponse>
  * Get current authenticated user's profile.
  */
 export async function getMe(): Promise<UserProfile> {
-  const response = await client.get<UserProfile>('/api/auth/me');
+  const response = await client.get<UserProfile>('/auth/me');
   return response.data;
 }

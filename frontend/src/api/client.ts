@@ -1,8 +1,7 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 
-// Use direct backend URL to avoid Next.js rewrites IPv6 '::1' ECONNREFUSED issues in Node.js
-// FastAPI has CORS enabled for localhost:3000, making direct browser requests safe.
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+// Use relative path to leverage Next.js rewrites/proxies
+const API_BASE_URL = '/api';
 
 const client: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,

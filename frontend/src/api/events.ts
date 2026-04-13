@@ -34,7 +34,7 @@ export interface EventResult {
  * Returns the evaluation result including score delta and decision type.
  */
 export async function postEvent(payload: PostEventPayload): Promise<EventResult> {
-  const response = await client.post<EventResult>('/api/event', payload);
+  const response = await client.post<EventResult>('/event', payload);
   return response.data;
 }
 

@@ -8,6 +8,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from sqlalchemy import select
 from app.database import engine, AsyncSessionLocal, init_db
 from app.models.user import User
+from app.models.lesson import Lesson, LessonTag
 from app.services import auth_service
 
 async def seed_test_user():
@@ -33,6 +34,21 @@ async def seed_test_user():
             session.add(new_user)
             await session.commit()
             print("🚀 Test user created successfully!")
+
+        # Seed lessons
+        result = await session.execute(select(Lesson))
+        existing_lessons = result.scalars().all()
+        if not existing_lessons:
+            print("📚 Seeding lessons...")
+            lessons_to_add = [
+                Lesson(title="Impulse Control While Driving", description="Learn how to delay your reaction to sudden notifications.", difficulty="Intermediate", tag=LessonTag.IMPULSIVE),
+                Lesson(title="Managing Digital Distractions", description="Step-by-step guide to using your phone's 'Do Not Disturb' effectively.", difficulty="Beginner", tag=LessonTag.DISTRACTED),
+                Lesson(title="Peripheral Vision Mastery", description="Maintain focus while keeping an eye on your surroundings.", difficulty="Advanced", tag=LessonTag.SAFE),
+                Lesson(title="The 2-Second Rule", description="General defensive driving distance rules.", difficulty="Beginner", tag=LessonTag.GENERAL),
+            ]
+            session.add_all(lessons_to_add)
+            await session.commit()
+            print("✅ Lessons seeded successfully!")
 
 if __name__ == "__main__":
     asyncio.run(seed_test_user())

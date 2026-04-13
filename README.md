@@ -73,9 +73,9 @@ pip install -r requirements.txt
 python scripts/seed_user.py
 
 # Run the API
-python -m uvicorn app.main:app --reload --port 8000
+python -m uvicorn app.main:app --reload --port 9000
 ```
-- **API Docs**: Available at `http://localhost:8000/docs`
+- **API Docs**: Available at `http://localhost:9000/docs`
 
 ### 2. Frontend Setup
 ```bash
@@ -84,9 +84,19 @@ cd frontend
 npm install
 
 # Run the Dev Server
-npm run dev
+npm run dev -- -p 4000
 ```
-- **App URL**: `http://localhost:3000`
+- **App URL**: `http://localhost:4000`
+
+### 3. Quick Start with Docker
+The easiest way to run the entire stack is using Docker Compose:
+```bash
+docker-compose up --build
+```
+- **Frontend**: `http://localhost:4000`
+- **Backend API**: `http://localhost:9000`
+- **API Docs**: `http://localhost:9000/docs`
+- **Database (Postgres)**: `localhost:6432`
 
 ---
 

@@ -1,9 +1,11 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppSelector, useAppDispatch } from '@/store';
 import { logout } from '@/store/authSlice';
+import { fetchProgressData } from '@/store/progressSlice';
+import { getLatestSession, LatestSessionData } from '@/api/sessions';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 import {
@@ -20,13 +22,26 @@ export default function DashboardPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const { stats, lessons, isLoading } = useAppSelector((state) => state.progress);
+  const { score: reduxScore } = useAppSelector((state) => state.session);
+
+  const [latestData, setLatestData] = useState<LatestSessionData | null>(null);
 
   // Guard — redirect if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
       router.replace('/auth/login');
+    } else {
+      dispatch(fetchProgressData());
+
+      // Fetch Latest Session specifically
+      getLatestSession().then((res) => {
+        setLatestData(res);
+      }).catch((e) => {
+        console.error("Failed to fetch latest session:", e);
+      });
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, dispatch]);
 
   if (!isAuthenticated || !user) {
     return (
@@ -36,12 +51,16 @@ export default function DashboardPage() {
     );
   }
 
-  // Placeholder stats (Week 2 will connect to real data)
-  const stats = [
-    { label: 'Safety Score', value: '—', icon: Shield, color: 'text-brand-400', bg: 'bg-brand-900/30' },
-    { label: 'Sessions Completed', value: '0', icon: Activity, color: 'text-blue-400', bg: 'bg-blue-900/30' },
-    { label: 'Avg Response Time', value: '—', icon: Clock, color: 'text-accent-400', bg: 'bg-accent-900/30' },
-    { label: 'Current Streak', value: '0 days', icon: Zap, color: 'text-purple-400', bg: 'bg-purple-900/30' },
+  // Dynamic stats - Override with backend LatestSessionData or Redux Fallback where applicable
+  const displayScore = latestData?.id ? latestData.score : (reduxScore ?? stats?.avg_score ?? '—');
+  const displayReaction = latestData?.id ? `${latestData.avg_reaction_time}s` : '—';
+  const displayDriverType = latestData?.id ? latestData.driver_type : (stats?.driver_type ?? 'Unknown');
+
+  const statCards = [
+    { label: 'Safety Score', value: displayScore, icon: Shield, color: 'text-brand-400', bg: 'bg-brand-900/30' },
+    { label: 'Avg Reaction', value: displayReaction, icon: Clock, color: 'text-blue-400', bg: 'bg-blue-900/30' },
+    { label: 'Improvement', value: stats ? `${stats.improvement_rate > 0 ? '+' : ''}${stats.improvement_rate} pts` : '—', icon: TrendingUp, color: 'text-accent-400', bg: 'bg-accent-900/30' },
+    { label: 'Driver Type', value: displayDriverType, icon: Zap, color: 'text-purple-400', bg: 'bg-purple-900/30' },
   ];
 
   return (
@@ -70,7 +89,7 @@ export default function DashboardPage() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 animate-slide-up">
-              {stats.map((stat) => (
+              {statCards.map((stat) => (
                 <div key={stat.label} className="card flex items-center gap-4">
                   <div className={`w-12 h-12 rounded-xl ${stat.bg} flex items-center justify-center flex-shrink-0`}>
                     <stat.icon className={`w-6 h-6 ${stat.color}`} />
@@ -170,19 +189,61 @@ export default function DashboardPage() {
                     ))}
                   </div>
                 </div>
+
+                {/* Recent Mistakes Panel */}
+                <div className="card">
+                  <h3 className="text-sm font-semibold text-gray-300 mb-3">Recent Mistakes</h3>
+                  <div className="space-y-3">
+                    {!latestData || latestData.mistakes.length === 0 ? (
+                      <p className="text-xs text-gray-500">No recent mistakes logged. Great driving!</p>
+                    ) : (
+                      latestData.mistakes.map((mistake, index) => (
+                        <div key={index} className="flex justify-between items-center text-xs p-2 rounded bg-surface-600/50">
+                          <span className="text-gray-300 font-medium capitalize">{mistake.scenario.replace('_', ' ')}</span>
+                          <span className={`${mistake.response.includes('Unsafe') ? 'text-red-400' : 'text-orange-400'}`}>{mistake.response}</span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Coming Soon Banner */}
-            <div className="mt-6 glass rounded-xl p-4 flex items-center gap-4">
-              <div className="text-2xl">🔬</div>
-              <div>
-                <p className="text-sm font-medium text-gray-200">Week 2 Preview</p>
-                <p className="text-xs text-gray-400">
-                  Full behavioral scoring, voice input, and 3 live scenarios are coming in Week 2!
+            {/* Dynamic AI Feedback and Lessons */}
+            <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+              {/* AI Feedback Card */}
+              <div className="card glass relative overflow-hidden border-brand-800/50">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-400 to-accent-400" />
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="text-2xl">🤖</div>
+                  <h2 className="text-lg font-bold text-white">AI Feedback</h2>
+                </div>
+                <p className="text-gray-300 text-sm leading-relaxed">
+                  {isLoading ? 'Analyzing your recent driving behavior...' : (stats?.ai_feedback || 'Complete a session to receive personalized AI driver coaching.')}
                 </p>
               </div>
-              <div className="ml-auto badge-info">Coming Soon</div>
+
+              {/* Recommended Lessons */}
+              <div className="card">
+                <h2 className="text-lg font-bold text-white mb-4">Recommended For You</h2>
+                <div className="space-y-3">
+                  {lessons.length === 0 && !isLoading && (
+                     <p className="text-gray-400 text-sm">No lessons recommended right now.</p>
+                  )}
+                  {lessons.slice(0, 2).map((lesson) => (
+                    <div key={lesson.id} className="bg-surface-600/50 rounded-lg p-3 flex items-center justify-between group cursor-pointer hover:bg-surface-600 transition-colors border border-transparent hover:border-brand-800/30">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="text-sm font-semibold text-gray-200">{lesson.title}</h4>
+                          <span className="text-[10px] uppercase font-bold bg-brand-900/40 text-brand-400 px-2 py-0.5 rounded-full">{lesson.difficulty}</span>
+                        </div>
+                        <p className="text-xs text-gray-400 line-clamp-1">{lesson.description}</p>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-brand-400" />
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </main>
         </div>

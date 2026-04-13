@@ -1,14 +1,16 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { eventTriggered, eventResolved, sessionEnded } from '@/store/sessionSlice';
+import { fetchProgressData } from '@/store/progressSlice';
 import { postEvent } from '@/api/events';
-import { endSession } from '@/api/sessions';
+import { completeSession } from '@/api/sessions';
 import toast from 'react-hot-toast';
 import DistractionEvent from './DistractionEvent';
 import DecisionButtons from './DecisionButtons';
 import Timer from './Timer';
 import { CheckCircle, XCircle, Car, StopCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 // The 3 scenarios for Week 1
 const SCENARIOS = [
@@ -47,6 +49,7 @@ interface ScenarioContainerProps {
 
 export default function ScenarioContainer({ sessionId }: ScenarioContainerProps) {
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const { currentEvent, eventsCount, score, lastDecision, lastScoreDelta } = useAppSelector(
     (state) => state.session
   );
@@ -112,12 +115,14 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
       else toast.error(`⚠️ Risky! ${result.score_delta} pts`);
 
       // Check if all events done
-      if (eventsCount + 1 >= TOTAL_EVENTS) {
+      console.log(`[Simulation] Handled event. eventsCount is ${eventsCount}/${TOTAL_EVENTS}`);
+      if (eventsCount >= TOTAL_EVENTS) {
         // End session
-        await endSession(sessionId);
-        dispatch(sessionEnded());
+        await completeSession(sessionId);
         setFinalScore(result.new_score);
         setIsFinished(true);
+        // Sync Redux proactively so dashboard is instantly updated
+        dispatch(fetchProgressData());
       } else {
         // Trigger next after a short pause
         setTimeout(() => {
@@ -173,9 +178,12 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
           </p>
 
           <div className="flex gap-3">
-            <Link href="/dashboard" className="flex-1">
-              <button className="btn-secondary w-full">View Dashboard</button>
-            </Link>
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="btn-secondary flex-1"
+            >
+              View AI Feedback & Progress
+            </button>
             <button
               onClick={() => window.location.reload()}
               className="btn-primary flex-1"
