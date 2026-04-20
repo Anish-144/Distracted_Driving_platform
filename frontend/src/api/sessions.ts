@@ -34,7 +34,7 @@ export async function createSession(): Promise<SessionData> {
  * Fetch a session by ID.
  */
 export async function getSession(sessionId: string): Promise<SessionData> {
-  const response = await client.get<SessionData>(`/api/session/${sessionId}`);
+  const response = await client.get<SessionData>(`/session/${sessionId}`);
   return response.data;
 }
 
@@ -42,7 +42,7 @@ export async function getSession(sessionId: string): Promise<SessionData> {
  * End/close an active session.
  */
 export async function endSession(sessionId: string): Promise<SessionData> {
-  const response = await client.post<SessionData>(`/api/session/${sessionId}/end`);
+  const response = await client.post<SessionData>(`/session/${sessionId}/end`);
   return response.data;
 }
 
@@ -50,7 +50,7 @@ export async function endSession(sessionId: string): Promise<SessionData> {
  * Get current score for a session.
  */
 export async function getSessionScore(sessionId: string): Promise<ScoreData> {
-  const response = await client.get<ScoreData>(`/api/session/${sessionId}/score`);
+  const response = await client.get<ScoreData>(`/session/${sessionId}/score`);
   return response.data;
 }
 
@@ -66,6 +66,6 @@ export async function getLatestSession(): Promise<LatestSessionData> {
  * Mark a session as complete after simulation.
  */
 export async function completeSession(sessionId: string): Promise<SessionData> {
-  const response = await client.post<SessionData>(`/api/session/${sessionId}/complete`);
+  const response = await client.post<SessionData>(`/session/${sessionId}/complete`);
   return response.data;
 }

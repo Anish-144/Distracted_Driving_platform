@@ -12,7 +12,7 @@ from app.models.lesson import Lesson, LessonTag
 from app.services import auth_service
 
 async def seed_test_user():
-    print("🔋 Initializing database...")
+    print("--- Initializing database ---")
     await init_db()
     
     async with AsyncSessionLocal() as session:
@@ -22,9 +22,9 @@ async def seed_test_user():
         user = result.scalar_one_or_none()
         
         if user:
-            print(f"✅ User {email} already exists!")
+            print(f"User {email} already exists!")
         else:
-            print(f"👤 Creating test user: {email}")
+            print(f"Creating test user: {email}")
             hashed_password = auth_service.hash_password("password123")
             new_user = User(
                 name="Test Driver",
@@ -33,13 +33,13 @@ async def seed_test_user():
             )
             session.add(new_user)
             await session.commit()
-            print("🚀 Test user created successfully!")
+            print("Test user created successfully!")
 
         # Seed lessons
         result = await session.execute(select(Lesson))
         existing_lessons = result.scalars().all()
         if not existing_lessons:
-            print("📚 Seeding lessons...")
+            print("Seeding lessons...")
             lessons_to_add = [
                 Lesson(title="Impulse Control While Driving", description="Learn how to delay your reaction to sudden notifications.", difficulty="Intermediate", tag=LessonTag.IMPULSIVE),
                 Lesson(title="Managing Digital Distractions", description="Step-by-step guide to using your phone's 'Do Not Disturb' effectively.", difficulty="Beginner", tag=LessonTag.DISTRACTED),
@@ -48,7 +48,7 @@ async def seed_test_user():
             ]
             session.add_all(lessons_to_add)
             await session.commit()
-            print("✅ Lessons seeded successfully!")
+            print("Lessons seeded successfully!")
 
 if __name__ == "__main__":
     asyncio.run(seed_test_user())

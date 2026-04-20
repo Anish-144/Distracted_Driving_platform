@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import init_db
-from app.routes import auth, sessions, events, lessons, progress
+from app.routes import auth, user, sessions, events, lessons, progress
 
 
 # ─── Lifespan ────────────────────────────────────────────────────────────────
@@ -59,6 +59,7 @@ app.add_middleware(
 # ─── Routers ──────────────────────────────────────────────────────────────────
 
 app.include_router(auth.router)
+app.include_router(user.router)
 app.include_router(sessions.router)
 app.include_router(events.router)
 app.include_router(lessons.router)

@@ -40,8 +40,8 @@ const SCENARIOS = [
   },
 ];
 
-const TOTAL_EVENTS = 3; // One of each scenario
-const EVENT_TIMEOUT = 8; // Seconds to respond
+const TOTAL_EVENTS = 5; // More challenges
+const EVENT_TIMEOUT = 10; // Slightly more time for considered responses
 
 interface ScenarioContainerProps {
   sessionId: string;
@@ -64,7 +64,10 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
     if (eventsCount >= TOTAL_EVENTS) {
       return;
     }
-    const scenario = SCENARIOS[eventsCount % SCENARIOS.length];
+    // Randomize scenario a bit so it's not always the same order
+    const randomIndex = Math.floor(Math.random() * SCENARIOS.length);
+    const scenario = SCENARIOS[randomIndex];
+    
     dispatch(
       eventTriggered({
         id: `${sessionId}-event-${eventsCount + 1}`,
@@ -92,7 +95,6 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
     setIsProcessing(true);
 
     const responseTime = eventStartTime ? (Date.now() - eventStartTime) / 1000 : 5;
-    const scenario = SCENARIOS.find((s) => s.event_type === currentEvent.event_type);
 
     try {
       const result = await postEvent({
@@ -114,17 +116,17 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
       if (isGood) toast.success(`✅ Safe decision! ${result.score_delta > 0 ? `+${result.score_delta} pts` : ''}`);
       else toast.error(`⚠️ Risky! ${result.score_delta} pts`);
 
-      // Check if all events done
-      console.log(`[Simulation] Handled event. eventsCount is ${eventsCount}/${TOTAL_EVENTS}`);
+      // Check if all events done.
+      // At this point, eventsCount is the number of events triggered SO FAR (including the one just resolved).
       if (eventsCount >= TOTAL_EVENTS) {
-        // End session
+        // End session — all scenarios completed
         await completeSession(sessionId);
         setFinalScore(result.new_score);
         setIsFinished(true);
         // Sync Redux proactively so dashboard is instantly updated
         dispatch(fetchProgressData());
       } else {
-        // Trigger next after a short pause
+        // Trigger next scenario after a short pause
         setTimeout(() => {
           triggerNextEvent();
         }, 2000);
@@ -175,6 +177,11 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
           <p className="text-gray-400 text-sm mb-6">
             You completed {TOTAL_EVENTS} distraction scenarios. 
             {finalScore >= 70 ? ' Great safe driving instincts!' : ' Keep practicing to improve!'}
+            {lastScoreDelta !== null && (
+              <span className="block mt-2 font-medium text-brand-400">
+                Performance Change: {lastScoreDelta > 0 ? '+' : ''}{lastScoreDelta} pts in this session
+              </span>
+            )}
           </p>
 
           <div className="flex gap-3">
@@ -202,7 +209,7 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
       {/* Progress */}
       <div className="flex items-center gap-3 mb-4">
         <span className="text-sm text-gray-400">
-          Scenario {eventsCount + (currentEvent ? 0 : 0)} of {TOTAL_EVENTS}
+          Scenario {currentEvent ? eventsCount : eventsCount} of {TOTAL_EVENTS}
         </span>
         <div className="flex-1 bg-surface-600 rounded-full h-1.5">
           <div

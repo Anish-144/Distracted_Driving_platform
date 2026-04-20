@@ -1,3 +1,4 @@
+import React from 'react';
 import { Phone, MessageCircle, Navigation } from 'lucide-react';
 
 interface Scenario {

@@ -175,7 +175,7 @@ export default function DashboardPage() {
                   <div className="space-y-2">
                     {[
                       { label: 'View Progress', icon: TrendingUp, href: '/dashboard/progress' },
-                      { label: 'My Sessions', icon: Activity, href: '/dashboard/sessions' },
+                      { label: 'Learning Center', icon: Activity, href: '/lessons' },
                     ].map((action) => (
                       <Link key={action.label} href={action.href}>
                         <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-600 transition-colors cursor-pointer group">

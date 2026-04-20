@@ -42,6 +42,6 @@ export async function postEvent(payload: PostEventPayload): Promise<EventResult>
  * Fetch a specific event record.
  */
 export async function getEvent(eventId: string): Promise<EventResult> {
-  const response = await client.get<EventResult>(`/api/event/${eventId}`);
+  const response = await client.get<EventResult>(`/event/${eventId}`);
   return response.data;
 }

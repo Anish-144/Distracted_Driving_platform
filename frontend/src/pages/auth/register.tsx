@@ -53,8 +53,8 @@ export default function RegisterPage() {
           token: response.access_token,
         })
       );
-      toast.success(`Welcome aboard, ${response.name}! Let's get started. 🚀`);
-      router.push('/dashboard');
+      toast.success(`Welcome aboard, ${response.name}! Let's get started with a quick quiz. 🚀`);
+      router.push('/onboarding');
     } catch (err: any) {
       const msg = err?.response?.data?.detail || 'Registration failed. Please try again.';
       toast.error(msg);
