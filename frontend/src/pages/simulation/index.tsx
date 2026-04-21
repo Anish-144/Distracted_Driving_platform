@@ -6,6 +6,7 @@ import { useAppSelector, useAppDispatch } from '@/store';
 import { sessionStarted, sessionEnded, sessionReset } from '@/store/sessionSlice';
 import { createSession } from '@/api/sessions';
 import Navbar from '@/components/layout/Navbar';
+import Sidebar from '@/components/layout/Sidebar';
 import ScenarioContainer from '@/components/simulation/ScenarioContainer';
 import ScoreDisplay from '@/components/simulation/ScoreDisplay';
 import { ArrowLeft, Info, PlayCircle, Loader2 } from 'lucide-react';
@@ -54,22 +55,26 @@ export default function SimulationPage() {
         <meta name="description" content="Practice responding to driving distractions in a safe training environment." />
       </Head>
 
-      <div className="min-h-screen bg-surface-900 flex flex-col">
-        <Navbar />
+      <div className="min-h-screen bg-gray-50 flex font-sans text-gray-900">
+        <Sidebar />
 
-        <main className="flex-1 p-6 lg:p-8">
-          {/* Header Bar */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <Link href="/dashboard">
-                <button className="btn-ghost flex items-center gap-2 text-sm">
+        <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+          <Navbar />
+
+          <main className="flex-1 p-6 lg:p-10 max-w-7xl mx-auto w-full">
+            {/* Header Bar */}
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <Link 
+                  href="/dashboard"
+                  className="bg-white px-3 py-1.5 border border-gray-200 rounded-md flex items-center gap-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors shadow-sm"
+                >
                   <ArrowLeft className="w-4 h-4" />
                   Dashboard
-                </button>
-              </Link>
-              <div className="w-px h-5 bg-surface-500" />
-              <h1 className="text-lg font-semibold text-white">Driving Simulation</h1>
-            </div>
+                </Link>
+                <div className="w-px h-5 bg-gray-300" />
+                <h1 className="text-xl font-semibold tracking-tight text-gray-900">Driving Simulation</h1>
+              </div>
 
             {isSimulating && (
               <ScoreDisplay score={score} />
@@ -79,23 +84,23 @@ export default function SimulationPage() {
           {/* Main Content */}
           {!isSimulating ? (
             /* Pre-simulation: Instructions + Start */
-            <div className="max-w-2xl mx-auto animate-fade-in">
+            <div className="max-w-2xl mx-auto animate-fade-in mt-4">
               {/* Intro Card */}
-              <div className="card mb-6 text-center">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 flex items-center justify-center mx-auto mb-4 text-4xl shadow-brand">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 lg:p-8 mb-8 text-center shadow-sm">
+                <div className="w-16 h-16 rounded-2xl bg-brand-50 border border-brand-100 flex items-center justify-center mx-auto mb-5 text-3xl shadow-sm">
                   🚗
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-2">Simulation Ready</h2>
-                <p className="text-gray-400 text-sm leading-relaxed">
+                <h2 className="text-xl font-semibold tracking-tight text-gray-900 mb-2.5">Ready to Drive?</h2>
+                <p className="text-gray-600 text-sm leading-relaxed max-w-md mx-auto">
                   You&apos;ll face realistic driving distractions. For each event, decide to{' '}
-                  <span className="text-brand-400 font-medium">ignore it safely</span> or{' '}
-                  <span className="text-red-400 font-medium">interact with it</span>.
+                  <span className="text-brand-600 font-medium bg-brand-50 px-1 py-0.5 rounded">ignore it safely</span> or{' '}
+                  <span className="text-red-600 font-medium bg-red-50 px-1 py-0.5 rounded">interact with it</span>.
                   Your reaction time and choices affect your score.
                 </p>
               </div>
 
               {/* Scenarios preview */}
-              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">
+              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 px-1">
                 Scenarios You May Encounter
               </h3>
               <div className="grid gap-3 mb-6">
@@ -122,27 +127,27 @@ export default function SimulationPage() {
                     diffColor: 'badge-danger',
                   },
                 ].map((s) => (
-                  <div key={s.name} className="card-elevated flex items-center gap-4">
-                    <div className="text-3xl w-12 text-center flex-shrink-0">{s.icon}</div>
+                  <div key={s.name} className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-4 hover:border-gray-300 transition-colors shadow-sm">
+                    <div className="w-12 h-12 bg-gray-50 border border-gray-100 rounded-md flex items-center justify-center text-2xl flex-shrink-0">{s.icon}</div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-gray-200 text-sm">{s.name}</span>
-                        <span className={s.diffColor}>{s.difficulty}</span>
+                        <span className="font-semibold text-gray-900 text-sm leading-none">{s.name}</span>
+                        <span className="text-[10px] bg-white border border-gray-200 text-gray-600 font-medium px-1.5 py-0.5 rounded leading-none">{s.difficulty}</span>
                       </div>
-                      <p className="text-gray-400 text-xs">{s.desc}</p>
+                      <p className="text-gray-500 text-xs mt-1">{s.desc}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
               {/* Rules */}
-              <div className="glass rounded-xl p-4 mb-6 flex gap-3">
-                <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-gray-300">
-                  <span className="font-medium text-white">Scoring: </span>
-                  Safe decisions earn <span className="text-brand-400">+10 pts</span>. 
-                  Risky interactions lose <span className="text-red-400">-15 to -20 pts</span>.
-                  Reaction time matters — faster safe decisions are better.
+              <div className="bg-blue-50 border border-blue-100 rounded-lg p-5 mb-8 flex gap-3.5 items-start shadow-sm">
+                <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-blue-900 leading-relaxed">
+                  <span className="font-semibold text-blue-900 block mb-1">Scoring Rules</span>
+                  Safe decisions earn <span className="text-green-700 font-medium bg-green-100/50 px-1 rounded">+10 pts</span>. 
+                  Risky interactions lose <span className="text-red-700 font-medium bg-red-100/50 px-1 rounded">-15 to -20 pts</span>.
+                  Reaction time scaling applies.
                 </div>
               </div>
 
@@ -170,6 +175,7 @@ export default function SimulationPage() {
             <ScenarioContainer sessionId={sessionId!} />
           )}
         </main>
+        </div>
       </div>
     </>
   );

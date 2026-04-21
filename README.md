@@ -1,59 +1,246 @@
 # 🛡️ SafeDrive AI — Distracted Driving Platform MVP
 
-SafeDrive AI is a behavioral training platform designed to combat distracted driving through interactive simulations and AI-driven feedback.
+SafeDrive AI is a behavioral training platform designed to combat distracted driving through interactive simulations and real-time behavioral analysis.
 
-## 🚀 First Phase: Foundation & Core Architecture (Week 1)
+## 🎯 Why SafeDrive AI
 
-In this initial phase, we have established the full-stack architecture, essential security patterns, and the baseline user experience.
+SafeDrive AI simulates real-world distracted driving conditions to provide measurable behavioral feedback. Unlike static learning tools, it:
 
-### ✅ Milestones Achieved
-### 🏗️ Working Prototype Modules
-The following modules are fully functional in the current `v0.1.0` prototype:
+*   **Adapts** to user performance in real-time.
+*   **Identifies** specific behavioral weaknesses.
+*   **Tracks** long-term cognitive and reflex improvement.
 
-#### 🔐 Authentication & Identity
-- **JWT Flow**: Complete registration, login, and `/me` profile retrieval.
-- **Security**: Robust password hashing using `bcrypt`.
-- **Dev Bypass**: A dedicated "Bypass (Dev Test)" button on the login page for rapid internal testing.
+This transforms the platform from a simple simulator into a comprehensive behavioral training system.
 
-#### 📊 User Dashboard
-- **Live Stats**: Overview of Safety Score, Sessions Completed, and Avg. Response Time.
-- **Responsive UI**: Premium dark theme with glassmorphism, animations (Framer Motion), and mobile-friendly layouts.
-- **Navigation**: Sidebar with routing to Simulation, Lessons, and Progress.
+## 🚀 Product Engineering Audit & Current State
 
-#### 🎮 Simulation Foundation
-- **Scenario Host**: A `ScenarioContainer` component ready to load behavioral events.
-- **Event Framework**: Support for different distraction types (e.g., Phone Call, WhatsApp Alert, GPS Notification).
-- **Decision UI**: Interactive buttons for user response capture.
+## ✅ Verified Features (What Works)
 
-#### 🗄️ Core Infrastructure
-- **Async Database**: Fully integrated SQLite database using `aiosqlite` for easy local development.
-- **API Proxy**: Frontend configured with Next.js `rewrites` to handle seamless backend communication on `localhost`.
-- **Seed System**: Standalone script to initialize and populate the test environment.
+Based on the current implementation, the following features are fully functional:
 
-### 👤 Current User Journey
-In the current prototype, a user can:
-1.  **Identity Management**: Securely create an account or sign in with existing credentials.
-2.  **Quick Access**: Immediately enter the environment using the **Bypass (Dev Test)** button.
-3.  **Analyze Progress**: Review their current Safety Score and behavioral metrics on the Dashboard.
-4.  **Explore Training**: Navigate to the **Simulation Stage**, where they can view the foundational scenario container for distraction training.
-5.  **Interactive Steering**: Engage with a premium, responsive interface designed for both desktop and mobile behavioral tracking.
+### 🎮 Simulation Engine
+
+* Interactive distraction scenarios (Phone Calls, WhatsApp, GPS Alerts)
+* Sequential, timed event-based simulation system driven by a controlled event loop
+* Anti-repetition logic to prevent identical scenario spam
+* Reaction-time based decision tracking
+
+---
+
+### ⚙️ Dynamic Adaptive Difficulty Engine
+
+* Difficulty adjusts based on **recent performance (rolling history)**
+* Smooth scaling using weighted performance (not binary success/failure)
+* Features:
+
+  * Controlled timing variance
+  * Difficulty floor & ceiling (prevents extremes)
+  * Weighted urgency-based scenario selection
+
+---
+
+### 🧠 Behavioral Insight Engine
+
+* Rule-based behavioral analysis (no ML)
+* Detects:
+
+  * Cognitive fatigue
+  * High-pressure reaction slowdown
+  * Scenario-specific weaknesses (e.g., phone distractions)
+* Uses real session data (reaction time + scenario type)
+
+---
+
+### 🌍 Global Benchmarking System
+
+* Percentile ranking:
+
+  > “You are faster & safer than X% of users”
+* Based on:
+
+  * Reaction speed (70%)
+  * Decision accuracy (30%)
+* Uses logistic S-curve (synthetic distribution)
+* Includes:
+
+  * Percentile smoothing (prevents sharp drops)
+  * Delta tracking (improvement / decline / steady)
+
+---
+
+### 🧠 Insight + Benchmark Fusion
+
+* Combines behavioral insights with ranking:
+
+  > “You are faster than 78% of users, but your reactions slow under high-pressure distractions”
+* Creates context-aware feedback instead of isolated metrics
+
+---
+
+### 📊 Progress Tracking Timeline
+
+* Tracks last **10 sessions**
+* Stores:
+
+  * Percentile + timestamp
+* Displays:
+
+  * Session-wise performance
+  * Micro-deltas (↑ / ↓ / steady)
+  * Overall trend:
+
+    > “Improved by +X% over last N sessions”
+* Includes:
+
+  * Safe reverse rendering
+  * Schema migration for legacy data
+  * Timestamp formatting for real-time feel
+
+---
+
+### 🔁 Cross-Session Persistence (Hardened LocalStorage)
+
+Stored locally with **v1 Schema Validation**:
+
+* Last session percentile
+* Percentile delta (improvement/steady/decline)
+* Personal best score
+* Top 2 insights
+* Session timeline history (auto-sanitizing)
+* **Integrity Guard**: Defensive parsing and schema validation ensure the app remains stable even under corrupted or partial browser storage states.
+
+---
+
+### 🗺️ System UX & Navigation
+
+* **Route-Matched Sidebar**: Navigation highlights are strictly tied to URL state (`usePathname`), preventing state-route desync.
+* **Unified SaaS Theme**: Standardized `bg-gray-50` and `brand-600` design system across Dashboard, Simulation, and Progress pages.
+* **Defensive Page Guards**: Synchronized authentication redirects and loading states.
+
+### 🏆 Personal Best Tracking
+
+* Tracks highest percentile achieved
+* Highlights:
+
+  * 🏆 New Personal Best
+* Prevents noisy updates via threshold control
+
+---
+
+### 📊 Dashboard Intelligence Layer
+
+Dashboard shows:
+
+* Latest percentile ranking
+* Improvement / decline badge
+* Personal best
+* Top behavioral insights
+* Fully persistent without rerunning simulation
+
+---
+
+## ⚠️ Known Limitations & Breakpoints
+
+### 1. LocalStorage Dependency
+
+* All analytics are client-side
+* Data is:
+
+  * Device-specific
+  * Lost on cache clear / incognito
+* No cross-device sync
+
+---
+
+### 2. Synthetic Benchmarking
+
+* Percentiles are mathematically generated
+* Not based on real user population
+* Can produce unrealistic jumps in edge cases
+
+---
+
+### 3. Rule-Based Insight System
+
+* No machine learning
+* Limited to predefined conditions
+* Can become repetitive with extended usage
+
+---
+
+### 4. Simulation Engine Constraints
+
+* Timing logic tied to React lifecycle
+* No real-time engine (e.g., game loop / Web Worker)
+* Not resilient to browser throttling in background tabs
+
+---
+
+### 5. Scenario Diversity Sensitivity
+
+* Weighted selection may bias certain scenarios if not tuned
+* Requires balancing when new scenarios are added
+
+---
+
+### 6. Timeline Accuracy Trade-offs
+
+* Based on smoothed percentile (not raw performance)
+* Trend may not perfectly reflect micro-improvements
+
+---
+
+### 7. UI/Layout Consistency Risks
+
+* Pages rely on shared layout
+* Misconfigured wrappers can cause:
+
+  * Dark/light theme mismatch
+  * Inconsistent UI blocks
+
+---
+
+## 📈 Required Improvements (What Needs Work Next)
+
+### 🥇 High Impact (Must Fix)
+
+* Replace synthetic percentile with **real backend aggregation**
+* Migrate `localStorage` analytics to persistent backend (Postgres / API)
+* Improve simulation timing (move away from `setTimeout` to stable engine loop)
+
+---
+
+### 🥈 Medium Impact
+
+* Expand scenario variety (multi-event overlap, realistic distractions)
+* Introduce trend-based insights across sessions
+* Improve insight diversity (reduce repetition)
+
+---
+
+### 🥉 Future Enhancements
+
+* ML-based behavioral modeling
+* Fleet / organization dashboard (B2B)
+* Hardware integration (Gamepad / WebHID)
+* Audio-based cognitive distraction simulation
 
 ---
 
 ## 🏗️ Architecture Stack
 
-### Backend (Python/FastAPI)
-- **API Framework**: FastAPI (Async)
-- **Database**: SQLAlchemy 2.0 with `aiosqlite` (Async SQLite)
-- **Security**: JWT (HS256) with `passlib` (Bcrypt)
-- **Validation**: Pydantic v2
+### Frontend
 
-### Frontend (TypeScript/Next.js)
-- **Framework**: Next.js 14 (App/Pages Router)
-- **Styling**: Tailwind CSS + Framer Motion (for animations)
-- **State Management**: Redux Toolkit
-- **Icons**: Lucide React
-- **Notifications**: React Hot Toast
+* Next.js 14
+* React Hooks + Refs
+* Tailwind CSS
+* LocalStorage-based analytics
+
+### Backend (Extensible)
+
+* FastAPI (planned/partial usage)
+* SQLAlchemy
+* JWT Authentication
 
 ---
 
@@ -108,7 +295,14 @@ docker-compose up --build
 
 ---
 
-## 📅 Roadmap (Next Steps)
-- **Week 2**: Behavioral Loop Integration (Simulation Engine → Voice Input → Evaluation).
-- **Week 3**: AI Integration (Gemini/Groq) for real-time voice feedback.
-- **Week 4**: Advanced Analytics & Gamification.
+## 📅 Next Architectural Epics
+
+* B2B multi-tenancy (fleet dashboards)
+* Predictive risk modeling (ML pipeline)
+* Hardware integration (WebHID)
+
+---
+
+## 📌 One-Line Summary
+
+> A real-time adaptive driving simulation platform that analyzes behavior, benchmarks performance, and tracks user improvement over time.

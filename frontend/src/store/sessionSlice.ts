@@ -63,6 +63,11 @@ const sessionSlice = createSlice({
     scoreUpdated(state, action: PayloadAction<number>) {
       state.score = action.payload;
     },
+    sessionRestored(state, action: PayloadAction<{ score: number; eventsCount: number }>) {
+      state.score = action.payload.score;
+      state.eventsCount = action.payload.eventsCount;
+      state.isSimulating = true;
+    },
   },
 });
 
@@ -73,6 +78,7 @@ export const {
   eventTriggered,
   eventResolved,
   scoreUpdated,
+  sessionRestored,
 } = sessionSlice.actions;
 
 export default sessionSlice.reducer;
