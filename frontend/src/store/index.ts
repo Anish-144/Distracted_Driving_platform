@@ -3,12 +3,14 @@ import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import authReducer from './authSlice';
 import sessionReducer from './sessionSlice';
 import progressReducer from './progressSlice';
+import aiReducer from './aiSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     session: sessionReducer,
     progress: progressReducer,
+    ai: aiReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

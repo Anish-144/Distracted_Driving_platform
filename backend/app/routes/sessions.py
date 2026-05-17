@@ -17,11 +17,14 @@ from pydantic import BaseModel
 from typing import List
 
 from app.database import get_db
-from app.models.user import User
+from app.models.user import User, ProfileType
 from app.models.session import Session as DBSession
 from app.models.event import Event, UserResponseType
 from app.routes.auth import get_current_user
 from app.services import session_service
+from app.services.session_memory import clear as clear_memory
+from app.services.phrase_pools import clear_session as clear_pool
+from app.services.behavior_analyzer import behavior_analyzer
 
 router = APIRouter(prefix="/api/session", tags=["Sessions"])
 
@@ -158,6 +161,25 @@ async def end_session(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
     updated = await session_service.end_session(db, session_id)
+    
+    # Safely update user profile based on this session's behavior in a POST route
+    summary = await behavior_analyzer.get_summary(db, current_user.id)
+    new_profile = current_user.profile_type
+    
+    if summary.dominant_pattern == "impulsive":
+        new_profile = ProfileType.IMPULSIVE
+    elif summary.dominant_pattern == "distracted" or summary.dominant_pattern == "hesitant":
+        new_profile = ProfileType.DISTRACTIBLE
+    elif summary.dominant_pattern == "safe":
+        new_profile = ProfileType.RULE_FOLLOWING
+
+    if new_profile != current_user.profile_type:
+        current_user.profile_type = new_profile
+        db.add(current_user)
+        await db.commit()
+
+    clear_memory(session_id)
+    clear_pool(session_id)
     return SessionResponse(
         id=updated.id,
         user_id=updated.user_id,
@@ -175,22 +197,9 @@ async def complete_session(
 ):
     """
     Alias to mark a session as complete.
-    Calls session_service directly (not the route handler) to avoid FastAPI injection issues.
+    Calls end_session directly.
     """
-    session = await session_service.get_session_by_id(db, session_id)
-    if session is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
-    if session.user_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
-
-    updated = await session_service.end_session(db, session_id)
-    return SessionResponse(
-        id=updated.id,
-        user_id=updated.user_id,
-        score=updated.score,
-        start_time=updated.start_time.isoformat(),
-        end_time=updated.end_time.isoformat() if updated.end_time else None,
-    )
+    return await end_session(session_id, db, current_user)
 
 
 @router.get("/{session_id}/score", response_model=ScoreResponse)

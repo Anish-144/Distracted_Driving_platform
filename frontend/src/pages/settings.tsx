@@ -1,25 +1,32 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppSelector } from '@/store';
-import Navbar from '@/components/layout/Navbar';
-import Sidebar from '@/components/layout/Sidebar';
+import AppShell from '@/components/layout/AppShell';
+import { FadeUp } from '@/components/motion/ScrollReveal';
 import { Settings, User, Shield, Bell } from 'lucide-react';
+
+const CARD = 'bg-white rounded-2xl border border-gray-200/70 shadow-sm';
+const LABEL = 'text-[11px] font-bold uppercase tracking-[0.12em] text-gray-400';
 
 export default function SettingsPage() {
   const router = useRouter();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => { setIsMounted(true); }, []);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated && isMounted) {
       router.replace('/auth/login');
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, isMounted]);
 
+  if (!isMounted) return null;
   if (!isAuthenticated || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-10 h-10 rounded-full border-4 border-brand-600 border-t-transparent animate-spin" />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#f0fdf9' }}>
+        <div className="w-8 h-8 rounded-full border-2 border-emerald-600 border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -31,77 +38,85 @@ export default function SettingsPage() {
         <meta name="description" content="Manage your SafeDrive AI account settings and preferences." />
       </Head>
 
-      <div className="min-h-screen bg-gray-50 flex font-sans text-gray-900">
-        <Sidebar />
-
-        <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
-          <Navbar />
-
-          <main className="flex-1 p-6 lg:p-10 max-w-7xl mx-auto w-full">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="p-1.5 bg-brand-50 border border-brand-100 rounded-md">
-                 <Settings className="w-5 h-5 text-brand-600" />
-              </div>
-              <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Settings</h1>
+      <AppShell>
+        <FadeUp className="mb-8">
+          <p className={`${LABEL} text-emerald-600 mb-1`}>Preferences</p>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: '#ecfdf5', border: '1px solid #d1fae5' }}>
+               <Settings className="w-5 h-5 text-emerald-600" />
             </div>
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">Settings</h1>
+          </div>
+          <p className="text-sm text-gray-500 mt-2">Manage your account and privacy preferences.</p>
+        </FadeUp>
 
-            <div className="max-w-2xl space-y-6">
-              {/* Account Info */}
-              <div className="bg-white border border-gray-200 rounded-lg p-6 lg:p-8 shadow-sm">
-                <div className="flex items-center gap-3 mb-5 border-b border-gray-100 pb-4">
-                  <div className="w-10 h-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center">
-                    <User className="w-5 h-5 text-brand-600" />
-                  </div>
-                  <h2 className="text-lg font-semibold text-gray-900 tracking-tight">Account Information</h2>
+        <div className="max-w-3xl space-y-6">
+          {/* Account Info */}
+          <FadeUp delay={0.1}>
+            <div className={`${CARD} overflow-hidden`}>
+              <div className="px-6 py-5 border-b border-gray-100 flex items-center gap-3 bg-gray-50/50">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center">
+                  <User className="w-4 h-4 text-emerald-600" />
                 </div>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Full Name</label>
-                    <p className="text-gray-900 font-medium">{user.name}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Email Address</label>
-                    <p className="text-gray-900">{user.email}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Driver Profile</label>
-                    <p className="text-brand-600 font-semibold capitalize">
+                <h2 className="text-base font-bold text-gray-900 tracking-tight">Account Information</h2>
+              </div>
+              <div className="p-6 grid gap-6 sm:grid-cols-2">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Full Name</label>
+                  <p className="text-gray-900 font-medium text-sm">{user.name}</p>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Email Address</label>
+                  <p className="text-gray-900 font-medium text-sm">{user.email}</p>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Driver Profile</label>
+                  <div className="inline-flex items-center px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-100">
+                    <p className="text-emerald-700 font-semibold text-sm capitalize">
                       {user.profile_type === 'unknown' ? 'Not assessed yet — complete a simulation' : user.profile_type.replace('_', ' ')}
                     </p>
                   </div>
                 </div>
               </div>
+            </div>
+          </FadeUp>
 
-              {/* Privacy */}
-              <div className="bg-white border border-gray-200 rounded-lg p-6 lg:p-8 shadow-sm">
-                <div className="flex items-center gap-3 mb-5 border-b border-gray-100 pb-4">
-                  <div className="w-10 h-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center">
-                    <Shield className="w-5 h-5 text-brand-600" />
-                  </div>
-                  <h2 className="text-lg font-semibold text-gray-900 tracking-tight">Privacy & Safety</h2>
+          {/* Privacy */}
+          <FadeUp delay={0.15}>
+            <div className={`${CARD} overflow-hidden`}>
+              <div className="px-6 py-5 border-b border-gray-100 flex items-center gap-3 bg-gray-50/50">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center">
+                  <Shield className="w-4 h-4 text-blue-600" />
                 </div>
-                <p className="text-sm text-gray-600 leading-relaxed max-w-lg">
+                <h2 className="text-base font-bold text-gray-900 tracking-tight">Privacy & Safety</h2>
+              </div>
+              <div className="p-6">
+                <p className="text-sm text-gray-600 leading-relaxed max-w-2xl">
                   Your session data and behavioral analysis are stored securely and used only to personalize
                   your training experience. No data is shared with third parties.
                 </p>
               </div>
+            </div>
+          </FadeUp>
 
-              {/* Notifications */}
-              <div className="bg-white border border-gray-200 rounded-lg p-6 lg:p-8 shadow-sm">
-                <div className="flex items-center gap-3 mb-5 border-b border-gray-100 pb-4">
-                  <div className="w-10 h-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center">
-                    <Bell className="w-5 h-5 text-brand-600" />
-                  </div>
-                  <h2 className="text-lg font-semibold text-gray-900 tracking-tight">Notifications</h2>
+          {/* Notifications */}
+          <FadeUp delay={0.2}>
+            <div className={`${CARD} overflow-hidden`}>
+              <div className="px-6 py-5 border-b border-gray-100 flex items-center gap-3 bg-gray-50/50">
+                <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center">
+                  <Bell className="w-4 h-4 text-amber-600" />
                 </div>
-                <p className="text-sm text-gray-600 max-w-lg">
+                <h2 className="text-base font-bold text-gray-900 tracking-tight">Notifications</h2>
+              </div>
+              <div className="p-6">
+                <p className="text-sm text-gray-500 max-w-2xl">
                   Notification preferences will be available in a future update.
                 </p>
               </div>
             </div>
-          </main>
+          </FadeUp>
         </div>
-      </div>
+      </AppShell>
     </>
   );
 }

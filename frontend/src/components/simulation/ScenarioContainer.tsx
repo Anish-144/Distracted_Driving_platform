@@ -2,13 +2,22 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { eventTriggered, eventResolved, sessionEnded, sessionRestored } from '@/store/sessionSlice';
 import { fetchProgressData } from '@/store/progressSlice';
+import {
+  aiRequestStarted,
+  aiMessageReceived,
+  behaviorUpdated,
+  aiCleared,
+} from '@/store/aiSlice';
 import { postEvent } from '@/api/events';
 import { completeSession } from '@/api/sessions';
+import { fetchPressure, fetchFeedback, b64ToAudioUrl } from '@/api/ai';
 import toast from 'react-hot-toast';
 import DistractionEvent from './DistractionEvent';
 import DecisionButtons from './DecisionButtons';
+import AIDialogue from './AIDialogue';
 import Timer from './Timer';
-import { CheckCircle, XCircle, Car, StopCircle } from 'lucide-react';
+import VoiceInput from '@/components/VoiceInput';
+import { CheckCircle, XCircle, Car } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
@@ -46,44 +55,25 @@ interface ScenarioContainerProps {
   sessionId: string;
 }
 
+type SimulationState = 'IDLE' | 'EVENT_ACTIVE' | 'DECISION_PENDING' | 'COACHING_ACTIVE' | 'SESSION_COMPLETE';
+
 export default function ScenarioContainer({ sessionId }: ScenarioContainerProps) {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { currentEvent, eventsCount, score, lastDecision, lastScoreDelta } = useAppSelector(
     (state) => state.session
   );
+  const { enabled: aiEnabled } = useAppSelector((state) => state.ai);
+  const { user } = useAppSelector((state) => state.auth);
 
-  const [isFinished, setIsFinished] = useState(false);
+  const [simState, setSimState] = useState<SimulationState>('IDLE');
   const [finalScore, setFinalScore] = useState(score);
   const eventStartTimeRef = useRef<number | null>(null);
   const engineTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const aiCancelTokenRef = useRef<boolean>(false);
   const recentHistoryRef = useRef<number[]>([]);
   const sessionStatsRef = useRef<{ urgency: string; type: string; perfWeight: number }[]>([]);
-  const previousPercentileRef = useRef<number | null>(null);
-  const bestPercentileRef = useRef<number | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
 
-  // Initialize tracking anchors on mount
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-       let historicRanking = null;
-       try {
-           const payloadStr = localStorage.getItem('sd_dashboard_last_session');
-           if (payloadStr) {
-               const p = JSON.parse(payloadStr);
-               if (p && typeof p.percentile === 'number') historicRanking = p.percentile.toString();
-           }
-       } catch (e) {
-           console.warn('Simulation unparseable previous history');
-       }
-       
-       if (!historicRanking) historicRanking = localStorage.getItem('last_user_percentile'); // Fallback migration
-       if (historicRanking) previousPercentileRef.current = parseInt(historicRanking, 10);
-
-       const historicBest = localStorage.getItem('best_user_percentile');
-       if (historicBest) bestPercentileRef.current = parseInt(historicBest, 10);
-    }
-  }, []);
 
   // Dynamic Difficulty Factor (0.0 = Easy, 1.0 = Hard) based on rolling performance
   const getDifficultyFactor = useCallback(() => {
@@ -148,11 +138,40 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
     );
     // Pin deterministic timestamp totally decoupled from React render loops
     eventStartTimeRef.current = Date.now();
-  }, [dispatch, sessionId]);
+    setSimState('EVENT_ACTIVE');
+    aiCancelTokenRef.current = false; // reset cancel token for this event
+
+    // ── AI Passenger Pressure (non-blocking, best-effort) ──────────────────
+    if (aiEnabled) {
+      dispatch(aiRequestStarted());
+      fetchPressure({
+        session_id: sessionId,
+        event_type: scenario.event_type,
+        urgency: scenario.urgency as 'low' | 'medium' | 'high',
+        with_audio: true,
+      })
+        .then((res) => {
+          if (aiCancelTokenRef.current) return; // Stale promise discarded safely
+          const audioUrl = res.audio_b64 ? b64ToAudioUrl(res.audio_b64) : null;
+          dispatch(aiMessageReceived({
+            agent: res.agent,
+            text: res.text,
+            audioUrl,
+            provider: res.provider,
+          }));
+        })
+        .catch(() => {
+          if (aiCancelTokenRef.current) return;
+          // Silently ignore — AI coaching is enhancement, not critical path
+          dispatch(aiCleared());
+        });
+    }
+  }, [dispatch, sessionId, aiEnabled, getDifficultyFactor]);
+
 
   // Backup active session state with integrity checks
   useEffect(() => {
-    if (eventsCount > 0 && !isFinished) {
+    if (eventsCount > 0 && simState !== 'SESSION_COMPLETE') {
       localStorage.setItem(`simulation_${sessionId}`, JSON.stringify({ 
         eventsCount, 
         score,
@@ -160,23 +179,25 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
         timestamp: Date.now()
       }));
     }
-  }, [eventsCount, score, isFinished, sessionId]);
+  }, [eventsCount, score, simState, sessionId]);
 
   // Engine: Auto-trigger scenarios and handle session restoration
   useEffect(() => {
     // Clear any existing timer to prevent overlaps
     if (engineTimerRef.current) clearTimeout(engineTimerRef.current);
 
-    // Smooth scaled timing replacing hard thresholds
-    const difficultyFactor = getDifficultyFactor();
-    const baseDelay = 2500 - (1500 * difficultyFactor); // scales perfectly 2500ms -> 1000ms
-    const variance = (Math.random() - 0.5) * (baseDelay * 0.2); // ±10% controlled variance avoiding extreme spikes
-    const spawnDelay = baseDelay + Math.round(variance);
+    if (simState === 'IDLE') {
+      const difficultyFactor = getDifficultyFactor();
+      
+      // More realistic breathing room: Baseline of 3.5s, scales down to 1.5s under high pressure
+      const baseDelay = 3500 - (2000 * difficultyFactor);
+      
+      // Human imperfection: ±30% variance creates unpredictability, avoiding a robotic metronome feel
+      const variance = (Math.random() - 0.5) * (baseDelay * 0.6);
+      const spawnDelay = baseDelay + Math.round(variance);
 
-    engineTimerRef.current = setTimeout(() => {
-      if (!currentEvent && !isFinished) {
+      engineTimerRef.current = setTimeout(() => {
         let activeCount = eventsCount;
-        
         // Recover state defensively on page reload
         if (activeCount === 0) {
           const backupKey = `simulation_${sessionId}`;
@@ -210,19 +231,49 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
         // Trigger next event if within limits
         if (activeCount < TOTAL_EVENTS) {
           triggerNextEvent(activeCount);
+        } else {
+          setSimState('SESSION_COMPLETE');
         }
-      }
-    }, spawnDelay);
+      }, spawnDelay);
+    }
 
     return () => {
       if (engineTimerRef.current) clearTimeout(engineTimerRef.current);
     };
-  }, [currentEvent, eventsCount, isFinished, sessionId, dispatch, triggerNextEvent]);
+  }, [simState, eventsCount, sessionId, dispatch, triggerNextEvent, getDifficultyFactor]);
+
+  // Cognitive Load / Escalation Engine (Phase 3)
+  const [secondaryDistraction, setSecondaryDistraction] = useState<string | null>(null);
+  useEffect(() => {
+    if (simState !== 'EVENT_ACTIVE' || !currentEvent) {
+      setSecondaryDistraction(null);
+      return;
+    }
+    
+    // If the user hasn't responded after 4 seconds, we add a secondary stressor
+    // This simulates real-world cognitive overlap (e.g. phone rings AND passenger speaks)
+    const loadTimer = setTimeout(() => {
+      const stressors = [
+        "A car suddenly brakes ahead!",
+        "Passenger: 'Are you going to answer that?!'",
+        "Navigation: 'Turn right in 50 meters!'",
+        "Phone starts vibrating aggressively."
+      ];
+      setSecondaryDistraction(stressors[Math.floor(Math.random() * stressors.length)]);
+    }, 4000);
+
+    return () => clearTimeout(loadTimer);
+  }, [simState, currentEvent]);
+
 
   // Handle user decision (respond/ ignore)
   const handleDecision = async (userResponse: 'ignored' | 'interacted' | 'no_response') => {
-    if (!currentEvent || isProcessing) return;
-    setIsProcessing(true);
+    if (simState !== 'EVENT_ACTIVE' || !currentEvent) return;
+    setSimState('DECISION_PENDING');
+    
+    // Invalidate any ongoing passenger pressure audio/promises
+    aiCancelTokenRef.current = true;
+    dispatch(aiCleared());
 
     const startTime = eventStartTimeRef.current;
     const responseTime = startTime ? (Date.now() - startTime) / 1000 : 5;
@@ -250,13 +301,12 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
       if (isGood) {
         const maxAllowedTime = 10 - (5 * getDifficultyFactor());
         perfWeight = 1 - (responseTime / maxAllowedTime);
-        perfWeight = Math.max(0, Math.min(1, perfWeight)); // Clamp between 0 and 1
+        perfWeight = Math.max(0, Math.min(1, perfWeight));
       }
       
       recentHistoryRef.current.push(perfWeight);
       if (recentHistoryRef.current.length > TOTAL_EVENTS) recentHistoryRef.current.shift();
 
-      // Track granular event stats for end-of-session behavioral insights
       const scenarioMeta = SCENARIOS.find((s) => s.event_type === currentEvent.event_type) || { urgency: 'medium' };
       sessionStatsRef.current.push({
          urgency: scenarioMeta.urgency,
@@ -267,24 +317,64 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
       if (isGood) toast.success(`✅ Safe decision! ${result.score_delta > 0 ? `+${result.score_delta} pts` : ''}`);
       else toast.error(`⚠️ Risky! ${result.score_delta} pts`);
 
-      // Check if all events done.
-      // At this point, eventsCount is the number of events triggered SO FAR (including the one just resolved).
-      if (eventsCount >= TOTAL_EVENTS) {
-        // End session — all scenarios completed
-        await completeSession(sessionId);
-        setFinalScore(result.new_score);
-        setIsFinished(true);
-        localStorage.removeItem(`simulation_${sessionId}`);
+      // ── AI Coaching Feedback (non-blocking, parallel with scoring) ─────────
+      if (aiEnabled) {
+        setSimState('COACHING_ACTIVE');
+        dispatch(aiRequestStarted());
         
-        // Sync Redux proactively so dashboard is instantly updated
-        dispatch(fetchProgressData());
+        try {
+          const res = await fetchFeedback({
+            session_id: sessionId,
+            event_type: currentEvent.event_type,
+            decision_type: result.decision_type,
+            response_time: Math.round(responseTime * 10) / 10,
+            score_delta: result.score_delta,
+            session_score: result.new_score,
+            urgency: (scenarioMeta.urgency as 'low' | 'medium' | 'high') || 'medium',
+            with_audio: true,
+          });
+          
+          const audioUrl = res.audio_b64 ? b64ToAudioUrl(res.audio_b64) : null;
+          dispatch(aiMessageReceived({
+            agent: res.agent as any,
+            text: res.text,
+            audioUrl,
+            provider: res.provider,
+          }));
+          dispatch(behaviorUpdated(res.behavior));
+          
+          // Wait for a few seconds to let them digest the coaching before moving to IDLE
+          // If we had an audio length, we could tie it to that. We use a flat 4s delay for coaching.
+          setTimeout(() => {
+            setSimState('IDLE');
+          }, 4000);
+          
+        } catch (e) {
+          dispatch(aiCleared());
+          setSimState('IDLE');
+        }
+      } else {
+        // No AI coaching, return to IDLE immediately
+        setSimState('IDLE');
       }
-      // Note: We don't manually trigger the next event here anymore.
-      // The Engine useEffect above watches `currentEvent` becoming null and handles it.
+
+      if (eventsCount >= TOTAL_EVENTS - 1) { // We used currentCount + 1, so wait till it's done
+        try {
+          await completeSession(sessionId);
+          setFinalScore(result.new_score);
+          setSimState('SESSION_COMPLETE');
+          localStorage.removeItem(`simulation_${sessionId}`);
+          dispatch(fetchProgressData());
+        } catch (e) {
+          toast.error("Session completed, but failed to sync final analytics.");
+          setFinalScore(result.new_score);
+          setSimState('SESSION_COMPLETE');
+        }
+      }
+
     } catch (err) {
       toast.error('Failed to record response. Try again.');
-    } finally {
-      setIsProcessing(false);
+      setSimState('EVENT_ACTIVE'); // Revert to let them try again only if postEvent itself fails
     }
   };
 
@@ -294,126 +384,14 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
   };
 
   // Session Finished View
-  if (isFinished) {
+  if (simState === 'SESSION_COMPLETE') {
     const grade = finalScore >= 90 ? { label: 'Excellent', color: 'text-brand-400', emoji: '🏆' }
       : finalScore >= 70 ? { label: 'Good', color: 'text-accent-400', emoji: '👍' }
       : finalScore >= 50 ? { label: 'Fair', color: 'text-orange-400', emoji: '💪' }
       : { label: 'Needs Work', color: 'text-red-400', emoji: '📚' };
 
-    // Lightweight Insight Generation & Benchmarking Calculation
-    const stats = sessionStatsRef.current;
-    
-    // Default values for rendering
-    let percentile = 50;
-    let deltaDisplay = null;
-    let behaviorMsg = null;
-    let bestDisplay = null;
-    let insights: string[] = [];
-    
-    if (stats.length > 0) {
-       // --- 1. Percentile Math
-       const avgSessionWeight = stats.reduce((acc, s) => acc + s.perfWeight, 0) / stats.length;
-       const compositeScore = (finalScore * 0.3) + (avgSessionWeight * 100 * 0.7);
-       
-       const pRaw = Math.round(100 / (1 + Math.exp(-0.15 * (compositeScore - 65))));
-       let p = Math.max(1, Math.min(99, pRaw));
-       
-       if (previousPercentileRef.current) {
-           p = Math.round((p * 0.7) + (previousPercentileRef.current * 0.3));
-       }
-       percentile = Math.max(1, Math.min(99, p));
-       
-       // --- 2. Growth/Decay Delta
-       let rawDelta = 0;
-       if (previousPercentileRef.current && previousPercentileRef.current > 0) {
-           rawDelta = percentile - previousPercentileRef.current;
-           if (Math.abs(rawDelta) >= 2) {
-               if (rawDelta > 0) {
-                   deltaDisplay = <span className="text-green-600 font-medium ml-1.5 px-1.5 py-0.5 bg-green-50 rounded-md text-[10px]">+{rawDelta}% improvement</span>;
-                   behaviorMsg = <p className="text-[10px] text-green-600 mt-1 font-medium">Faster reactions and sharper focus detected.</p>;
-               } else {
-                   deltaDisplay = <span className="text-red-500 font-medium ml-1.5 px-1.5 py-0.5 bg-red-50 rounded-md text-[10px]">{rawDelta}% decline</span>;
-                   behaviorMsg = <p className="text-[10px] text-red-500 mt-1 font-medium">Slight hesitation or riskier choices slowed you down.</p>;
-               }
-           } else {
-               deltaDisplay = <span className="text-gray-400 font-medium ml-1.5 px-1.5 py-0.5 bg-gray-50 rounded-md text-[10px]">steady</span>;
-               behaviorMsg = <p className="text-[10px] text-gray-500 mt-1">Consistent performance maintained.</p>;
-           }
-       } else {
-           deltaDisplay = <span className="text-brand-600 font-medium ml-1.5 px-1.5 py-0.5 bg-brand-50 rounded-md text-[10px]">baseline set</span>;
-           behaviorMsg = <p className="text-[10px] text-brand-600 mt-1 font-medium">Your initial reflex benchmarks have been successfully analyzed.</p>;
-       }
-
-       // --- 3. Best Score Math
-       let newBest = percentile;
-       if (bestPercentileRef.current && bestPercentileRef.current > percentile) {
-           newBest = bestPercentileRef.current;
-           bestDisplay = <p className="text-[10px] text-gray-400 mt-0.5">Personal Best: <strong className="text-brand-600">{newBest}%</strong></p>;
-       } else if (bestPercentileRef.current && percentile >= bestPercentileRef.current) {
-           bestDisplay = <p className="text-[10px] text-yellow-600 mt-0.5 font-semibold">🏆 New Personal Best!</p>;
-       }
-       
-       // --- 4. Fused Insight Generation
-       const highUrg = stats.filter(s => s.urgency === 'high');
-       if (highUrg.length > 0) {
-          const avgHigh = highUrg.reduce((acc, s) => acc + s.perfWeight, 0) / highUrg.length;
-          if (avgHigh < 0.5) insights.push(`You are faster than ${percentile}% of users, but your reactions slow down under high-pressure distractions.`);
-          else if (avgHigh >= 0.8) insights.push(`At the top ${percentile}% globally, you show excellent focus and speed during sudden disruptions.`);
-       }
-       
-       if (stats.length >= 3) {
-          const earlyAvg = stats.slice(0, 2).reduce((a, b) => a + b.perfWeight, 0) / 2;
-          const lateAvg = stats.slice(-2).reduce((a, b) => a + b.perfWeight, 0) / 2;
-          if (earlyAvg - lateAvg > 0.3) insights.push(`Your overall rank is ${percentile}%, but performance degraded over consecutive events (indicative of cognitive fatigue).`);
-       }
-       
-       const phoneStats = stats.filter(s => s.type.toLowerCase().includes('call'));
-       if (phoneStats.length > 0 && phoneStats.reduce((a,b) => a+b.perfWeight, 0)/phoneStats.length < 0.6) {
-           insights.push(`Phone calls tend to severely disrupt your situational awareness compared to your baseline.`);
-       }
-       
-       // --- 5. Dashboard Persistence
-       if (typeof window !== 'undefined') {
-          let deltaStatus = 'steady';
-          if (rawDelta >= 2) deltaStatus = 'improvement';
-          else if (rawDelta <= -2) deltaStatus = 'decline';
-          else if (!previousPercentileRef.current) deltaStatus = 'baseline';
-
-          // Packaged, versioned payload ensures no fragmented memory
-          const sessionPayload = {
-             v: 1, 
-             unix_timestamp: Date.now(),
-             percentile,
-             delta: { val: rawDelta, status: deltaStatus },
-             // Length-safe array truncation protecting UI bounding boxes
-             insights: insights.slice(0, 2).map((ins) => ins.length > 140 ? ins.substring(0, 137) + '...' : ins)
-          };
-          
-          localStorage.setItem('sd_dashboard_last_session', JSON.stringify(sessionPayload));
-          // Track highest score completely agnostic of the latest bundle
-          localStorage.setItem('best_user_percentile', newBest.toString());
-          
-          // Generate Progress Timeline History (limit to last 10 sessions)
-          let historyArray: any[] = [];
-          try {
-             const storedHist = localStorage.getItem('sd_percentile_history');
-             if (storedHist) {
-                const parsed = JSON.parse(storedHist);
-                if (Array.isArray(parsed)) historyArray = parsed;
-             }
-             
-             // Schema migration fallback for legacy arrays
-             if (historyArray.length > 0 && historyArray.some(item => typeof item === 'number')) {
-                 historyArray = historyArray.map(item => 
-                     typeof item === 'number' ? { percentile: item, timestamp: Date.now() - 3600000 } : item
-                 );
-             }
-          } catch(e) {}
-          historyArray.push({ percentile, timestamp: Date.now() });
-          if (historyArray.length > 10) historyArray.shift();
-          localStorage.setItem('sd_percentile_history', JSON.stringify(historyArray));
-       }
-    }
+    // All percentile, ranking, and behavioral truth math is now handled exclusively by the backend API 
+    // (/api/progress/me) upon session completion. The frontend is strictly a visualization layer.
 
     return (
       <div className="max-w-md mx-auto animate-slide-up text-center">
@@ -444,36 +422,6 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
             {finalScore >= 70 ? ' Great safe driving instincts!' : ' Keep practicing to improve!'}
           </p>
 
-          {insights.length > 0 && (
-            <div className="text-left bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
-               {/* Global Benchmarking Section */}
-               <div className="flex items-center gap-3 mb-3 pb-3 border-b border-gray-200">
-                  <div className="w-8 h-8 flex items-center justify-center bg-white border border-gray-200 rounded shadow-sm text-lg">
-                    🌍
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-gray-900 flex items-center leading-tight">
-                        Global Ranking {deltaDisplay}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      You are faster & safer than <span className="font-semibold text-brand-600">{percentile}%</span> of tested drivers.
-                    </p>
-                    {behaviorMsg}
-                    {bestDisplay}
-                  </div>
-               </div>
-
-               <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Behavioral Insights</h3>
-               <ul className="space-y-1.5">
-                 {insights.map((insight, idx) => (
-                   <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
-                     <span className="text-brand-500 mt-0.5">•</span> 
-                     {insight}
-                   </li>
-                 ))}
-               </ul>
-            </div>
-          )}
 
           <div className="flex gap-3">
             <button
@@ -540,6 +488,14 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
                 scenario={SCENARIOS.find((s) => s.event_type === currentEvent.event_type)!}
                 instructionText={currentEvent.instruction_text || ''}
               />
+              
+              {/* Cognitive Load Overlap Overlay */}
+              {secondaryDistraction && (
+                <div className="mt-2 animate-bounce-short bg-red-900/40 border border-red-500/50 rounded-lg p-2 text-red-200 text-xs font-bold w-full max-w-xs text-center backdrop-blur-md shadow-lg shadow-red-900/20">
+                  ⚠️ {secondaryDistraction}
+                </div>
+              )}
+
               <Timer 
                 duration={Math.round(10 - (5 * getDifficultyFactor()))} 
                 onExpire={handleTimeout} 
@@ -550,17 +506,31 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
         </div>
       </div>
 
-      {/* Decision Buttons */}
+      {/* Decision Buttons + Voice Input */}
       {currentEvent && (
-        <DecisionButtons
-          onIgnore={() => handleDecision('ignored')}
-          onInteract={() => handleDecision('interacted')}
-          isDisabled={isProcessing}
-        />
+        <div className="flex items-center gap-3">
+          <div className="flex-1">
+            <DecisionButtons
+              onIgnore={() => handleDecision('ignored')}
+              onInteract={() => handleDecision('interacted')}
+              isDisabled={simState !== 'EVENT_ACTIVE'}
+            />
+          </div>
+          <VoiceInput
+            onDecision={handleDecision}
+            isActive={simState === 'EVENT_ACTIVE'}
+            isDisabled={simState !== 'EVENT_ACTIVE'}
+          />
+        </div>
       )}
 
+      {/* AI Coaching Dialogue */}
+      <div className="mt-3">
+        <AIDialogue />
+      </div>
+
       {/* Last decision feedback */}
-      {lastDecision && !currentEvent && !isFinished && (
+      {lastDecision && !currentEvent && (
         <div className={`glass rounded-xl p-3.5 flex items-center gap-3 mt-4 animate-fade-in shadow-sm border ${
           lastScoreDelta && lastScoreDelta > 0 ? 'border-brand-200 bg-brand-50/50' : 'border-red-200 bg-red-50/50'
         }`}>

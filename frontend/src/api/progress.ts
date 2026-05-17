@@ -1,5 +1,12 @@
 import apiClient from './client';
 
+export interface SessionTimelineEntry {
+  session_id: string;
+  timestamp: string;
+  score: number;
+  avg_reaction_time: number;
+}
+
 export interface ProgressStats {
   total_sessions: number;
   avg_score: number;
@@ -7,7 +14,9 @@ export interface ProgressStats {
   driver_type: string;
   ai_feedback: string;
   avg_reaction_time: number;
+  percentile: number;
   mistakes: { scenario: string; response: string }[];
+  timeline: SessionTimelineEntry[];
 }
 
 export const getMyProgress = async (): Promise<ProgressStats> => {

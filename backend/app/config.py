@@ -25,6 +25,18 @@ class Settings(BaseSettings):
     # CORS
     ALLOWED_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
 
+    # ── LLM Providers (set at least one) ────────────────────────────────────
+    GEMINI_API_KEY: str = ""
+    OPENAI_API_KEY: str = ""
+    DEEPSEEK_API_KEY: str = ""
+
+    # ── ElevenLabs TTS ───────────────────────────────────────────────────────
+    ELEVENLABS_API_KEY: str = ""
+    # Voice IDs — leave empty to use defaults
+    ELEVENLABS_PASSENGER_VOICE_ID: str = "EXAVITQu4vr4xnSDxMaL"  # Bella
+    ELEVENLABS_INSTRUCTOR_VOICE_ID: str = "onwK4e9ZLuTAKqWW03F9"  # Daniel
+    ELEVENLABS_AUTHORITY_VOICE_ID: str = "pNInz6obpgDQGcFmaJgB"   # Adam
+
     @property
     def origins_list(self) -> list[str]:
         return [o.strip() for o in self.ALLOWED_ORIGINS.split(",")]

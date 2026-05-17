@@ -1,38 +1,35 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAppSelector, useAppDispatch } from '@/store';
 import { fetchProgressData } from '@/store/progressSlice';
-import { getLatestSession, LatestSessionData } from '@/api/sessions';
+import { getLatestSession, LatestSessionData, isRequestCancelled as isSessionCancelled } from '@/api/sessions';
 import toast from 'react-hot-toast';
-import Navbar from '@/components/layout/Navbar';
-import Sidebar from '@/components/layout/Sidebar';
+import AppShell from '@/components/layout/AppShell';
+import { FadeUp } from '@/components/motion/ScrollReveal';
 import {
-  Shield,
-  TrendingUp,
-  Clock,
-  Zap,
-  PlayCircle,
-  ChevronRight,
-  Activity,
-  Car,
-  Phone,
-  MessageCircle,
-  MapPin,
-  AlertTriangle
+  Shield, TrendingUp, Clock, Car, PlayCircle, ChevronRight,
+  Activity, Phone, MessageCircle, MapPin, AlertTriangle, ArrowUpRight, Zap,
 } from 'lucide-react';
+
+// ── Design tokens (all in one place) ──────────────────────────────────────────
+const CARD = 'bg-white rounded-2xl border border-gray-200/70 shadow-sm';
+const LABEL = 'text-[11px] font-bold uppercase tracking-[0.12em] text-gray-400';
 
 export default function DashboardPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
-  const { stats, lessons, isLoading } = useAppSelector((state) => state.progress);
-  const { score: reduxScore } = useAppSelector((state) => state.session);
+  const { isAuthenticated, user } = useAppSelector((s) => s.auth);
+  const { stats, lessons, isLoading } = useAppSelector((s) => s.progress);
+  const { score: reduxScore } = useAppSelector((s) => s.session);
 
   const [latestData, setLatestData] = useState<LatestSessionData | null>(null);
+  const [isFetchingLatest, setIsFetchingLatest] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => { setIsMounted(true); }, []);
 
-  // Dashboard Cross-Session Tracker
   const [localSessionData, setLocalSessionData] = useState<{
     percentile: string | number | null;
     best: string | number | null;
@@ -41,93 +38,87 @@ export default function DashboardPage() {
     timestamp: string | null;
   }>({ percentile: null, best: null, delta: null, insights: null, timestamp: null });
 
-  // Guard — redirect if not authenticated
+  // ── Latest session fetch ─────────────────────────────────────────────────
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.replace('/auth/login');
-    } else {
-      // Fetch Latest Session and Progress Data concurrently
-      Promise.all([
-        dispatch(fetchProgressData()).unwrap().catch(() => { }), // Ignore redux silent fail for dashboard
-        getLatestSession()
-      ])
-        .then(([_, res]) => {
-          setLatestData(res);
-        })
-        .catch((e) => {
-          console.error("Failed to fetch latest session:", e);
-          toast.error("Network issue: Failed to fetch recent dashboard data.");
-        });
-    }
+    if (!isAuthenticated) return;
+    const controller = new AbortController();
+    abortRef.current = controller;
+    setIsFetchingLatest(true);
+    getLatestSession(controller.signal)
+      .then((res) => { setLatestData(res); })
+      .catch((err) => {
+        if (isSessionCancelled(err)) return;
+        const status = err?.response?.status;
+        if (!status || status >= 500) return; // backend down — silent
+        toast.error('Could not load your latest session data.');
+      })
+      .finally(() => { if (!controller.signal.aborted) setIsFetchingLatest(false); });
+    return () => { controller.abort(); setIsFetchingLatest(false); };
+  }, [isAuthenticated]);
+
+  // ── Progress fetch ───────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!isAuthenticated) { router.replace('/auth/login'); return; }
+    dispatch(fetchProgressData()).unwrap().catch(() => {});
   }, [isAuthenticated, router, dispatch]);
 
-  // Safely grab cross-session persistence data (Percentiles & Insights)
+  // ── localStorage cache ───────────────────────────────────────────────────
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const payloadStr = localStorage.getItem('sd_dashboard_last_session');
-        const b = localStorage.getItem('best_user_percentile');
-
-        if (payloadStr) {
-          const payload = JSON.parse(payloadStr);
-
-          // Verify v1 schema integrity before mounting payload
-          if (payload &&
-            payload.v === 1 &&
-            payload.percentile !== undefined &&
-            payload.delta &&
-            typeof payload.delta.val === 'number' &&
-            typeof payload.delta.status === 'string'
-          ) {
-            const formattedTime = payload.unix_timestamp
-              ? new Date(payload.unix_timestamp).toLocaleString(undefined, {
-                hour: 'numeric',
-                minute: '2-digit',
-                month: 'short',
-                day: 'numeric',
-                hour12: true
-              })
-              : null;
-
-            setLocalSessionData({
-              percentile: payload.percentile,
-              best: b || payload.percentile.toString(),
-              delta: payload.delta,
-              insights: Array.isArray(payload.insights)
-                ? payload.insights.filter((i: unknown) => typeof i === 'string')
-                : null,
-              timestamp: formattedTime
-            });
-          } else {
-            // Corrupted or outdated schema detected
-            localStorage.removeItem('sd_dashboard_last_session');
-          }
-        }
-      } catch (err) {
-        console.warn("Dashboard session persistence corrupted. Scrubbing cache.", err);
-        localStorage.removeItem('sd_dashboard_last_session');
-      }
-    }
+    try {
+      const payloadStr = localStorage.getItem('sd_dashboard_last_session');
+      const b = localStorage.getItem('best_user_percentile');
+      if (!payloadStr) return;
+      const payload = JSON.parse(payloadStr);
+      if (
+        payload?.v === 1 && payload.percentile !== undefined &&
+        payload.delta && typeof payload.delta.val === 'number' &&
+        typeof payload.delta.status === 'string'
+      ) {
+        const formattedTime = payload.unix_timestamp
+          ? new Date(payload.unix_timestamp).toLocaleString(undefined, {
+              hour: 'numeric', minute: '2-digit', month: 'short', day: 'numeric', hour12: true,
+            })
+          : null;
+        setLocalSessionData({
+          percentile: payload.percentile,
+          best: b || payload.percentile.toString(),
+          delta: payload.delta,
+          insights: Array.isArray(payload.insights)
+            ? payload.insights.filter((i: unknown) => typeof i === 'string') : null,
+          timestamp: formattedTime,
+        });
+      } else { localStorage.removeItem('sd_dashboard_last_session'); }
+    } catch { localStorage.removeItem('sd_dashboard_last_session'); }
   }, []);
 
+  // ── Auth guard ───────────────────────────────────────────────────────────
+  if (!isMounted) return null;
   if (!isAuthenticated || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-8 h-8 rounded-full border-2 border-brand-600 border-t-transparent animate-spin" />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#f0fdf9' }}>
+        <div className="w-8 h-8 rounded-full border-2 border-emerald-600 border-t-transparent animate-spin" />
       </div>
     );
   }
 
-  // Dynamic stats - Override with backend LatestSessionData or Redux Fallback where applicable
-  const displayScore = latestData?.id ? latestData.score : (reduxScore ?? stats?.avg_score ?? '—');
-  const displayReaction = latestData?.id ? `${latestData.avg_reaction_time}s` : '—';
-  const displayDriverType = latestData?.id ? latestData.driver_type : (stats?.driver_type ?? 'Unknown');
+  // ── Derived values ───────────────────────────────────────────────────────
+  const hasSession = !!latestData?.id;
+  const displayScore = hasSession ? latestData!.score : (reduxScore ?? stats?.avg_score ?? '—');
+  const displayReaction = hasSession ? `${latestData!.avg_reaction_time}s` : '—';
+  const displayImprovement = stats ? `${stats.improvement_rate > 0 ? '+' : ''}${stats.improvement_rate}` : '—';
+  const displayDriverType = hasSession ? latestData!.driver_type : (stats?.driver_type ?? 'Unknown');
 
   const statCards = [
-    { label: 'Safety Score', value: displayScore, icon: Shield, color: 'text-brand-600', bgIcon: 'bg-brand-50 border-brand-100' },
-    { label: 'Avg Reaction', value: displayReaction, icon: Clock, color: 'text-blue-600', bgIcon: 'bg-blue-50 border-blue-100' },
-    { label: 'Improvement', value: stats ? `${stats.improvement_rate > 0 ? '+' : ''}${stats.improvement_rate} pts` : '—', icon: TrendingUp, color: 'text-accent-600', bgIcon: 'bg-accent-50 border-accent-100' },
-    { label: 'Driver Type', value: displayDriverType, icon: Car, color: 'text-purple-600', bgIcon: 'bg-purple-50 border-purple-100' },
+    { label: 'Safety Score', value: displayScore, icon: Shield, color: '#059669', tint: '#f0fdf4', border: '#d1fae5' },
+    { label: 'Avg Reaction', value: displayReaction, icon: Clock, color: '#3b82f6', tint: '#eff6ff', border: '#bfdbfe' },
+    { label: 'Improvement', value: displayImprovement, icon: TrendingUp, color: '#d97706', tint: '#fffbeb', border: '#fde68a' },
+    { label: 'Driver Type', value: displayDriverType, icon: Car, color: '#8b5cf6', tint: '#f5f3ff', border: '#ddd6fe' },
+  ];
+
+  const scenarios = [
+    { icon: Phone, name: 'Phone Call', difficulty: 'Medium', color: '#f59e0b' },
+    { icon: MessageCircle, name: 'WhatsApp', difficulty: 'Easy', color: '#10b981' },
+    { icon: MapPin, name: 'GPS Alert', difficulty: 'Hard', color: '#ef4444' },
   ];
 
   return (
@@ -137,242 +128,273 @@ export default function DashboardPage() {
         <meta name="description" content="Track your distracted driving training progress." />
       </Head>
 
-      <div className="min-h-screen bg-gray-50 flex font-sans text-gray-900">
-        <Sidebar />
+      <AppShell>
+        {/* ── Page header ───────────────────────────────────────────────── */}
+        <FadeUp className="mb-7">
+          <p className={LABEL + ' mb-1'}>Dashboard</p>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+            Welcome back,{' '}
+            <span className="text-emerald-600">{user.name?.split(' ')[0] || 'User'}</span>
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">Here&apos;s your training performance overview.</p>
+        </FadeUp>
 
-        <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
-          <Navbar />
-
-          <main className="flex-1 p-6 lg:p-10 max-w-7xl mx-auto w-full">
-            {/* Welcome Header */}
-            <div className="mb-8">
-              <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
-                Welcome back, {user?.name?.split(' ')[0] || 'User'}
-              </h1>
-              <p className="text-gray-500 mt-1 text-sm">
-                Here is an overview of your recent training and driving performance.
-              </p>
-            </div>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {statCards.map((stat, i) => (
-                <div key={i} className="bg-white border border-gray-200 rounded-lg p-5 flex flex-col">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-gray-500 text-xs font-medium uppercase tracking-wide">{stat.label}</h3>
-                    <div className={`w-8 h-8 rounded-md flex items-center justify-center border ${stat.bgIcon}`}>
-                      <stat.icon className={`w-4 h-4 ${stat.color}`} />
-                    </div>
-                  </div>
-                  <p className="text-2xl font-semibold text-gray-900 tracking-tight">{stat.value}</p>
+        {/* ── Stat row ─────────────────────────────────────────────────── */}
+        <FadeUp delay={0.05} className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {statCards.map((s, i) => (
+            <div
+              key={i}
+              className={`${CARD} p-5 flex flex-col gap-3 hover:-translate-y-0.5 transition-transform duration-200 cursor-default`}
+            >
+              <div className="flex items-center justify-between">
+                <p className={LABEL}>{s.label}</p>
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ background: s.tint, border: `1px solid ${s.border}` }}
+                >
+                  <s.icon className="w-4 h-4" style={{ color: s.color }} />
                 </div>
-              ))}
+              </div>
+              {isLoading && s.value === '—' ? (
+                <div className="h-7 w-16 rounded-lg bg-gray-100 animate-pulse" />
+              ) : (
+                <p className="text-2xl font-bold tracking-tight" style={{ color: s.color }}>{s.value}</p>
+              )}
             </div>
+          ))}
+        </FadeUp>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Main Column */}
-              <div className="lg:col-span-2 space-y-8">
-                {/* Start Simulation Card */}
-                <div className="bg-white border border-gray-200 rounded-lg p-6 lg:p-8 relative overflow-hidden">
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 mb-8 relative z-10">
-                    <div>
-                      <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-brand-50 text-brand-700 text-xs font-medium border border-brand-100 mb-4 shadow-sm">
-                        <Activity className="w-3.5 h-3.5" />
-                        Week 1 • Foundation
-                      </div>
-                      <h2 className="text-xl font-semibold text-gray-900 tracking-tight">Driving Simulation</h2>
-                      <p className="text-gray-500 text-sm mt-1.5 max-w-md leading-relaxed">
-                        Face real-world distraction scenarios and train your decision-making in a safe environment.
-                      </p>
-                    </div>
-                    <Link
-                      href="/simulation"
-                      id="start-simulation-btn"
-                      className="shrink-0 bg-brand-600 hover:bg-brand-700 text-white font-medium px-5 py-2.5 rounded-md w-full sm:w-auto shadow-sm flex justify-center items-center gap-2 transition-colors duration-150 border border-transparent"
+        {/* ── Body grid ────────────────────────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+          {/* ── Left (span 2) ── */}
+          <div className="lg:col-span-2 space-y-5">
+
+            {/* Start Simulation */}
+            <FadeUp delay={0.1}>
+              <div className={`${CARD} p-6`}>
+                <div className="flex items-start justify-between gap-4 mb-5">
+                  <div>
+                    <span
+                      className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2 py-0.5 rounded-full mb-3"
+                      style={{ background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0' }}
                     >
-                      <PlayCircle className="w-4 h-4" />
-                      Start Session
-                    </Link>
+                      <Activity className="w-3 h-3" />
+                      Week 1 · Foundation
+                    </span>
+                    <h2 className="text-lg font-bold text-gray-900">Driving Simulation</h2>
+                    <p className="text-sm text-gray-500 mt-1 leading-relaxed">
+                      Face real-world distraction scenarios and train your decision-making.
+                    </p>
                   </div>
-
-                  <div className="border-t border-gray-100 pt-6 relative z-10">
-                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Included Scenarios</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      {[
-                        { icon: Phone, name: 'Phone Call', difficulty: 'Medium' },
-                        { icon: MessageCircle, name: 'WhatsApp', difficulty: 'Easy' },
-                        { icon: MapPin, name: 'GPS Alert', difficulty: 'Hard' },
-                      ].map((s) => (
-                        <div key={s.name} className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex items-center gap-3">
-                          <div className="bg-white w-8 h-8 rounded shrink-0 flex items-center justify-center border border-gray-200 text-brand-600 shadow-sm">
-                            <s.icon className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">{s.name}</div>
-                            <div className="text-xs text-gray-500 mt-0.5">{s.difficulty} difficulty</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <Link
+                    href="/simulation"
+                    id="start-simulation-btn"
+                    className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+                    style={{ background: '#059669', boxShadow: '0 2px 12px rgba(5,150,105,0.3)' }}
+                  >
+                    <PlayCircle className="w-4 h-4" />
+                    Start Session
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  </Link>
                 </div>
 
-                {/* Your Last Session Persistence */}
-                {localSessionData.percentile !== null && (
-                  <div className="bg-white border border-gray-200 rounded-lg p-6 lg:p-8 shrink-0 hover:border-gray-300 hover:shadow-sm transition-all duration-200 cursor-default group">
-                    <h2 className="text-xl font-semibold text-gray-900 tracking-tight mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
-                      <div className="flex items-center gap-2">
-                        <div className="p-1.5 bg-gray-100 border border-gray-200 rounded-md group-hover:bg-brand-50 group-hover:border-brand-100 transition-colors">
-                          <Activity className="w-5 h-5 text-gray-600 group-hover:text-brand-600 transition-colors" />
-                        </div>
-                        Your Last Session
+                <div className="grid grid-cols-3 gap-3 pt-5 border-t border-gray-100">
+                  {scenarios.map((s) => (
+                    <div
+                      key={s.name}
+                      className="flex items-center gap-2.5 p-3 rounded-xl bg-gray-50 border border-gray-100"
+                    >
+                      <div
+                        className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{ background: `${s.color}15`, border: `1px solid ${s.color}30` }}
+                      >
+                        <s.icon className="w-3.5 h-3.5" style={{ color: s.color }} />
                       </div>
-                      {localSessionData.timestamp && (
-                        <span className="text-xs text-gray-400 font-medium">Logged: {localSessionData.timestamp}</span>
-                      )}
-                    </h2>
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-5">
-                      <div className="flex flex-col sm:flex-row gap-6 mb-5 pb-5 border-b border-gray-200">
-                        <div>
-                          <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold mb-1">Global Ranking</p>
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-3xl font-bold text-gray-900">{localSessionData.percentile}%</span>
-                            {localSessionData.delta && localSessionData.delta.status !== 'baseline' && (
-                              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${localSessionData.delta.status === 'improvement' ? 'bg-green-100 text-green-700' : localSessionData.delta.status === 'decline' ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-700'}`}>
-                                {localSessionData.delta.val > 0 ? '+' : ''}{localSessionData.delta.val}%
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold mb-1">Personal Best</p>
-                          <p className="text-2xl font-medium text-gray-700">{localSessionData.best || localSessionData.percentile}% 🏆</p>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-800">{s.name}</p>
+                        <p className="text-[11px] text-gray-400">{s.difficulty}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </FadeUp>
+
+            {/* Last Session */}
+            {localSessionData.percentile !== null && (
+              <FadeUp delay={0.15}>
+                <div className={`${CARD} p-6`}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-base font-bold text-gray-900">Your Last Session</h2>
+                    {localSessionData.timestamp && (
+                      <span className="text-xs text-gray-400">{localSessionData.timestamp}</span>
+                    )}
+                  </div>
+                  <div className="rounded-xl p-4 bg-gray-50 border border-gray-100">
+                    <div className="flex gap-8 mb-4 pb-4 border-b border-gray-200">
+                      <div>
+                        <p className={LABEL + ' mb-1'}>Global Ranking</p>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-3xl font-black text-emerald-600">{localSessionData.percentile}%</span>
+                          {localSessionData.delta && localSessionData.delta.status !== 'baseline' && (
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                              localSessionData.delta.status === 'improvement' ? 'bg-green-100 text-green-700' :
+                              localSessionData.delta.status === 'decline' ? 'bg-red-100 text-red-700' :
+                              'bg-gray-200 text-gray-600'
+                            }`}>
+                              {localSessionData.delta.val > 0 ? '+' : ''}{localSessionData.delta.val}%
+                            </span>
+                          )}
                         </div>
                       </div>
-
-                      {localSessionData.insights && localSessionData.insights.length > 0 && (
-                        <div>
-                          <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold mb-3">Key Takeaways</p>
-                          <ul className="space-y-3 list-none">
-                            {localSessionData.insights.map((ins, idx) => (
-                              <li key={idx} className="text-sm leading-relaxed flex items-start gap-2.5">
-                                <span className="text-brand-600 mt-1 font-bold shrink-0">•</span>
-                                <span className="font-medium text-gray-800">{ins}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
+                      <div>
+                        <p className={LABEL + ' mb-1'}>Personal Best</p>
+                        <p className="text-xl font-bold text-gray-700">{localSessionData.best}% 🏆</p>
+                      </div>
                     </div>
+                    {localSessionData.insights && localSessionData.insights.length > 0 && (
+                      <ul className="space-y-1.5">
+                        {localSessionData.insights.map((ins, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
+                            <span className="text-emerald-500 mt-0.5 shrink-0">•</span>
+                            {ins}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
-                )}
+                </div>
+              </FadeUp>
+            )}
 
-                {/* AI Feedback */}
-                <div className="bg-white border border-gray-200 rounded-lg p-6 lg:p-8">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="p-1.5 bg-brand-50 border border-brand-100 rounded-md">
-                      <Zap className="w-4 h-4 text-brand-600" />
-                    </div>
-                    <h2 className="text-lg font-semibold text-gray-900 tracking-tight">AI Feedback</h2>
+            {/* AI Feedback */}
+            <FadeUp delay={0.2}>
+              <div className={`${CARD} p-6`}>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-emerald-50 border border-emerald-100">
+                    <Zap className="w-3.5 h-3.5 text-emerald-600" />
                   </div>
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-5">
-                    <p className="text-gray-600 text-sm leading-relaxed">
-                      {isLoading ? 'Analyzing your recent driving behavior...' : (stats?.ai_feedback || 'Complete a session to receive personalized AI driver coaching.')}
+                  <h2 className="text-base font-bold text-gray-900">AI Feedback</h2>
+                </div>
+                <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 border border-gray-100 rounded-xl p-4">
+                  {isLoading ? 'Analyzing your driving behavior…' :
+                    (stats?.ai_feedback || 'Complete a session to receive personalized AI driver coaching.')}
+                </p>
+              </div>
+            </FadeUp>
+          </div>
+
+          {/* ── Right column ── */}
+          <div className="space-y-4">
+
+            {/* Driver Profile */}
+            <FadeUp delay={0.15}>
+              <div className={`${CARD} p-5`}>
+                <p className={LABEL + ' mb-3'}>Driver Profile</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-violet-50 border border-violet-100">
+                    <Car className="w-5 h-5 text-violet-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900 capitalize">
+                      {user.profile_type === 'unknown' ? 'Not assessed' : user.profile_type}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {user.profile_type === 'unknown' ? 'Complete a session' : 'Behavioral profile'}
                     </p>
                   </div>
                 </div>
               </div>
+            </FadeUp>
 
-              {/* Side Column (Activity / Profile Panel) */}
-              <div className="space-y-8">
-                {/* Profile Type Card */}
-                <div className="bg-white border border-gray-200 rounded-lg p-6">
-                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Driver Profile</h3>
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-md bg-purple-50 border border-purple-100 flex items-center justify-center shrink-0">
-                      <Car className="w-5 h-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <p className="text-gray-900 font-medium capitalize block hidden sm:block">
-                        {user.profile_type === 'unknown' ? 'Not assessed' : user.profile_type}
-                      </p>
-                      <p className="text-gray-500 text-xs mt-0.5 block">
-                        {user.profile_type === 'unknown'
-                          ? 'Complete a session'
-                          : 'Behavioral profile'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div className="bg-white border border-gray-200 rounded-lg p-5">
-                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">Quick Actions</h3>
-                  <div className="space-y-0.5">
-                    {[
-                      { label: 'View Progress', icon: TrendingUp, href: '/dashboard/progress' },
-                      { label: 'Learning Center', icon: Activity, href: '/lessons' },
-                    ].map((action) => (
-                      <Link key={action.label} href={action.href}>
-                        <div className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-50 hover:text-brand-600 transition-colors cursor-pointer group">
-                          <action.icon className="w-4 h-4 text-gray-400 group-hover:text-brand-600 transition-colors" />
-                          <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">
-                            {action.label}
-                          </span>
-                          <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-brand-600 ml-auto transition-colors" />
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Recommended Lessons */}
-                <div className="bg-white border border-gray-200 rounded-lg p-6">
-                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Recommended Lessons</h3>
-                  <div className="space-y-3">
-                    {lessons.length === 0 && !isLoading && (
-                      <p className="text-gray-500 text-sm bg-gray-50 border border-gray-200 rounded-lg p-4">No recommendations found.</p>
-                    )}
-                    {lessons.slice(0, 2).map((lesson) => (
-                      <div key={lesson.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-gray-300 hover:shadow-sm transition-all group">
-                        <div className="flex flex-col gap-2">
-                          <div className="flex items-start justify-between gap-2">
-                            <h4 className="text-sm font-medium text-gray-900 group-hover:text-brand-700 transition-colors leading-snug">{lesson.title}</h4>
-                            <span className="text-[10px] uppercase font-medium bg-white text-gray-500 px-1.5 py-0.5 rounded border border-gray-200 shrink-0">{lesson.difficulty}</span>
-                          </div>
-                          <p className="text-xs text-gray-500 line-clamp-2">{lesson.description}</p>
-                        </div>
+            {/* Quick Actions */}
+            <FadeUp delay={0.2}>
+              <div className={`${CARD} p-5`}>
+                <p className={LABEL + ' mb-2'}>Quick Actions</p>
+                <div className="space-y-0.5">
+                  {[
+                    { label: 'View Progress', icon: TrendingUp, href: '/dashboard/progress' },
+                    { label: 'Learning Center', icon: Activity, href: '/lessons' },
+                  ].map((a) => (
+                    <Link key={a.label} href={a.href}>
+                      <div className="flex items-center gap-3 px-2 py-2.5 rounded-lg hover:bg-gray-50 transition-colors duration-150 cursor-pointer group">
+                        <a.icon className="w-4 h-4 text-gray-400 group-hover:text-emerald-600 transition-colors" />
+                        <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 flex-1 transition-colors">{a.label}</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-emerald-500 transition-colors" />
                       </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Recent Mistakes Panel */}
-                <div className="bg-white border border-gray-200 rounded-lg p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="p-1 bg-accent-50 border border-accent-100 rounded">
-                      <AlertTriangle className="w-3.5 h-3.5 text-accent-600" />
-                    </div>
-                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Recent Mistakes</h3>
-                  </div>
-                  <div className="space-y-3">
-                    {!latestData || latestData.mistakes.length === 0 ? (
-                      <p className="text-sm text-gray-500 bg-gray-50 border border-gray-200 rounded-md p-4">No recent mistakes logged. Great work!</p>
-                    ) : (
-                      latestData.mistakes.map((mistake, index) => (
-                        <div key={index} className="flex flex-col gap-1 text-sm p-3 rounded-md bg-gray-50 border border-gray-200 border-l-4 border-l-accent-400">
-                          <span className="text-gray-900 font-medium capitalize">{mistake.scenario.replace('_', ' ')}</span>
-                          <span className={`text-xs ${(mistake.response || '').includes('Unsafe') ? 'text-red-600 font-medium' : 'text-accent-600 font-medium'}`}>{mistake.response}</span>
-                        </div>
-                      ))
-                    )}
-                  </div>
+                    </Link>
+                  ))}
                 </div>
               </div>
-            </div>
-          </main>
+            </FadeUp>
+
+            {/* Recommended Lessons */}
+            <FadeUp delay={0.25}>
+              <div className={`${CARD} p-5`}>
+                <p className={LABEL + ' mb-3'}>Recommended Lessons</p>
+                <div className="space-y-2.5">
+                  {lessons.length === 0 && !isLoading && (
+                    <p className="text-sm text-gray-400 bg-gray-50 border border-gray-100 rounded-xl p-3">
+                      No recommendations yet.
+                    </p>
+                  )}
+                  {isLoading && (
+                    <>
+                      <div className="h-16 rounded-xl bg-gray-100 animate-pulse" />
+                      <div className="h-16 rounded-xl bg-gray-100 animate-pulse opacity-60" />
+                    </>
+                  )}
+                  {lessons.slice(0, 2).map((lesson) => (
+                    <div key={lesson.id} className="p-3 rounded-xl border border-gray-100 bg-gray-50 hover:border-gray-200 transition-all duration-150 cursor-pointer group">
+                      <div className="flex items-start justify-between gap-2">
+                        <h4 className="text-sm font-semibold text-gray-800 group-hover:text-emerald-700 transition-colors leading-snug">{lesson.title}</h4>
+                        <span className="text-[10px] uppercase font-bold text-gray-400 px-1.5 py-0.5 rounded-md bg-white border border-gray-200 shrink-0">{lesson.difficulty}</span>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1 line-clamp-2">{lesson.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </FadeUp>
+
+            {/* Recent Mistakes */}
+            <FadeUp delay={0.3}>
+              <div className={`${CARD} p-5`}>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-amber-50 border border-amber-100">
+                    <AlertTriangle className="w-3 h-3 text-amber-600" />
+                  </div>
+                  <p className={LABEL}>Recent Mistakes</p>
+                </div>
+                <div className="space-y-2">
+                  {isFetchingLatest ? (
+                    <>
+                      <div className="h-11 rounded-xl bg-gray-100 animate-pulse" />
+                      <div className="h-11 rounded-xl bg-gray-100 animate-pulse opacity-60" />
+                    </>
+                  ) : !latestData || latestData.mistakes.length === 0 ? (
+                    <p className="text-sm text-gray-400 bg-gray-50 border border-gray-100 rounded-xl p-3">
+                      No recent mistakes. Great work!
+                    </p>
+                  ) : (
+                    latestData.mistakes.map((m, i) => (
+                      <div
+                        key={i}
+                        className="p-3 rounded-xl text-sm"
+                        style={{ background: 'rgba(251,191,36,0.05)', border: '1px solid rgba(251,191,36,0.18)', borderLeft: '3px solid #fbbf24' }}
+                      >
+                        <p className="font-semibold text-gray-800 capitalize">{m.scenario.replace('_', ' ')}</p>
+                        <p className={`text-xs mt-0.5 font-medium ${(m.response || '').includes('Unsafe') ? 'text-red-500' : 'text-amber-600'}`}>{m.response}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </FadeUp>
+          </div>
         </div>
-      </div>
+      </AppShell>
     </>
   );
 }
