@@ -278,12 +278,23 @@ npm run dev -- -p 4000
 ### 3. Quick Start with Docker
 The easiest way to run the entire stack is using Docker Compose:
 ```bash
-docker-compose up --build
+docker compose up --build -d
 ```
 - **Frontend**: `http://localhost:4000`
 - **Backend API**: `http://localhost:9000`
 - **API Docs**: `http://localhost:9000/docs`
 - **Database (Postgres)**: `localhost:6432`
+
+> [!NOTE]
+> On startup, all PostgreSQL database tables, native enums, and seeds (test scenarios, lessons, and the `test@example.com` driver user) are **automatically initialized**. No manual seeding commands are required!
+
+> [!IMPORTANT]
+> **Database Storage Persistence**:
+> * To stop the application safely while keeping all registered users, sessions, and histories intact, run:
+>   ```bash
+>   docker compose down
+>   ```
+> * **Avoid** using the `-v` flag (i.e. `docker compose down -v`) unless you explicitly want to destroy the persistent storage volume and delete all user accounts.
 
 ---
 
