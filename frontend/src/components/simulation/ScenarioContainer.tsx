@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { eventTriggered, eventResolved, sessionEnded, sessionRestored } from '@/store/sessionSlice';
-import { fetchProgressData } from '@/store/progressSlice';
+import { fetchProgressData, generateNewAILessonFromSession } from '@/store/progressSlice';
 import {
   aiRequestStarted,
   aiMessageReceived,
@@ -65,6 +65,7 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
   );
   const { enabled: aiEnabled } = useAppSelector((state) => state.ai);
   const { user } = useAppSelector((state) => state.auth);
+  const { stats, isGenerating } = useAppSelector((state) => state.progress);
 
   const [simState, setSimState] = useState<SimulationState>('IDLE');
   const [finalScore, setFinalScore] = useState(score);
@@ -390,8 +391,28 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
       : finalScore >= 50 ? { label: 'Fair', color: 'text-orange-400', emoji: '💪' }
       : { label: 'Needs Work', color: 'text-red-400', emoji: '📚' };
 
-    // All percentile, ranking, and behavioral truth math is now handled exclusively by the backend API 
-    // (/api/progress/me) upon session completion. The frontend is strictly a visualization layer.
+    // Resolve dynamic weakness details based on driver type
+    const driverType = stats?.driver_type || 'unknown';
+    
+    let weakness = {
+      title: "Maintaining Steady Focus",
+      category: "General Defensive Driving",
+      summary: "Your core safety instincts are functional. To achieve elite status, we recommend targeting peripheral lane keeping and high-frequency alert ignoring."
+    };
+    
+    if (driverType === 'impulsive') {
+      weakness = {
+        title: "High Distraction Response Reflexes",
+        category: "Impulse Control & Delayed Reaction",
+        summary: "You respond extremely quickly to phone alerts. The fast impulse increases risk. Focus on building a 3-second mental buffer before making safe ignores."
+      };
+    } else if (driverType === 'distractible') {
+      weakness = {
+        title: "Digital Notification Susceptibility",
+        category: "Attention Management & Digital Focus",
+        summary: "You are highly prone to interacting with chat alerts while in transit. Focus on learning to suppress digital visual alerts completely."
+      };
+    }
 
     return (
       <div className="max-w-md mx-auto animate-slide-up text-center">
@@ -422,17 +443,79 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
             {finalScore >= 70 ? ' Great safe driving instincts!' : ' Keep practicing to improve!'}
           </p>
 
+          {/* Recommended AI Coaching Box */}
+          <div className="bg-surface-700/60 border border-brand-500/20 rounded-xl p-5 mb-6 text-left backdrop-blur-sm shadow-inner">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xl">🧠</span>
+              <h3 className="font-bold text-white text-sm">Recommended AI Coaching</h3>
+              <span className="ml-auto text-[10px] bg-brand-500/20 text-brand-400 font-semibold px-2 py-0.5 rounded-full border border-brand-500/30">
+                Personalized Recommendation
+              </span>
+            </div>
+            <div className="mb-2.5">
+              <p className="text-gray-400 text-[10px] uppercase tracking-wide font-semibold mb-0.5">Focus Category</p>
+              <p className="text-brand-400 text-xs font-semibold">{weakness.category}</p>
+            </div>
+            <div className="mb-3">
+              <p className="text-gray-400 text-[10px] uppercase tracking-wide font-semibold mb-0.5">Primary Weakness Detected</p>
+              <p className="text-white text-xs font-medium">{weakness.title}</p>
+            </div>
+            <div>
+              <p className="text-gray-400 text-[10px] uppercase tracking-wide font-semibold mb-0.5">Coaching Advice Preview</p>
+              <p className="text-gray-300 text-[11px] leading-relaxed">{weakness.summary}</p>
+            </div>
+          </div>
+
+          {/* Action CTAs */}
+          <div className="flex flex-col gap-2.5 mb-6">
+            <button
+              onClick={async () => {
+                try {
+                  await dispatch(generateNewAILessonFromSession(sessionId)).unwrap();
+                  toast.success('AI Lesson generated successfully!');
+                  setTimeout(() => {
+                    router.push('/lessons');
+                  }, 1200);
+                } catch (err: any) {
+                  toast.error(err || 'Failed to generate personalized lesson.');
+                }
+              }}
+              disabled={isGenerating}
+              className="btn-primary w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-brand-600 to-accent-600 hover:from-brand-500 hover:to-accent-500 font-semibold text-xs shadow-md transition-all duration-300 transform hover:-translate-y-0.5"
+            >
+              {isGenerating ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Analyzing Session & Generating Coaching...
+                </>
+              ) : (
+                <>
+                  <span>🚀</span>
+                  Generate Personalized Coaching For This Session
+                </>
+              )}
+            </button>
+
+            <div className="flex gap-2">
+              <Link href="/lessons" className="btn-secondary flex-1 py-2 text-xs font-semibold flex items-center justify-center gap-1.5 border border-surface-600 hover:border-gray-500 text-gray-200">
+                📅 View Coaching Plan
+              </Link>
+              <Link href="/lessons" className="btn-secondary flex-1 py-2 text-xs font-semibold flex items-center justify-center gap-1.5 border border-surface-600 hover:border-gray-500 text-gray-200">
+                📚 Go To Lessons
+              </Link>
+            </div>
+          </div>
 
           <div className="flex gap-3">
             <button
               onClick={() => router.push('/dashboard')}
-              className="btn-secondary flex-1"
+              className="btn-secondary flex-1 py-2 text-xs"
             >
               View AI Feedback & Progress
             </button>
             <button
               onClick={() => window.location.reload()}
-              className="btn-primary flex-1"
+              className="btn-primary flex-1 py-2 text-xs"
             >
               Play Again
             </button>

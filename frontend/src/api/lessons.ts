@@ -41,6 +41,9 @@ export interface AILesson {
   completion_score: number | null;
   completed_at: string | null;
   created_at: string;
+  session_id: string | null;
+  generated_reason: string | null;
+  recommended_focus: string | null;
 }
 
 export const getAIRecommendedLessons = async (): Promise<AILesson[]> => {
@@ -55,6 +58,11 @@ export const getAILessonHistory = async (): Promise<AILesson[]> => {
 
 export const generateAILesson = async (): Promise<AILesson> => {
   const { data } = await apiClient.post<AILesson>('/lessons/ai/generate');
+  return data;
+};
+
+export const generateAILessonFromSession = async (sessionId: string): Promise<AILesson> => {
+  const { data } = await apiClient.post<AILesson>(`/lessons/generate-from-session/${sessionId}`);
   return data;
 };
 

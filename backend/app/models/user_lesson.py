@@ -26,6 +26,18 @@ class UserLesson(Base):
         String(36), ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False, index=True
     )
+    session_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("sessions.id", ondelete="SET NULL"), nullable=True,
+        comment="The simulation session this lesson was generated from"
+    )
+    generated_reason: Mapped[str | None] = mapped_column(
+        String(500), nullable=True,
+        comment="Specific reason this lesson was generated from the session"
+    )
+    recommended_focus: Mapped[str | None] = mapped_column(
+        String(300), nullable=True,
+        comment="What the user should focus on during their next session"
+    )
 
     # ── Content fields (AI-generated) ────────────────────────────────────────
     title: Mapped[str] = mapped_column(String(200), nullable=False)

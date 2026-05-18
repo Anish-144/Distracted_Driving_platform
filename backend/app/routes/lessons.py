@@ -58,6 +58,9 @@ class AILessonResponse(BaseModel):
     completion_score: Optional[float]
     completed_at: Optional[str]
     created_at: str
+    session_id: Optional[str] = None
+    generated_reason: Optional[str] = None
+    recommended_focus: Optional[str] = None
 
 
 class CompleteLessonRequest(BaseModel):
@@ -95,6 +98,9 @@ def _serialize_ai_lesson(lesson: UserLesson) -> AILessonResponse:
         completion_score=lesson.completion_score,
         completed_at=lesson.completed_at.isoformat() if lesson.completed_at else None,
         created_at=lesson.created_at.isoformat(),
+        session_id=lesson.session_id,
+        generated_reason=lesson.generated_reason,
+        recommended_focus=lesson.recommended_focus,
     )
 
 
@@ -196,6 +202,98 @@ async def generate_ai_lesson(
     return _serialize_ai_lesson(new_lessons[0])
 
 
+@router.post("/generate", response_model=AILessonResponse, status_code=status.HTTP_201_CREATED)
+async def generate_lesson_alias(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Trigger a fresh AI lesson generation based on the user's current
+    behavioral state. Returns the newly created lesson.
+    """
+    new_lessons = await _auto_generate_lesson(db, current_user)
+    await db.commit()
+    return _serialize_ai_lesson(new_lessons[0])
+
+
+@router.post("/generate-from-session/{session_id}", response_model=AILessonResponse, status_code=status.HTTP_201_CREATED)
+async def generate_lesson_from_session(
+    session_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Generate an AI lesson specifically tailored to the mistakes of a given session.
+    """
+    # 1. Validate session ownership
+    from app.models.session import Session
+    session_result = await db.execute(
+        select(Session).where(Session.id == session_id, Session.user_id == current_user.id)
+    )
+    session_obj = session_result.scalar_one_or_none()
+    if not session_obj:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session not found or does not belong to this user",
+        )
+
+    # 2. Fetch behavioral data for this session
+    from app.models.event import Event, UserResponseType
+    from app.models.behavioral_log import BehavioralLog, DecisionType
+    
+    event_result = await db.execute(
+        select(Event).where(Event.session_id == session_id)
+    )
+    events = event_result.scalars().all()
+    mistakes = []
+    for event in events:
+        is_unsafe = event.user_response == UserResponseType.INTERACTED
+        is_slow = event.response_time and event.response_time > 2.0
+        if is_unsafe or is_slow:
+            tag = "UNSAFE INTERACTION" if is_unsafe else "SLOW REACTION"
+            mistakes.append(
+                f"{tag}: {event.event_type.value} response was {event.user_response.value if event.user_response else 'none'} in {event.response_time or 0.0:.2f}s"
+            )
+            
+    log_result = await db.execute(
+        select(BehavioralLog).where(BehavioralLog.session_id == session_id)
+    )
+    logs = log_result.scalars().all()
+    for log in logs:
+        if log.is_risky or log.decision_type in [DecisionType.IMPULSIVE_UNSAFE, DecisionType.DELAYED_HESITANT, DecisionType.RISKY]:
+            mistakes.append(f"Behavior Pattern: {log.decision_type.value}")
+            
+    latest_mistakes_str = "; ".join(mistakes) if mistakes else "No major mistakes noted in this session."
+
+    # 3. Get behavioral state
+    state_result = await db.execute(
+        select(BehavioralState).where(BehavioralState.user_id == current_user.id)
+    )
+    state = state_result.scalar_one_or_none()
+
+    # 4. Get behavioral summary
+    behavioral_summary = await behavior_analyzer.get_summary(db, current_user.id)
+    
+    if state is None:
+        state_result = await db.execute(
+            select(BehavioralState).where(BehavioralState.user_id == current_user.id)
+        )
+        state = state_result.scalar_one_or_none()
+
+    # 5. Execute generation
+    lesson = await lesson_generation_service.generate_lesson(
+        db=db,
+        user_id=current_user.id,
+        behavioral_summary=behavioral_summary,
+        behavioral_state=state,
+        latest_mistakes_str=latest_mistakes_str,
+        session_id=session_id
+    )
+    
+    await db.commit()
+    return _serialize_ai_lesson(lesson)
+
+
 @router.post("/ai/{lesson_id}/complete", response_model=AILessonResponse)
 async def complete_ai_lesson(
     lesson_id: str,
@@ -225,6 +323,52 @@ async def _auto_generate_lesson(
     db: AsyncSession, current_user: User
 ) -> list[UserLesson]:
     """Fetch behavioral state and generate a lesson. Returns [lesson]."""
+    from app.models.session import Session
+    from app.models.behavioral_log import BehavioralLog, DecisionType
+    from app.models.event import Event, UserResponseType
+    from sqlalchemy import desc
+
+    # Get latest session
+    session_result = await db.execute(
+        select(Session)
+        .where(Session.user_id == current_user.id, Session.end_time.isnot(None))
+        .order_by(desc(Session.created_at))
+        .limit(1)
+    )
+    latest_session = session_result.scalar_one_or_none()
+    
+    latest_mistakes_str = "No recent mistakes."
+    session_id = None
+    if latest_session:
+        session_id = latest_session.id
+        
+        # 1. Fetch event-level details (unsafe/slow reactions)
+        event_result = await db.execute(
+            select(Event).where(Event.session_id == latest_session.id)
+        )
+        events = event_result.scalars().all()
+        mistakes = []
+        for event in events:
+            is_unsafe = event.user_response == UserResponseType.INTERACTED
+            is_slow = event.response_time and event.response_time > 2.0
+            if is_unsafe or is_slow:
+                tag = "UNSAFE INTERACTION" if is_unsafe else "SLOW REACTION"
+                mistakes.append(
+                    f"{tag}: {event.event_type.value} response was {event.user_response.value if event.user_response else 'none'} in {event.response_time or 0.0:.2f}s"
+                )
+
+        # 2. Fetch behavioral analysis tags
+        log_result = await db.execute(
+            select(BehavioralLog).where(BehavioralLog.session_id == latest_session.id)
+        )
+        logs = log_result.scalars().all()
+        for log in logs:
+            if log.is_risky or log.decision_type in [DecisionType.IMPULSIVE_UNSAFE, DecisionType.DELAYED_HESITANT, DecisionType.RISKY]:
+                mistakes.append(f"Behavior Pattern: {log.decision_type.value}")
+                
+        if mistakes:
+            latest_mistakes_str = "; ".join(mistakes)
+
     # Get behavioral state
     state_result = await db.execute(
         select(BehavioralState).where(BehavioralState.user_id == current_user.id)
@@ -245,6 +389,7 @@ async def _auto_generate_lesson(
         user_id=current_user.id,
         behavioral_summary=behavioral_summary,
         behavioral_state=state,
+        latest_mistakes_str=latest_mistakes_str,
+        session_id=session_id
     )
-    await db.commit()
     return [lesson]

@@ -124,6 +124,8 @@ DOMINANT FAIL SCENARIO: {dominant_fail_scenario}
 PRESSURE YIELD RATE: {pressure_yield_pct}% (yielded to pressure {pressure_yield} times, resisted {pressure_resist} times)
 BEHAVIORAL SUMMARY: {behavior_summary}
 
+LATEST SESSION MISTAKES: {latest_mistakes_str}
+
 Generate a structured personalized lesson plan. Return ONLY valid JSON, no markdown, no explanation.
 
 {{
@@ -137,7 +139,9 @@ Generate a structured personalized lesson plan. Return ONLY valid JSON, no markd
   "simulation_modes": ["Mode 1", "Mode 2"],
   "difficulty": "Beginner|Intermediate|Advanced",
   "reaction_time_target": 2.5,
-  "distraction_tolerance_target": 0.85
+  "distraction_tolerance_target": 0.85,
+  "generated_reason": "Specific reason this lesson was generated from the session mistakes (e.g. You failed 3 phone interactions)",
+  "recommended_focus": "What the user should focus on during their next session"
 }}"""
 
 
@@ -151,6 +155,8 @@ class LessonGenerationService:
         user_id: str,
         behavioral_summary: BehavioralSummary,
         behavioral_state: BehavioralState,
+        latest_mistakes_str: str = "No recent mistakes.",
+        session_id: str | None = None
     ) -> UserLesson:
         """
         Generate and persist a new personalized lesson for this user.
@@ -174,6 +180,7 @@ class LessonGenerationService:
             pressure_yield=behavioral_state.pressure_yield_count,
             pressure_resist=behavioral_state.pressure_resist_count,
             behavior_summary=behavioral_summary.behavior_summary,
+            latest_mistakes_str=latest_mistakes_str,
         )
 
         lesson_data = None
@@ -209,6 +216,9 @@ class LessonGenerationService:
             driver_type=driver_type,
             reaction_time_target=float(lesson_data.get("reaction_time_target", 2.5)),
             distraction_tolerance_target=float(lesson_data.get("distraction_tolerance_target", 0.85)),
+            generated_reason=lesson_data.get("generated_reason", ""),
+            recommended_focus=lesson_data.get("recommended_focus", ""),
+            session_id=session_id,
             ai_provider=provider_used,
             completed=False,
         )

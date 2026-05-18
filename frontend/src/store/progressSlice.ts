@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { getMyProgress, ProgressStats } from '@/api/progress';
-import { getRecommendedLessons, getAllLessons, Lesson, getAIRecommendedLessons, AILesson, generateAILesson, completeAILesson } from '@/api/lessons';
+import { getRecommendedLessons, getAllLessons, Lesson, getAIRecommendedLessons, AILesson, generateAILesson, completeAILesson, generateAILessonFromSession } from '@/api/lessons';
 
 interface ProgressState {
   stats: ProgressStats | null;
@@ -63,6 +63,18 @@ export const completeLesson = createAsyncThunk(
   }
 );
 
+export const generateNewAILessonFromSession = createAsyncThunk(
+  'progress/generateNewAILessonFromSession',
+  async (sessionId: string, { rejectWithValue }) => {
+    try {
+      const lesson = await generateAILessonFromSession(sessionId);
+      return lesson;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.detail || 'Failed to generate session lesson');
+    }
+  }
+);
+
 const progressSlice = createSlice({
   name: 'progress',
   initialState,
@@ -102,6 +114,17 @@ const progressSlice = createSlice({
         state.aiLessons = [action.payload, ...state.aiLessons];
       })
       .addCase(generateNewAILesson.rejected, (state) => {
+        state.isGenerating = false;
+      })
+      // generateNewAILessonFromSession
+      .addCase(generateNewAILessonFromSession.pending, (state) => {
+        state.isGenerating = true;
+      })
+      .addCase(generateNewAILessonFromSession.fulfilled, (state, action) => {
+        state.isGenerating = false;
+        state.aiLessons = [action.payload, ...state.aiLessons];
+      })
+      .addCase(generateNewAILessonFromSession.rejected, (state) => {
         state.isGenerating = false;
       })
       // completeLesson
