@@ -11,6 +11,10 @@ import logging
 from app.config import settings
 from app.database import init_db
 from app.routes import auth, user, sessions, events, lessons, progress, ai
+# Ensure all models are imported so Base.metadata.create_all picks them up
+from app.models import user as _user_model  # noqa: F401
+from app.models import lesson as _lesson_model  # noqa: F401
+from app.models import user_lesson as _user_lesson_model  # noqa: F401
 
 # Setup structured logging
 logging.basicConfig(

@@ -46,7 +46,10 @@ async def get_my_progress(
     Compute dynamic progress stats and generate AI feedback based on latest session logs.
     """
     # Fetch all user sessions ordered by time
-    stmt = select(Session).where(Session.user_id == current_user.id).order_by(Session.created_at)
+    stmt = select(Session).where(
+        Session.user_id == current_user.id,
+        Session.end_time.isnot(None)
+    ).order_by(Session.created_at)
     result = await db.execute(stmt)
     sessions = result.scalars().all()
 

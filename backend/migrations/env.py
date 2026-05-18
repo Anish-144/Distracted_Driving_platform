@@ -19,7 +19,7 @@ from app.config import settings
 from app.database import Base
 
 # Ensure all models are imported so Alembic can see them
-from app.models import user, session, event, behavioral_log, scenario, lesson, behavioral_state, intervention_log
+from app.models import user, session, event, behavioral_log, scenario, lesson, behavioral_state, intervention_log, user_lesson
 
 config = context.config
 

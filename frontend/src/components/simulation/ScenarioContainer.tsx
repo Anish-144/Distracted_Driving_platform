@@ -358,7 +358,7 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
         setSimState('IDLE');
       }
 
-      if (eventsCount >= TOTAL_EVENTS - 1) { // We used currentCount + 1, so wait till it's done
+      if (eventsCount >= TOTAL_EVENTS) {
         try {
           await completeSession(sessionId);
           setFinalScore(result.new_score);
