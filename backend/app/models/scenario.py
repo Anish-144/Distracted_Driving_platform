@@ -17,7 +17,9 @@ class Scenario(Base):
     )
     name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     description: Mapped[str] = mapped_column(Text, nullable=False)
-    distraction_type: Mapped[EventType] = mapped_column(SAEnum(EventType), nullable=False)
+    distraction_type: Mapped[EventType] = mapped_column(
+        SAEnum(EventType, values_callable=lambda x: [e.value for e in x]), nullable=False
+    )
     difficulty_level: Mapped[str] = mapped_column(
         String(20), default="medium", nullable=False,
         comment="easy | medium | hard"

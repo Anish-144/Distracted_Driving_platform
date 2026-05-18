@@ -42,6 +42,91 @@ async def lifespan(app: FastAPI):
         
     await init_db()
     logger.info("✅ Database connections established")
+
+    # ─── Automatic DB Seeding ───────────────────────────────────────────────────
+    # Automatically seed default scenarios, test user, and lessons if they are missing
+    from app.database import AsyncSessionLocal
+    from app.models.user import User
+    from app.models.lesson import Lesson, LessonTag
+    from app.models.scenario import Scenario, SEED_SCENARIOS
+    from app.services import auth_service
+    from sqlalchemy import select
+
+    async with AsyncSessionLocal() as session:
+        try:
+            # 1. Seed Scenarios
+            scenarios_result = await session.execute(select(Scenario))
+            if not scenarios_result.scalars().first():
+                logger.info("🌱 Database empty. Seeding default scenarios...")
+                scenarios_to_add = [
+                    Scenario(
+                        id=s["id"],
+                        name=s["name"],
+                        description=s["description"],
+                        distraction_type=s["distraction_type"],
+                        difficulty_level=s["difficulty_level"],
+                        is_active=s["is_active"],
+                        instruction_text=s["instruction_text"]
+                    )
+                    for s in SEED_SCENARIOS
+                ]
+                session.add_all(scenarios_to_add)
+                await session.commit()
+                logger.info("✅ Scenarios seeded successfully!")
+                
+            # 2. Seed Test User
+            email = "test@example.com"
+            user_result = await session.execute(select(User).where(User.email == email))
+            if not user_result.scalar_one_or_none():
+                logger.info(f"🌱 Creating default test user: {email}")
+                hashed_password = auth_service.hash_password("password123")
+                new_user = User(
+                    name="Test Driver",
+                    email=email,
+                    hashed_password=hashed_password
+                )
+                session.add(new_user)
+                await session.commit()
+                logger.info("✅ Test user created successfully!")
+                
+            # 3. Seed Lessons
+            lessons_result = await session.execute(select(Lesson))
+            if not lessons_result.scalars().first():
+                logger.info("🌱 Seeding default lessons...")
+                lessons_to_add = [
+                    Lesson(
+                        title="Impulse Control While Driving",
+                        description="Learn how to delay your reaction to sudden notifications.",
+                        difficulty="Intermediate",
+                        tag=LessonTag.IMPULSIVE
+                    ),
+                    Lesson(
+                        title="Managing Digital Distractions",
+                        description="Step-by-step guide to using your phone's 'Do Not Disturb' effectively.",
+                        difficulty="Beginner",
+                        tag=LessonTag.DISTRACTED
+                    ),
+                    Lesson(
+                        title="Peripheral Vision Mastery",
+                        description="Maintain focus while keeping an eye on your surroundings.",
+                        difficulty="Advanced",
+                        tag=LessonTag.SAFE
+                    ),
+                    Lesson(
+                        title="The 2-Second Rule",
+                        description="General defensive driving distance rules.",
+                        difficulty="Beginner",
+                        tag=LessonTag.GENERAL
+                    ),
+                ]
+                session.add_all(lessons_to_add)
+                await session.commit()
+                logger.info("✅ Lessons seeded successfully!")
+                
+        except Exception as e:
+            logger.error(f"❌ Error during automatic database seeding: {e}")
+            await session.rollback()
+
     yield
     logger.info("🛑 Shutting down...")
 

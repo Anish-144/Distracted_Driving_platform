@@ -60,6 +60,5 @@ async def get_db() -> AsyncSession:
 async def init_db():
     """Create all tables (called on app startup)."""
     async with engine.begin() as conn:
-        # Database schema is now managed entirely by Alembic migrations.
-        # await conn.run_sync(Base.metadata.create_all)
-        pass
+        # Create all tables if they do not exist
+        await conn.run_sync(Base.metadata.create_all)

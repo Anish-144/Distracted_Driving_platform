@@ -25,7 +25,11 @@ class Lesson(Base):
     title: Mapped[str] = mapped_column(String(150), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     difficulty: Mapped[str] = mapped_column(String(20), nullable=False) # e.g., Beginner, Intermediate
-    tag: Mapped[LessonTag] = mapped_column(SAEnum(LessonTag), nullable=False, default=LessonTag.GENERAL)
+    tag: Mapped[LessonTag] = mapped_column(
+        SAEnum(LessonTag, values_callable=lambda x: [e.value for e in x]),
+        nullable=False,
+        default=LessonTag.GENERAL,
+    )
 
     def __repr__(self) -> str:
         return f"<Lesson id={self.id} title={self.title} tag={self.tag}>"

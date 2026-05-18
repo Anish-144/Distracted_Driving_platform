@@ -32,7 +32,9 @@ class BehavioralLog(Base):
     session_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    decision_type: Mapped[DecisionType] = mapped_column(SAEnum(DecisionType), nullable=False)
+    decision_type: Mapped[DecisionType] = mapped_column(
+        SAEnum(DecisionType, values_callable=lambda x: [e.value for e in x]), nullable=False
+    )
     pattern_flags: Mapped[str | None] = mapped_column(
         Text, nullable=True, comment="Comma-separated pattern tags (e.g., quick_reactor, frequent_distraction)"
     )

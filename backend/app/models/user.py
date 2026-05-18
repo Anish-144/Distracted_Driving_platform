@@ -29,7 +29,9 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     profile_type: Mapped[ProfileType] = mapped_column(
-        SAEnum(ProfileType), default=ProfileType.UNKNOWN, nullable=False
+        SAEnum(ProfileType, values_callable=lambda x: [e.value for e in x]),
+        default=ProfileType.UNKNOWN,
+        nullable=False,
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
