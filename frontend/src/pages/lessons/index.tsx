@@ -19,12 +19,12 @@ const CARD = 'bg-white rounded-2xl border border-gray-200/70 shadow-sm transitio
 const LABEL = 'text-[11px] font-bold uppercase tracking-[0.12em] text-gray-400';
 
 const DRIVER_COLORS: Record<string, { bg: string; text: string; border: string; badge: string }> = {
-  impulsive:    { bg: 'bg-red-50',    text: 'text-red-700',    border: 'border-red-200',    badge: 'bg-red-100 text-red-700 border-red-200' },
-  distracted:   { bg: 'bg-amber-50',  text: 'text-amber-700',  border: 'border-amber-200',  badge: 'bg-amber-100 text-amber-700 border-amber-200' },
-  hesitant:     { bg: 'bg-blue-50',   text: 'text-blue-700',   border: 'border-blue-200',   badge: 'bg-blue-100 text-blue-700 border-blue-200' },
-  inconsistent: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', badge: 'bg-purple-100 text-purple-700 border-purple-200' },
-  safe:         { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', badge: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
-  unknown:      { bg: 'bg-gray-50',   text: 'text-gray-700',   border: 'border-gray-200',   badge: 'bg-gray-100 text-gray-700 border-gray-200' },
+  impulsive:    { bg: 'bg-rose-50/70',   text: 'text-rose-700',    border: 'border-rose-200',    badge: 'bg-rose-100 text-rose-700 border-rose-200' },
+  distracted:   { bg: 'bg-amber-50/70',  text: 'text-blue-700',    border: 'border-blue-200',    badge: 'bg-blue-100 text-blue-700 border-blue-200' },
+  hesitant:     { bg: 'bg-purple-50/70', text: 'text-purple-700',  border: 'border-purple-200',  badge: 'bg-purple-100 text-purple-700 border-purple-200' },
+  inconsistent: { bg: 'bg-violet-50/70', text: 'text-violet-700',  border: 'border-violet-200',  badge: 'bg-violet-100 text-violet-700 border-violet-200' },
+  safe:         { bg: 'bg-emerald-50/70', text: 'text-emerald-700', border: 'border-emerald-200', badge: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+  unknown:      { bg: 'bg-gray-50/70',   text: 'text-gray-700',    border: 'border-gray-200',    badge: 'bg-gray-100 text-gray-700 border-gray-200' },
 };
 
 const DIFFICULTY_COLORS: Record<string, string> = {
@@ -314,7 +314,47 @@ function AILessonCard({ lesson, index, onOpen }: { lesson: AILesson; index: numb
   const dispatch = useAppDispatch();
   const colors = DRIVER_COLORS[lesson.driver_type] || DRIVER_COLORS.unknown;
   const DriverIcon = DRIVER_ICONS[lesson.driver_type] || Target;
-  const risk = getRiskLevel(lesson.driver_type);
+  
+  // Resolve badges safely with frontend fallbacks for full backward compatibility
+  const simSource = lesson.simulation_source || (
+    lesson.title.toLowerCase().includes('phone') || lesson.title.toLowerCase().includes('call') ? 'Phone Call Simulation' :
+    lesson.title.toLowerCase().includes('gps') || lesson.title.toLowerCase().includes('route') ? 'GPS Rerouting' :
+    lesson.title.toLowerCase().includes('passenger') || lesson.title.toLowerCase().includes('social') ? 'Passenger Pressure Test' :
+    lesson.title.toLowerCase().includes('traffic') || lesson.title.toLowerCase().includes('multi') ? 'Multi-Distraction Scenario' :
+    'Standard Driving Simulation'
+  );
+
+  const mistakeTrigger = lesson.mistake_trigger || (
+    lesson.driver_type === 'impulsive' ? 'Fast Reaction' :
+    lesson.driver_type === 'distracted' ? 'Unsafe Interaction' :
+    lesson.driver_type === 'hesitant' ? 'Hesitation Detected' :
+    'Baseline Drift Detected'
+  );
+
+  const riskLevel = lesson.risk_level || (
+    lesson.reaction_time_target <= 2.2 ? 'High Risk' :
+    lesson.reaction_time_target <= 3.0 ? 'Medium Risk' :
+    'Low Risk'
+  );
+
+  const scenarioIcon = (source: string) => {
+    switch (source) {
+      case 'Phone Call Simulation': return '📞';
+      case 'GPS Rerouting': return '🗺️';
+      case 'Passenger Pressure Test': return '🧑🤝🧑';
+      case 'Multi-Distraction Scenario': return '🚦';
+      default: return '🚗';
+    }
+  };
+
+  const getRiskBadgeStyles = (level: string) => {
+    switch (level) {
+      case 'High Risk': return 'bg-red-100 text-red-700 border-red-200';
+      case 'Medium Risk': return 'bg-amber-100 text-amber-700 border-amber-200';
+      case 'Low Risk': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+      default: return 'bg-gray-100 text-gray-700 border-gray-200';
+    }
+  };
 
   const handleComplete = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -328,28 +368,31 @@ function AILessonCard({ lesson, index, onOpen }: { lesson: AILesson; index: numb
     <FadeUp delay={0.1 + index * 0.06}>
       <div 
         onClick={() => onOpen(lesson)}
-        className={`${CARD} ${lesson.completed ? 'opacity-75' : 'hover:-translate-y-0.5 hover:shadow-md'} overflow-hidden cursor-pointer`}
+        className={`${CARD} ${lesson.completed ? 'opacity-75' : 'hover:-translate-y-1 hover:shadow-lg'} overflow-hidden cursor-pointer border-t-4 ${colors.border} transition-all duration-300`}
       >
         {/* Card Header */}
         <div className={`${colors.bg} border-b ${colors.border} p-5`}>
           <div className="flex items-start justify-between gap-3 mb-3">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${colors.badge} border`}>
-                <DriverIcon className="w-4 h-4" />
+            <div className="flex items-center gap-3 min-w-0">
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 bg-white border border-gray-100 shadow-sm text-2xl`}>
+                {scenarioIcon(simSource)}
               </div>
               <div>
-                <h3 className={`text-base font-bold ${colors.text} leading-tight`}>{lesson.title}</h3>
-                <div className="flex flex-wrap gap-1.5 mt-1.5">
-                  {lesson.session_id && (
-                    <span className="inline-flex items-center gap-1 text-[9px] font-bold bg-violet-100 text-violet-700 border border-violet-200 rounded px-1.5 py-0.5">
-                      <Zap className="w-2.5 h-2.5" /> Session-Specific
-                    </span>
-                  )}
+                <h3 className={`text-base font-bold text-gray-900 leading-tight`}>{lesson.title}</h3>
+                
+                {/* 4 Required Badges */}
+                <div className="flex flex-wrap gap-1.5 mt-2">
                   <span className={`inline-flex items-center text-[9px] font-bold border rounded px-1.5 py-0.5 capitalize ${colors.badge}`}>
-                    {lesson.driver_type} Protocol
+                    <DriverIcon className="w-2.5 h-2.5 mr-1" /> {lesson.driver_type} Protocol
                   </span>
-                  <span className={`inline-flex items-center text-[9px] font-bold border rounded px-1.5 py-0.5 ${risk.bg}`}>
-                    {risk.label}
+                  <span className="inline-flex items-center gap-1 text-[9px] font-bold bg-violet-100 text-violet-700 border border-violet-200 rounded px-1.5 py-0.5">
+                    {simSource}
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-[9px] font-bold bg-amber-100 text-amber-700 border border-amber-200 rounded px-1.5 py-0.5">
+                    Trigger: {mistakeTrigger}
+                  </span>
+                  <span className={`inline-flex items-center text-[9px] font-bold border rounded px-1.5 py-0.5 ${getRiskBadgeStyles(riskLevel)}`}>
+                    {riskLevel}
                   </span>
                 </div>
               </div>
@@ -367,42 +410,42 @@ function AILessonCard({ lesson, index, onOpen }: { lesson: AILesson; index: numb
           </div>
 
           {/* Behavioral target */}
-          <p className="text-sm text-gray-600 leading-relaxed">{lesson.behavioral_target}</p>
+          <p className="text-sm text-gray-600 leading-relaxed font-medium mt-1">{lesson.behavioral_target}</p>
 
           {/* AI generated reasoning preview */}
           {lesson.generated_reason && (
-            <div className="mt-3 bg-white/70 backdrop-blur-sm border border-gray-200/50 rounded-xl p-3 text-xs text-gray-600">
-              <span className="font-semibold text-gray-700">Reason:</span> {lesson.generated_reason}
+            <div className="mt-3 bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-xl p-3 text-xs text-gray-600 shadow-sm">
+              <span className="font-bold text-gray-800">💡 Context:</span> {lesson.generated_reason}
             </div>
           )}
 
           <div className="flex items-center justify-between mt-3">
             <ProviderBadge provider={lesson.ai_provider} />
-            <span className="text-[10px] text-gray-400">
+            <span className="text-[10px] text-gray-400 font-medium">
               {new Date(lesson.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
             </span>
           </div>
         </div>
 
         {/* AI Coaching Block */}
-        <div className="p-5 border-b border-gray-100">
+        <div className="p-5 border-b border-gray-100 bg-white">
           <div className="flex items-center gap-1.5 mb-2">
             <Brain className="w-3.5 h-3.5 text-violet-500" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-violet-600">AI Coaching Advice</span>
           </div>
-          <p className="text-sm text-gray-700 leading-relaxed italic">&quot;{lesson.ai_coaching_advice}&quot;</p>
+          <p className="text-sm text-gray-700 leading-relaxed italic font-medium">&quot;{lesson.ai_coaching_advice}&quot;</p>
         </div>
 
         {/* Card Footer */}
         <div className="px-5 py-3 flex items-center justify-between bg-gray-50/50">
-          <span className="flex items-center gap-1 text-sm text-violet-600 font-semibold hover:text-violet-700 transition-colors">
-            View Details <ChevronRight className="w-4 h-4 ml-0.5" />
+          <span className="flex items-center gap-1 text-sm text-violet-600 font-bold hover:text-violet-700 transition-colors">
+            View Details <ChevronRight className="w-4 h-4 ml-0.5 animate-pulse" />
           </span>
           {!lesson.completed ? (
             <button
               onClick={handleComplete}
               disabled={completing}
-              className="flex items-center gap-1.5 text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 text-sm font-bold text-emerald-600 hover:text-emerald-700 transition-colors disabled:opacity-50"
             >
               {completing ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
@@ -412,8 +455,8 @@ function AILessonCard({ lesson, index, onOpen }: { lesson: AILesson; index: numb
               {completing ? 'Saving...' : 'Mark Complete'}
             </button>
           ) : (
-            <div className="flex items-center gap-1.5 text-sm font-medium text-emerald-500">
-              <Award className="w-4 h-4" />
+            <div className="flex items-center gap-1.5 text-sm font-semibold text-emerald-600">
+              <Award className="w-4 h-4 text-emerald-500" />
               {lesson.completion_score != null ? `${lesson.completion_score}% score` : 'Completed'}
             </div>
           )}

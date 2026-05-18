@@ -44,6 +44,9 @@ export interface AILesson {
   session_id: string | null;
   generated_reason: string | null;
   recommended_focus: string | null;
+  simulation_source?: string | null;
+  mistake_trigger?: string | null;
+  risk_level?: string | null;
 }
 
 export const getAIRecommendedLessons = async (): Promise<AILesson[]> => {

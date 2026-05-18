@@ -113,8 +113,26 @@ _FALLBACK_LESSONS = {
 # ── LLM Prompt Template ───────────────────────────────────────────────────────
 
 LESSON_PROMPT = """\
-You are a behavioral driving safety coach generating a personalized lesson plan.
+You are an elite behavioral driving safety coach and psychological learning architect.
+Your task is to generate a highly customized, non-repetitive, contextually rich, and session-aware lesson plan.
 
+CRITICAL REQUIREMENT:
+- NEVER generate a generic title like "Foundation Safe Driving Curriculum" or repetitive titles.
+- The title MUST be deeply specific to the combination of their driver profile, latest session mistakes, and dominant fail scenario.
+- Avoid boring headers. Make the lesson title dynamic, professional, and psychology-centric.
+
+TITLE EXAMPLES:
+- For Impulsive Driver: "Impulse Suppression Under Urgent Notifications", "Controlling Split-Second Phone Reactions", "High-Pressure Decision Stabilization", "Reflex Inhibition and Focused Control"
+- For Distracted Driver: "Maintaining Focus During Multi-Alert Traffic", "Notification Filtering & Road Awareness", "Visual Attention Reinforcement", "Digital Attention Shield & Lane Discipline"
+- For Hesitant Driver: "Rapid Prioritization Under Pressure", "Confidence Building During Hazard Response", "Reducing Cognitive Hesitation Times", "Streamlining Hazard Response Reflexes"
+- For Safe Driver: "Advanced Situational Awareness Mastery", "Pre-emptive Hazard Scanning", "Extreme Pressure Resilience Training"
+
+COACHING EXPLANATION REQUIREMENT:
+- Do NOT output generic, repetitive tips like "Ignore distractions."
+- Provide deep psychological evaluation and cognitive framing. Example: "Your reaction timing indicates that urgency cues override your defensive driving instincts. This lesson trains delayed cognitive evaluation before reacting to alerts."
+- Connect their dominant mistake and average reaction time explicitly inside the coaching advice.
+
+DATA LOG FOR GENERATION:
 DRIVER PROFILE: {driver_type}
 TOTAL SESSIONS: {total_events} decisions recorded
 SAFE DECISION RATE: {safe_ratio_pct}%
@@ -129,19 +147,19 @@ LATEST SESSION MISTAKES: {latest_mistakes_str}
 Generate a structured personalized lesson plan. Return ONLY valid JSON, no markdown, no explanation.
 
 {{
-  "title": "Lesson title (max 10 words, specific to their profile)",
-  "behavioral_target": "The specific weakness this lesson targets (1-2 sentences)",
-  "why_it_matters": "Psychological + safety rationale (2-3 sentences with a statistic)",
-  "ai_coaching_advice": "Direct personalized coaching (2-4 sentences, reference their specific data)",
-  "exercises": ["Exercise 1", "Exercise 2", "Exercise 3"],
-  "personalized_insight": "Specific insight about their pattern (1-2 sentences)",
-  "improvement_goal": "Measurable target (e.g. Reduce unsafe reactions by 20% in 5 sessions)",
-  "simulation_modes": ["Mode 1", "Mode 2"],
+  "title": "Deeply customized dynamic lesson title specific to their mistakes & profile (max 10 words)",
+  "behavioral_target": "The specific weakness this lesson targets, highlighting the scenario they failed (1-2 sentences)",
+  "why_it_matters": "Psychological + safety rationale. Explain how their specific reaction time or mistake pattern increases risk (2-3 sentences with a statistic)",
+  "ai_coaching_advice": "Deep, psychology-based coaching advice referencing their exact mistakes and how they can build cognitive pauses or prioritization models (3-5 sentences)",
+  "exercises": ["Unique scenario-specific exercise 1", "Unique scenario-specific exercise 2", "Unique scenario-specific exercise 3"],
+  "personalized_insight": "Behavioral pattern analysis based on their dominant fail scenario (1-2 sentences)",
+  "improvement_goal": "A precise, highly measurable, behavior-specific target (e.g. Reduce sub-2.5s phone responses by 50% within 3 sessions)",
+  "simulation_modes": ["Specific mode 1", "Specific mode 2"],
   "difficulty": "Beginner|Intermediate|Advanced",
   "reaction_time_target": 2.5,
   "distraction_tolerance_target": 0.85,
-  "generated_reason": "Specific reason this lesson was generated from the session mistakes (e.g. You failed 3 phone interactions)",
-  "recommended_focus": "What the user should focus on during their next session"
+  "generated_reason": "Specific reason this lesson was generated traceably (e.g. Generated after your 'Phone Call' simulation where repeated impulsive interactions were detected.)",
+  "recommended_focus": "What specific cognitive filter or ignore rule the user should practice next"
 }}"""
 
 
@@ -200,7 +218,66 @@ class LessonGenerationService:
             logger.warning("Lesson LLM generation failed: %s", e)
 
         if lesson_data is None:
-            lesson_data = _FALLBACK_LESSONS.get(driver_type, _FALLBACK_LESSONS["unknown"])
+            base_fallback = _FALLBACK_LESSONS.get(driver_type, _FALLBACK_LESSONS["unknown"]).copy()
+            
+            # Select varied title based on latest mistakes & driver type
+            titles_by_type = {
+                "impulsive": [
+                    "Impulse Suppression Under Urgent Notifications",
+                    "Controlling Split-Second Phone Reactions",
+                    "High-Pressure Decision Stabilization",
+                    "Reflex Inhibition and Focused Control",
+                    "Cognitive Deliberation in Urgent Traffic"
+                ],
+                "distracted": [
+                    "Maintaining Focus During Multi-Alert Traffic",
+                    "Notification Filtering & Road Awareness",
+                    "Visual Attention Reinforcement",
+                    "Digital Attention Shield & Lane Discipline",
+                    "Pre-deciding Safe Attention Policies"
+                ],
+                "hesitant": [
+                    "Rapid Prioritization Under Pressure",
+                    "Confidence Building During Hazard Response",
+                    "Decisive Action Under Uncertainty",
+                    "Streamlining Hazard Response Reflexes",
+                    "Reducing Cognitive Hesitation Times"
+                ],
+                "safe": [
+                    "Advanced Situational Awareness Mastery",
+                    "Pre-emptive Hazard Scanning",
+                    "Extreme Pressure Resilience Training",
+                    "Defensive Consistency Under Exhaustion"
+                ]
+            }
+            
+            variation_titles = titles_by_type.get(driver_type, [
+                "Tailored Safety Focus and Awareness",
+                "Defensive Response Custom Curriculum",
+                "Cognitive Attention Regulation"
+            ])
+            
+            # Use hash of mistakes to be deterministic yet highly varied per session
+            import hashlib
+            hash_val = int(hashlib.md5(latest_mistakes_str.encode('utf-8')).hexdigest(), 16)
+            idx = hash_val % len(variation_titles)
+            base_fallback["title"] = variation_titles[idx]
+            
+            # Dynamically determine generated reason & recommended focus
+            if "incoming_call" in latest_mistakes_str.lower() or "phone" in latest_mistakes_str.lower():
+                base_fallback["generated_reason"] = "Generated after your 'Urgent Phone Call' simulation where repeated impulsive interactions were detected."
+                base_fallback["recommended_focus"] = "Build a 3-second pause rule before touching any phone alert."
+            elif "whatsapp" in latest_mistakes_str.lower() or "chat" in latest_mistakes_str.lower():
+                base_fallback["generated_reason"] = "Generated after your 'WhatsApp Notification' simulation where digital distractions captured lane focus."
+                base_fallback["recommended_focus"] = "Practice ignoring visual overlays completely during transit."
+            elif "gps" in latest_mistakes_str.lower() or "rerout" in latest_mistakes_str.lower():
+                base_fallback["generated_reason"] = "Generated after your 'GPS Rerouting' simulation where reaction delay exceeded safe parameters."
+                base_fallback["recommended_focus"] = "Keep eyes strictly on center lane marker during GPS route updates."
+            else:
+                base_fallback["generated_reason"] = "Generated from your latest driving baseline telemetry and behavior state logs."
+                base_fallback["recommended_focus"] = "Maintain high situational awareness and consistent lane keeping."
+                
+            lesson_data = base_fallback
 
         user_lesson = UserLesson(
             user_id=user_id,

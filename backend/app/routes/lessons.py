@@ -61,6 +61,9 @@ class AILessonResponse(BaseModel):
     session_id: Optional[str] = None
     generated_reason: Optional[str] = None
     recommended_focus: Optional[str] = None
+    simulation_source: Optional[str] = None
+    mistake_trigger: Optional[str] = None
+    risk_level: Optional[str] = None
 
 
 class CompleteLessonRequest(BaseModel):
@@ -78,6 +81,34 @@ def _serialize_ai_lesson(lesson: UserLesson) -> AILessonResponse:
         simulation_modes = json.loads(lesson.simulation_modes) if lesson.simulation_modes else []
     except Exception:
         simulation_modes = [lesson.simulation_modes] if lesson.simulation_modes else []
+
+    # Calculate simulation source dynamically
+    sim_source = "Standard Driving Simulation"
+    text_to_search = (lesson.title + " " + (lesson.generated_reason or "") + " " + lesson.behavioral_target).lower()
+    if "phone" in text_to_search or "call" in text_to_search or "ring" in text_to_search:
+        sim_source = "Phone Call Simulation"
+    elif "gps" in text_to_search or "route" in text_to_search or "rerout" in text_to_search:
+        sim_source = "GPS Rerouting"
+    elif "passenger" in text_to_search or "social" in text_to_search or "pressure" in text_to_search:
+        sim_source = "Passenger Pressure Test"
+    elif "traffic" in text_to_search or "multi" in text_to_search or "alert" in text_to_search:
+        sim_source = "Multi-Distraction Scenario"
+
+    # Calculate mistake trigger dynamically
+    mistake_trigger = "Baseline Drift Detected"
+    if "impulsive" in lesson.driver_type.lower() or "fast" in text_to_search or "reflex" in text_to_search or "sub-2s" in text_to_search:
+        mistake_trigger = "Fast Reaction"
+    elif "unsafe" in text_to_search or "interact" in text_to_search:
+        mistake_trigger = "Unsafe Interaction"
+    elif "hesitant" in lesson.driver_type.lower() or "slow" in text_to_search or "delay" in text_to_search or "hesitat" in text_to_search:
+        mistake_trigger = "Hesitation Detected"
+
+    # Calculate risk level dynamically
+    risk_level = "Low Risk"
+    if lesson.reaction_time_target <= 2.2:
+        risk_level = "High Risk"
+    elif lesson.reaction_time_target <= 3.0:
+        risk_level = "Medium Risk"
 
     return AILessonResponse(
         id=lesson.id,
@@ -101,6 +132,9 @@ def _serialize_ai_lesson(lesson: UserLesson) -> AILessonResponse:
         session_id=lesson.session_id,
         generated_reason=lesson.generated_reason,
         recommended_focus=lesson.recommended_focus,
+        simulation_source=sim_source,
+        mistake_trigger=mistake_trigger,
+        risk_level=risk_level,
     )
 
 
