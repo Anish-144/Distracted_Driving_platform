@@ -185,7 +185,13 @@ Generate this JSON structure:
   "escalation_stage_1": "First hint — subtle, ambient. 1 sentence. Just the notification/trigger itself described naturally.",
   "escalation_stage_2": "Mid-escalation — adds emotional weight. 1-2 sentences. Suggests urgency or importance without certainty.",
   "escalation_stage_3": "Peak pressure — maximum psychological urgency. 2 sentences. Directly challenges the driver's choice to ignore. Emotionally pointed.",
-  "emotional_pressure_type": "{emotional_pressure_type}"
+  "emotional_pressure_type": "{emotional_pressure_type}",
+  "response_choices": [
+    {{"text": "A safe, defensive choice (ignore the distraction)", "action": "ignored", "risk": "safe"}},
+    {{"text": "A mildly risky choice (quick glance, slight hesitation)", "action": "interacted", "risk": "medium"}},
+    {{"text": "A highly dangerous choice (fully engaging with the distraction)", "action": "interacted", "risk": "high"}},
+    {{"text": "A nuanced choice reflecting their behavioral weakness", "action": "interacted", "risk": "medium"}}
+  ]
 }}"""
 
 
@@ -270,6 +276,7 @@ class ScenarioGenerator:
             escalation_stage_1=scenario_data["escalation_stage_1"],
             escalation_stage_2=scenario_data["escalation_stage_2"],
             escalation_stage_3=scenario_data["escalation_stage_3"],
+            response_choices=json.dumps(scenario_data.get("response_choices", [])),
             ai_provider=provider_used,
         )
         db.add(record)
@@ -368,6 +375,12 @@ class ScenarioGenerator:
             "escalation_stage_2": stage2,
             "escalation_stage_3": stage3,
             "emotional_pressure_type": emotional_pressure,
+            "response_choices": [
+                {"text": "Keep your eyes on the road and completely ignore the distraction.", "action": "ignored", "risk": "safe"},
+                {"text": "Quickly glance at the screen to see who it is.", "action": "interacted", "risk": "medium"},
+                {"text": "Pick up the phone to handle it immediately.", "action": "interacted", "risk": "high"},
+                {"text": "Slow down slightly and try to read the notification.", "action": "interacted", "risk": "medium"}
+            ]
         }
 
     def _difficulty_to_escalation(self, difficulty: str) -> int:

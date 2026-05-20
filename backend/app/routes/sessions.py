@@ -10,7 +10,7 @@ Endpoints:
   GET  /api/session/{id}/score   — Get current score for a session
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from pydantic import BaseModel
@@ -150,10 +150,11 @@ async def get_session(
 @router.post("/{session_id}/end", response_model=SessionResponse)
 async def end_session(
     session_id: str,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Mark a session as complete."""
+    """Mark a session as complete and trigger cognitive report generation."""
     session = await session_service.get_session_by_id(db, session_id)
     if session is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
@@ -161,6 +162,48 @@ async def end_session(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
     updated = await session_service.end_session(db, session_id)
+
+    # ── Trigger Cognitive Report Generation ───────────────────────────────────
+    # We use a helper function to run this in a background task so it doesn't 
+    # block the response. We need to create a new session since the current 
+    # one might be closed by the dependency injection.
+    async def _generate_report_bg(u_id: str, s_id: str, score: float):
+        from app.database import AsyncSessionLocal
+        from app.services.cognitive_report_service import cognitive_report_service
+        from app.services.behavior_analyzer import behavior_analyzer
+        from app.models.event import Event
+        
+        async with AsyncSessionLocal() as bg_db:
+            summary = await behavior_analyzer.get_summary(bg_db, u_id)
+            state_result = await bg_db.execute(select(BehavioralState).where(BehavioralState.user_id == u_id))
+            behavioral_state = state_result.scalar_one_or_none()
+            
+            events_result = await bg_db.execute(
+                select(Event).where(Event.session_id == s_id).order_by(Event.timestamp)
+            )
+            events = events_result.scalars().all()
+            session_events = [
+                {
+                    "event_type": e.event_type,
+                    "decision_type": getattr(e, "user_response", "unknown"),
+                    "reaction_time": getattr(e, "reaction_time", 0.0) or 0.0,
+                    "urgency": getattr(e, "urgency_level", "medium"),
+                }
+                for e in events
+            ]
+            
+            if behavioral_state and summary:
+                await cognitive_report_service.generate_report(
+                    db=bg_db,
+                    user_id=u_id,
+                    session_id=s_id,
+                    behavioral_summary=summary,
+                    behavioral_state=behavioral_state,
+                    session_events=session_events,
+                    session_score=score
+                )
+
+    background_tasks.add_task(_generate_report_bg, current_user.id, session_id, updated.score)
     
     # Safely update user profile based on this session's behavior in a POST route
     summary = await behavior_analyzer.get_summary(db, current_user.id)
@@ -210,6 +253,7 @@ async def end_session(
 @router.post("/{session_id}/complete", response_model=SessionResponse)
 async def complete_session(
     session_id: str,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -217,7 +261,7 @@ async def complete_session(
     Alias to mark a session as complete.
     Calls end_session directly.
     """
-    return await end_session(session_id, db, current_user)
+    return await end_session(session_id, background_tasks, db, current_user)
 
 
 @router.get("/{session_id}/score", response_model=ScoreResponse)

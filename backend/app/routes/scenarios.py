@@ -46,6 +46,7 @@ class ScenarioResponse(BaseModel):
     escalation_stage_1: str
     escalation_stage_2: str
     escalation_stage_3: str
+    response_choices: str
     ai_provider: str
 
 
@@ -63,6 +64,7 @@ def _serialize(scenario: GeneratedScenario) -> ScenarioResponse:
         escalation_stage_1=scenario.escalation_stage_1,
         escalation_stage_2=scenario.escalation_stage_2,
         escalation_stage_3=scenario.escalation_stage_3,
+        response_choices=scenario.response_choices,
         ai_provider=scenario.ai_provider,
     )
 

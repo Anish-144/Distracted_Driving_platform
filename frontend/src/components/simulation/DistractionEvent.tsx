@@ -1,18 +1,10 @@
 import React from 'react';
-import { Phone, MessageCircle, Navigation } from 'lucide-react';
-
-interface Scenario {
-  id: string;
-  event_type: string;
-  name: string;
-  icon: string;
-  instruction_text: string;
-  urgency: string;
-}
+import { Phone, MessageCircle, Navigation, Activity, ShieldAlert, Zap } from 'lucide-react';
+import { GeneratedScenario } from '@/api/ai';
 
 interface DistractionEventProps {
-  scenario: Scenario;
-  instructionText: string;
+  scenario: GeneratedScenario;
+  escalationLevel: number;
 }
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -42,43 +34,76 @@ const colorMap: Record<string, { ring: string; bg: string; text: string; badge: 
   },
 };
 
-export default function DistractionEvent({ scenario, instructionText }: DistractionEventProps) {
-  const colors = colorMap[scenario.event_type] || colorMap['incoming_call'];
+export default function DistractionEvent({ scenario, escalationLevel }: DistractionEventProps) {
+  const colors = colorMap[scenario.distraction_type] || colorMap['incoming_call'];
+  
+  const getActiveEscalation = () => {
+    if (escalationLevel >= 3) return scenario.escalation_stage_3;
+    if (escalationLevel === 2) return scenario.escalation_stage_2;
+    return scenario.escalation_stage_1;
+  };
 
   return (
-    <div className={`distraction-event ${scenario.urgency === 'high' ? 'urgent' : ''} 
-      w-full max-w-xs mx-auto`}>
-      {/* Notification card */}
-      <div className={`rounded-2xl border ${colors.ring} ${colors.bg} p-4 ring-2 backdrop-blur-sm shadow-xl`}>
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-3">
-          <div className={`w-10 h-10 rounded-xl ${colors.bg} ${colors.text} flex items-center justify-center ring-1 ${colors.ring}`}>
-            {iconMap[scenario.event_type]}
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <span className="text-white font-semibold text-sm">{scenario.name}</span>
-              {scenario.urgency === 'high' && (
-                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-              )}
-            </div>
-            <span className="text-gray-400 text-xs">Now</span>
-          </div>
-          <div className={`${colors.badge} w-2 h-2 rounded-full animate-pulse`} />
-        </div>
-
-        {/* Body */}
-        <p className="text-gray-300 text-sm leading-relaxed mb-3">{instructionText}</p>
-
-        {/* Emoji visual */}
-        <div className="text-center text-4xl">{scenario.icon}</div>
+    <div className="w-full max-w-md mx-auto animate-fade-in">
+      {/* Narrative Context Header */}
+      <div className="mb-4 text-left border-l-2 border-brand-500 pl-3">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-brand-400 block mb-1">
+          Live Environment Context
+        </span>
+        <p className="text-sm text-slate-300 leading-relaxed italic">
+          {scenario.narrative_context}
+        </p>
       </div>
 
-      {/* Attention label */}
-      <div className="mt-3 text-center">
-        <span className={`text-xs font-semibold uppercase tracking-wider ${colors.text}`}>
-          ⚡ Distraction Detected
-        </span>
+      {/* Active Distraction Card */}
+      <div className={`rounded-2xl border ${colors.ring} ${colors.bg} p-5 ring-2 backdrop-blur-md shadow-2xl relative overflow-hidden transition-all duration-300`}>
+        {escalationLevel >= 3 && (
+          <div className="absolute inset-0 bg-red-500/10 animate-pulse pointer-events-none" />
+        )}
+        
+        {/* Header */}
+        <div className="flex items-start gap-4 mb-4 relative z-10">
+          <div className={`w-12 h-12 rounded-xl ${colors.bg} ${colors.text} flex items-center justify-center ring-1 ${colors.ring} flex-shrink-0`}>
+            {iconMap[scenario.distraction_type] || <Zap className="w-6 h-6" />}
+          </div>
+          <div className="flex-1 pt-1">
+            <div className="flex items-center gap-2">
+              <span className="text-white font-bold text-sm tracking-wide capitalize">
+                {scenario.distraction_type.replace('_', ' ')}
+              </span>
+              {escalationLevel >= 2 && (
+                <span className="w-2 h-2 bg-red-500 rounded-full animate-ping" />
+              )}
+            </div>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-[10px] font-mono text-gray-400 bg-gray-900/50 px-1.5 py-0.5 rounded border border-gray-700">
+                Lvl {escalationLevel} Escalation
+              </span>
+              <span className="text-[10px] font-mono text-brand-400 uppercase">
+                {scenario.emotional_pressure_type.replace('_', ' ')}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Dynamic Escalation Text */}
+        <div className="relative z-10 bg-slate-900/80 rounded-xl p-4 border border-slate-700/50 min-h-[80px] flex items-center">
+          <p className="text-gray-100 text-sm font-medium leading-relaxed">
+            {getActiveEscalation()}
+          </p>
+        </div>
+      </div>
+
+      {/* Live Metrics HUD */}
+      <div className="mt-4 flex justify-between px-2">
+        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 tracking-wider">
+          <Activity className="w-3.5 h-3.5 text-blue-400" />
+          COGNITIVE LOAD: {escalationLevel === 1 ? 'MODERATE' : escalationLevel === 2 ? 'ELEVATED' : 'CRITICAL'}
+        </div>
+        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 tracking-wider">
+          <ShieldAlert className="w-3.5 h-3.5 text-red-400" />
+          TARGET: {scenario.target_weakness.toUpperCase().slice(0, 20)}...
+        </div>
       </div>
     </div>
   );

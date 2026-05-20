@@ -314,6 +314,7 @@ export default function DashboardPage() {
                 <p className={LABEL + ' mb-2'}>Quick Actions</p>
                 <div className="space-y-0.5">
                   {[
+                    { label: 'Behavioral Dossier', icon: Shield, href: '/dashboard/report' },
                     { label: 'View Progress', icon: TrendingUp, href: '/dashboard/progress' },
                     { label: 'Learning Center', icon: Activity, href: '/lessons' },
                   ].map((a) => (

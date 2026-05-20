@@ -81,6 +81,7 @@ export interface GeneratedScenario {
   escalation_stage_1: string;
   escalation_stage_2: string;
   escalation_stage_3: string;
+  response_choices: string; // JSON array string
   ai_provider: string;
 }
 
@@ -171,8 +172,71 @@ export async function generateScenario(
 /**
  * NEW: Get the user's personality profile from onboarding assessment.
  */
+export interface CognitiveReport {
+  id: string;
+  session_id: string;
+  executive_summary: string;
+  cognitive_analysis: string;
+  emotional_trigger_breakdown: Array<{
+    trigger_type: string;
+    susceptibility_pct: number;
+    explanation: string;
+  }>;
+  behavioral_timeline: Array<{
+    event_num: number;
+    scenario_type: string;
+    decision: string;
+    reaction_time: number;
+    cognitive_state: string;
+    interpretation: string;
+  }>;
+  attention_stability_analysis: string;
+  risk_projection: string;
+  consistency_analysis: string;
+  intervention_strategy: Array<{
+    technique: string;
+    rationale: string;
+    priority: string;
+  }>;
+  coaching_narrative: string;
+  recommended_simulations: Array<{
+    type: string;
+    difficulty: string;
+    rationale: string;
+    targets_weakness: string;
+  }>;
+  metrics: {
+    urgency_susceptibility_index: number;
+    authority_pressure_sensitivity: number;
+    cognitive_overload_score: number;
+    emotional_reactivity_index: number;
+    defensive_attention_stability: number;
+    reassurance_seeking_probability: number;
+  };
+  session_context: {
+    score: number;
+    safe_decision_rate: number;
+    total_events: number;
+    driver_profile: string;
+    personality_label: string;
+  };
+  ai_provider: string;
+  created_at: string;
+}
+
+/**
+ * NEW: Get the user's personality profile from onboarding assessment.
+ */
 export async function fetchPersonalityProfile(): Promise<PersonalityProfile> {
   const res = await client.get<PersonalityProfile>('/onboarding/profile/me');
+  return res.data;
+}
+
+/**
+ * NEW: Get the latest behavioral cognitive report for the authenticated user.
+ */
+export async function fetchLatestCognitiveReport(): Promise<CognitiveReport> {
+  const res = await client.get<CognitiveReport>('/cognitive-reports/latest');
   return res.data;
 }
 
