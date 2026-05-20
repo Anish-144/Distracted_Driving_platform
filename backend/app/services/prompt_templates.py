@@ -180,3 +180,105 @@ def build_authority_prompt(
         pressure_level=pressure_level,
         recent_dialogue=recent_dialogue or "None yet.",
     )
+
+
+# ── PSYCHOGRAPHIC COACHING PROMPT ─────────────────────────────────────────────
+# Uses personality trait scores for deeply personalized, non-generic coaching.
+
+PSYCHOGRAPHIC_COACHING_PROMPT = """\
+You are a cognitive behavioral specialist coaching a driver after their decision in simulation.
+
+PSYCHOLOGICAL TRAIT PROFILE (from onboarding assessment):
+{trait_context}
+
+SELF-AWARENESS SCORE: {self_awareness_score:.0%} (how accurately they know themselves)
+BEHAVIORAL PROFILE LABEL: {profile_label}
+CONSISTENCY FLAGS: {consistency_flags}
+
+SIMULATION CONTEXT:
+Distraction: {distraction_label}
+Decision: {decision_label}
+Reaction time: {response_time}s
+Consecutive mistakes: {consecutive_mistakes}
+Score delta: {score_delta:+.0f} pts
+Recent session dialogue: {recent_dialogue}
+
+COACHING RULES:
+- ONE sentence only. Maximum 18 words.
+- Reference their SPECIFIC psychological trait, not just the decision outcome.
+- If they have low self-awareness (score < 0.5) AND made an unsafe decision, call out the cognitive gap.
+- If they have high impulsiveness AND reacted fast, specifically name the impulse mechanism.
+- Do NOT use: "good job", "well done", "remember", "always", "try to".
+- Sound like a psychologist who knows their profile — not a generic driving instructor.
+- No platitudes. No generic safety advice.
+
+Write ONLY the coaching line. No quotes. No prefix."""
+
+
+PSYCHOGRAPHIC_PRESSURE_PROMPT = """\
+You are a passenger in a car creating social/emotional pressure during a distraction event.
+
+DRIVER PSYCHOLOGICAL PROFILE:
+{trait_context}
+
+SCENARIO CONTEXT:
+{narrative_context}
+
+EMOTIONAL PRESSURE TYPE TO USE: {emotional_pressure_type}
+TARGET PSYCHOLOGICAL WEAKNESS: {target_weakness}
+URGENCY LEVEL: {urgency_level}/3
+
+RULES:
+- ONE sentence only. Sound like a real person, not a warning system.
+- Exploit the {emotional_pressure_type} pressure specifically — be psychologically realistic.
+- If urgency is 3, be genuinely urgent and emotionally pointed.
+- If urgency is 1, be subtle — just a gentle nudge, not dramatic.
+- No robotic phrases like "You should check this" or "This might be important."
+- Sound human. Sound present. Sound real.
+
+Write ONLY the passenger's spoken line. No quotes. No prefix."""
+
+
+def build_psychographic_coaching_prompt(
+    event_type: str,
+    decision_type: str,
+    response_time: float,
+    score_delta: float,
+    consecutive_mistakes: int,
+    recent_dialogue: str,
+    trait_context: str,
+    profile_label: str,
+    self_awareness_score: float,
+    consistency_flags: list[str],
+) -> str:
+    """Build a psychographically personalized coaching prompt using personality trait data."""
+    flags_str = "; ".join(consistency_flags) if consistency_flags else "No behavioral inconsistencies detected."
+    return PSYCHOGRAPHIC_COACHING_PROMPT.format(
+        trait_context=trait_context or "Unknown cognitive profile.",
+        profile_label=profile_label,
+        self_awareness_score=self_awareness_score,
+        consistency_flags=flags_str,
+        distraction_label=DISTRACTION_LABELS.get(event_type, event_type),
+        decision_label=DECISION_LABELS.get(decision_type, decision_type),
+        response_time=round(response_time, 1),
+        score_delta=score_delta,
+        consecutive_mistakes=consecutive_mistakes,
+        recent_dialogue=recent_dialogue or "None yet.",
+    )
+
+
+def build_psychographic_pressure_prompt(
+    narrative_context: str,
+    trait_context: str,
+    emotional_pressure_type: str,
+    target_weakness: str,
+    urgency_level: int,
+) -> str:
+    """Build a psychographically-targeted passenger pressure prompt."""
+    return PSYCHOGRAPHIC_PRESSURE_PROMPT.format(
+        trait_context=trait_context or "Unknown cognitive profile.",
+        narrative_context=narrative_context,
+        emotional_pressure_type=emotional_pressure_type,
+        target_weakness=target_weakness,
+        urgency_level=urgency_level,
+    )

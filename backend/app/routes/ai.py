@@ -291,3 +291,34 @@ async def get_observability_metrics(
     metrics = await observability_engine.get_longitudinal_metrics(db, current_user.id)
     return ObservabilityMetrics(**metrics)
 
+
+class PsychologicalMetrics(BaseModel):
+    self_awareness_score: float
+    emotional_susceptibility_score: float
+    authority_pressure_index: float
+    cognitive_overload_score: float
+    behavioral_consistency_score: float
+    impulsiveness_mismatch_pct: float
+    attention_mismatch_pct: float
+    emotional_mismatch_pct: float
+    onboarding_profile_label: str
+    has_completed_assessment: bool
+    total_simulations_since_assessment: int
+
+
+@router.get("/psychological/metrics", response_model=PsychologicalMetrics)
+async def get_psychological_metrics(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    NEW: Psychological intelligence metrics combining personality profile
+    with behavioral state for research-grade self-awareness analysis.
+    
+    Requires completed onboarding assessment for full data.
+    Returns estimated values based on behavioral state only if no assessment.
+    """
+    metrics = await observability_engine.get_psychological_metrics(db, current_user.id)
+    return PsychologicalMetrics(**metrics)
+
+

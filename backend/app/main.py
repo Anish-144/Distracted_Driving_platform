@@ -11,10 +11,13 @@ import logging
 from app.config import settings
 from app.database import init_db
 from app.routes import auth, user, sessions, events, lessons, progress, ai
+from app.routes import onboarding, scenarios  # new: personality + AI scenario routes
 # Ensure all models are imported so Base.metadata.create_all picks them up
 from app.models import user as _user_model  # noqa: F401
 from app.models import lesson as _lesson_model  # noqa: F401
 from app.models import user_lesson as _user_lesson_model  # noqa: F401
+from app.models import personality_profile as _personality_profile_model  # noqa: F401
+from app.models import generated_scenario as _generated_scenario_model  # noqa: F401
 
 # Setup structured logging
 logging.basicConfig(
@@ -176,6 +179,8 @@ app.include_router(events.router)
 app.include_router(lessons.router)
 app.include_router(progress.router)
 app.include_router(ai.router)
+app.include_router(onboarding.router)
+app.include_router(scenarios.router)
 
 
 # ─── Health Check ─────────────────────────────────────────────────────────────

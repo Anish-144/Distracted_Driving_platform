@@ -178,6 +178,24 @@ async def end_session(
         db.add(current_user)
         await db.commit()
 
+    # ── NEW: Update behavioral consistency after each session ─────────────────
+    # Compares self-reported personality (from onboarding) vs simulation behavior
+    try:
+        from app.services.personality_profiler import personality_profiler
+        from app.models.behavioral_state import BehavioralState
+        state_result = await db.execute(
+            select(BehavioralState).where(BehavioralState.user_id == current_user.id)
+        )
+        behavioral_state = state_result.scalar_one_or_none()
+        if behavioral_state and behavioral_state.total_events >= 5:
+            await personality_profiler.update_consistency_after_session(
+                db=db, user_id=current_user.id, behavioral_state=behavioral_state
+            )
+            await db.commit()
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning("Consistency update failed (non-critical): %s", e)
+
     clear_memory(session_id)
     clear_pool(session_id)
     return SessionResponse(

@@ -50,6 +50,57 @@ export interface FeedbackResponse {
   behavior: BehaviorState;
 }
 
+// ── Psychological Metrics ─────────────────────────────────────────────────────
+
+export interface PsychologicalMetrics {
+  self_awareness_score: number;
+  emotional_susceptibility_score: number;
+  authority_pressure_index: number;
+  cognitive_overload_score: number;
+  behavioral_consistency_score: number;
+  impulsiveness_mismatch_pct: number;
+  attention_mismatch_pct: number;
+  emotional_mismatch_pct: number;
+  onboarding_profile_label: string;
+  has_completed_assessment: boolean;
+  total_simulations_since_assessment: number;
+}
+
+// ── AI Scenario Types ─────────────────────────────────────────────────────────
+
+export interface GeneratedScenario {
+  id: string;
+  distraction_type: string;
+  driver_profile_at_generation: string;
+  difficulty_level: string;
+  narrative_context: string;
+  passenger_pressure_text: string;
+  urgency_escalation_level: number;
+  emotional_pressure_type: string;
+  target_weakness: string;
+  escalation_stage_1: string;
+  escalation_stage_2: string;
+  escalation_stage_3: string;
+  ai_provider: string;
+}
+
+// ── Onboarding / Personality Types ───────────────────────────────────────────
+
+export interface PersonalityProfile {
+  onboarding_profile_label: string;
+  impulsiveness_score: number;
+  attention_control_score: number;
+  emotional_reactivity_score: number;
+  authority_compliance_score: number;
+  cognitive_patience_score: number;
+  risk_tolerance_score: number;
+  stress_resilience_score: number;
+  multitasking_tendency_score: number;
+  consistency_score: number;
+  self_awareness_score: number;
+  has_completed_assessment: boolean;
+}
+
 // ── API Functions ─────────────────────────────────────────────────────────────
 
 /**
@@ -79,6 +130,49 @@ export async function fetchFeedback(
  */
 export async function fetchBehaviorState(): Promise<BehaviorState> {
   const res = await client.get<BehaviorState>('/ai/behavior/me');
+  return res.data;
+}
+
+/**
+ * NEW: Get psychological intelligence metrics (requires completed onboarding).
+ */
+export async function fetchPsychologicalMetrics(): Promise<PsychologicalMetrics> {
+  const res = await client.get<PsychologicalMetrics>('/ai/psychological/metrics');
+  return res.data;
+}
+
+/**
+ * NEW: Get the next AI-generated scenario for a given distraction type.
+ * Auto-generates if no unused scenarios available.
+ */
+export async function fetchNextScenario(
+  distractionType: string
+): Promise<GeneratedScenario> {
+  const res = await client.get<GeneratedScenario>(`/scenarios/next/${distractionType}`);
+  return res.data;
+}
+
+/**
+ * NEW: Generate a fresh AI scenario for the given type and session.
+ */
+export async function generateScenario(
+  distractionType: string,
+  sessionId?: string,
+  difficulty: string = 'medium',
+): Promise<GeneratedScenario> {
+  const res = await client.post<GeneratedScenario>('/scenarios/generate', {
+    distraction_type: distractionType,
+    session_id: sessionId,
+    difficulty_level: difficulty,
+  });
+  return res.data;
+}
+
+/**
+ * NEW: Get the user's personality profile from onboarding assessment.
+ */
+export async function fetchPersonalityProfile(): Promise<PersonalityProfile> {
+  const res = await client.get<PersonalityProfile>('/onboarding/profile/me');
   return res.data;
 }
 

@@ -1,0 +1,100 @@
+"""
+GeneratedScenario model — persists AI-generated dynamic scenario metadata.
+
+Unlike the static Scenario table (seed data), GeneratedScenario records are
+uniquely crafted per-user by the AI scenario engine, incorporating:
+  - Personality profile context
+  - Current behavioral state
+  - Emotional escalation level
+  - Psychological pressure factors
+"""
+
+import uuid
+from datetime import datetime
+from sqlalchemy import String, Text, Float, Integer, Boolean, DateTime, func, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column
+from app.database import Base
+
+
+class GeneratedScenario(Base):
+    __tablename__ = "generated_scenarios"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    user_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False, index=True
+    )
+    session_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("sessions.id", ondelete="SET NULL"),
+        nullable=True, index=True
+    )
+
+    # ── Scenario Classification ───────────────────────────────────────────────
+    distraction_type: Mapped[str] = mapped_column(
+        String(50), nullable=False,
+        comment="incoming_call | whatsapp_notification | gps_rerouting | email_alert | social_media"
+    )
+    driver_profile_at_generation: Mapped[str] = mapped_column(
+        String(50), nullable=False,
+        comment="The driver profile type when this was generated"
+    )
+    difficulty_level: Mapped[str] = mapped_column(
+        String(20), default="medium", nullable=False
+    )
+
+    # ── Rich Narrative Content ────────────────────────────────────────────────
+    narrative_context: Mapped[str] = mapped_column(
+        Text, nullable=False,
+        comment="The immersive story context: time of day, emotional state, traffic, prior events"
+    )
+    passenger_pressure_text: Mapped[str] = mapped_column(
+        Text, nullable=False,
+        comment="What the AI passenger says to create social pressure"
+    )
+    urgency_escalation_level: Mapped[int] = mapped_column(
+        Integer, default=1, nullable=False,
+        comment="1=mild hint, 2=moderate urgency, 3=high pressure escalation"
+    )
+
+    # ── Psychological Engineering ─────────────────────────────────────────────
+    emotional_pressure_type: Mapped[str] = mapped_column(
+        String(50), default="neutral", nullable=False,
+        comment="authority | social_obligation | urgency | guilt | fomo | safety_concern"
+    )
+    target_weakness: Mapped[str] = mapped_column(
+        String(100), nullable=False,
+        comment="The specific psychological weakness this scenario targets"
+    )
+
+    # ── Escalation Chain ──────────────────────────────────────────────────────
+    escalation_stage_1: Mapped[str] = mapped_column(
+        Text, nullable=False,
+        comment="Initial hint text: 'You got a message.'"
+    )
+    escalation_stage_2: Mapped[str] = mapped_column(
+        Text, nullable=False,
+        comment="Mid escalation: 'This might be important.'"
+    )
+    escalation_stage_3: Mapped[str] = mapped_column(
+        Text, nullable=False,
+        comment="Peak pressure: 'Why haven't you responded? This could be urgent!'"
+    )
+
+    # ── Meta ─────────────────────────────────────────────────────────────────
+    ai_provider: Mapped[str] = mapped_column(
+        String(50), default="fallback", nullable=False
+    )
+    was_used: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<GeneratedScenario user={self.user_id} "
+            f"type={self.distraction_type} "
+            f"escalation={self.urgency_escalation_level}>"
+        )

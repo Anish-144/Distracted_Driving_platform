@@ -6,6 +6,12 @@ from app.models.event import Event  # noqa: F401
 from app.models.behavioral_log import BehavioralLog  # noqa: F401
 from app.models.scenario import Scenario  # noqa: F401
 from app.models.lesson import Lesson  # noqa: F401
+from app.models.personality_profile import PersonalityProfile  # noqa: F401
+from app.models.generated_scenario import GeneratedScenario  # noqa: F401
 
-__all__ = ["User", "Session", "Event", "BehavioralLog", "Scenario", "Lesson"]
+__all__ = [
+    "User", "Session", "Event", "BehavioralLog", "Scenario", "Lesson",
+    "PersonalityProfile", "GeneratedScenario",
+]
+
 
