@@ -9,10 +9,11 @@ from app.models.lesson import Lesson  # noqa: F401
 from app.models.personality_profile import PersonalityProfile  # noqa: F401
 from app.models.generated_scenario import GeneratedScenario  # noqa: F401
 from app.models.cognitive_report import CognitiveReport  # noqa: F401
+from app.models.calibration_event import CalibrationEvent  # noqa: F401
 
 __all__ = [
     "User", "Session", "Event", "BehavioralLog", "Scenario", "Lesson",
-    "PersonalityProfile", "GeneratedScenario", "CognitiveReport"
+    "PersonalityProfile", "GeneratedScenario", "CognitiveReport", "CalibrationEvent"
 ]
 
 

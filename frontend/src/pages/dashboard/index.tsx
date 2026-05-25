@@ -8,14 +8,53 @@ import { getLatestSession, LatestSessionData, isRequestCancelled as isSessionCan
 import toast from 'react-hot-toast';
 import AppShell from '@/components/layout/AppShell';
 import { FadeUp } from '@/components/motion/ScrollReveal';
+import { motion } from 'framer-motion';
 import {
   Shield, TrendingUp, Clock, Car, PlayCircle, ChevronRight,
-  Activity, Phone, MessageCircle, MapPin, AlertTriangle, ArrowUpRight, Zap,
+  Activity, Phone, MessageCircle, MapPin, AlertTriangle, ArrowUpRight,
+  Zap, Brain, BarChart2, BookOpen, FileText, Target, CheckCircle2,
 } from 'lucide-react';
 
-// ── Design tokens (all in one place) ──────────────────────────────────────────
-const CARD = 'bg-white rounded-2xl border border-gray-200/70 shadow-sm';
-const LABEL = 'text-[11px] font-bold uppercase tracking-[0.12em] text-gray-400';
+// ── Shared micro-components ───────────────────────────────────────────────────
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="label-caps mb-3">
+      {children}
+    </p>
+  );
+}
+
+function CardHeader({
+  icon: Icon,
+  iconColor,
+  iconBg,
+  title,
+  right,
+}: {
+  icon: React.ElementType;
+  iconColor: string;
+  iconBg: string;
+  title: string;
+  right?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-2.5">
+        <div
+          className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+          style={{ background: iconBg }}
+        >
+          <Icon className="w-3.5 h-3.5" style={{ color: iconColor }} />
+        </div>
+        <h2 className="text-sm font-bold text-primary tracking-tight">{title}</h2>
+      </div>
+      {right && <div className="flex-shrink-0">{right}</div>}
+    </div>
+  );
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -49,7 +88,7 @@ export default function DashboardPage() {
       .catch((err) => {
         if (isSessionCancelled(err)) return;
         const status = err?.response?.status;
-        if (!status || status >= 500) return; // backend down — silent
+        if (!status || status >= 500) return;
         toast.error('Could not load your latest session data.');
       })
       .finally(() => { if (!controller.signal.aborted) setIsFetchingLatest(false); });
@@ -95,8 +134,8 @@ export default function DashboardPage() {
   if (!isMounted) return null;
   if (!isAuthenticated || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#f0fdf9' }}>
-        <div className="w-8 h-8 rounded-full border-2 border-emerald-600 border-t-transparent animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-app-shell">
+        <div className="w-7 h-7 rounded-full border-2 border-brand-500 border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -107,222 +146,307 @@ export default function DashboardPage() {
   const displayReaction = hasSession ? `${latestData!.avg_reaction_time}s` : '—';
   const displayImprovement = stats ? `${stats.improvement_rate > 0 ? '+' : ''}${stats.improvement_rate}` : '—';
   const displayDriverType = hasSession ? latestData!.driver_type : (stats?.driver_type ?? 'Unknown');
+  const firstName = user.name?.split(' ')[0] || 'User';
+  const profileKnown = user.profile_type && user.profile_type !== 'unknown';
 
   const statCards = [
-    { label: 'Safety Score', value: displayScore, icon: Shield, color: '#059669', tint: '#f0fdf4', border: '#d1fae5' },
-    { label: 'Avg Reaction', value: displayReaction, icon: Clock, color: '#3b82f6', tint: '#eff6ff', border: '#bfdbfe' },
-    { label: 'Improvement', value: displayImprovement, icon: TrendingUp, color: '#d97706', tint: '#fffbeb', border: '#fde68a' },
-    { label: 'Driver Type', value: displayDriverType, icon: Car, color: '#8b5cf6', tint: '#f5f3ff', border: '#ddd6fe' },
+    {
+      label: 'Safety Score', value: displayScore, sub: 'session avg',
+      icon: Shield, color: '#34d399', tint: 'rgba(52,211,153,0.08)', border: 'rgba(52,211,153,0.18)',
+    },
+    {
+      label: 'Reaction Time', value: displayReaction, sub: 'last session',
+      icon: Clock, color: '#60a5fa', tint: 'rgba(96,165,250,0.08)', border: 'rgba(96,165,250,0.18)',
+    },
+    {
+      label: 'Improvement', value: displayImprovement, sub: 'overall trend',
+      icon: TrendingUp, color: '#fbbf24', tint: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.18)',
+    },
+    {
+      label: 'Driver Profile', value: displayDriverType, sub: 'behavioral type',
+      icon: Brain, color: '#a78bfa', tint: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.18)',
+    },
   ];
 
   const scenarios = [
-    { icon: Phone, name: 'Phone Call', difficulty: 'Medium', color: '#f59e0b' },
-    { icon: MessageCircle, name: 'WhatsApp', difficulty: 'Easy', color: '#10b981' },
-    { icon: MapPin, name: 'GPS Alert', difficulty: 'Hard', color: '#ef4444' },
+    { icon: Phone,         name: 'Phone Call',   difficulty: 'Medium', color: '#f59e0b' },
+    { icon: MessageCircle, name: 'WhatsApp',      difficulty: 'Easy',   color: '#10b981' },
+    { icon: MapPin,        name: 'GPS Alert',     difficulty: 'Hard',   color: '#ef4444' },
+  ];
+
+  const quickActions = [
+    { label: 'Behavioral Dossier',  icon: FileText,   href: '/dashboard/report',    desc: 'Full profile breakdown' },
+    { label: 'Training Progress',   icon: BarChart2,  href: '/dashboard/progress',  desc: 'Session history' },
+    { label: 'Learning Center',     icon: BookOpen,   href: '/lessons',             desc: 'Adaptive lessons' },
+    { label: 'Research Analytics',  icon: Target,     href: '/dashboard/research',  desc: 'Behavioral data' },
   ];
 
   return (
     <>
       <Head>
         <title>Dashboard — SafeDrive AI</title>
-        <meta name="description" content="Track your distracted driving training progress." />
+        <meta name="description" content="Track your distracted driving training progress and behavioral intelligence." />
       </Head>
 
       <AppShell>
-        {/* ── Page header ───────────────────────────────────────────────── */}
-        <FadeUp className="mb-7">
-          <p className={LABEL + ' mb-1'}>Dashboard</p>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
-            Welcome back,{' '}
-            <span className="text-emerald-600">{user.name?.split(' ')[0] || 'User'}</span>
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">Here&apos;s your training performance overview.</p>
+
+        {/* ── Welcome header ─────────────────────────────────────────────── */}
+        <FadeUp className="mb-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="label-caps mb-1">
+                Behavioral Intelligence Platform
+              </p>
+              <h1 className="text-xl font-bold text-primary tracking-tight">
+                Welcome back, <span className="text-brand-600 dark:text-brand-400">{firstName}</span>
+              </h1>
+              <p className="text-sm text-muted mt-0.5">
+                {profileKnown
+                  ? `Profile: ${user.profile_type?.replace('_', ' ')} · Training active`
+                  : 'Complete a calibration session to unlock your behavioral profile.'}
+              </p>
+            </div>
+            {/* Primary CTA — anchored top right on welcome */}
+            <Link
+              href="/simulation"
+              id="start-simulation-btn"
+              className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-on-primary bg-primary transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+              style={{ background: '#F4F4F5', color: '#09090B' }}
+            >
+              <PlayCircle className="w-4 h-4" />
+              <span className="hidden sm:inline">Start Session</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </FadeUp>
 
-        {/* ── Stat row ─────────────────────────────────────────────────── */}
-        <FadeUp delay={0.05} className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {/* ── KPI strip ──────────────────────────────────────────────────── */}
+        <FadeUp delay={0.05} className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           {statCards.map((s, i) => (
-            <div
+            <motion.div
               key={i}
-              className={`${CARD} p-5 flex flex-col gap-3 hover:-translate-y-0.5 transition-transform duration-200 cursor-default`}
+              className="bg-secondary rounded-xl border border-subtle p-4 flex flex-col gap-2 cursor-default"
+              whileHover={{ y: -2, transition: { duration: 0.2 } }}
             >
               <div className="flex items-center justify-between">
-                <p className={LABEL}>{s.label}</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">{s.label}</p>
                 <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                  className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
                   style={{ background: s.tint, border: `1px solid ${s.border}` }}
                 >
-                  <s.icon className="w-4 h-4" style={{ color: s.color }} />
+                  <s.icon className="w-3.5 h-3.5" style={{ color: s.color }} />
                 </div>
               </div>
               {isLoading && s.value === '—' ? (
-                <div className="h-7 w-16 rounded-lg bg-gray-100 animate-pulse" />
+                <div className="h-6 w-16 rounded-md bg-secondary animate-pulse" />
               ) : (
-                <p className="text-2xl font-bold tracking-tight" style={{ color: s.color }}>{s.value}</p>
+                <p className="text-xl font-bold tracking-tight capitalize mono-data" style={{ color: s.color }}>
+                  {s.value}
+                </p>
               )}
-            </div>
+              <p className="text-[10px] text-muted font-medium">{s.sub}</p>
+            </motion.div>
           ))}
         </FadeUp>
 
-        {/* ── Body grid ────────────────────────────────────────────────── */}
+        {/* ── Body grid ─────────────────────────────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-          {/* ── Left (span 2) ── */}
-          <div className="lg:col-span-2 space-y-5">
+          {/* ── Left column (2/3) ── */}
+          <div className="lg:col-span-2 flex flex-col gap-4">
 
-            {/* Start Simulation */}
-            <FadeUp delay={0.1}>
-              <div className={`${CARD} p-6`}>
-                <div className="flex items-start justify-between gap-4 mb-5">
-                  <div>
-                    <span
-                      className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2 py-0.5 rounded-full mb-3"
-                      style={{ background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0' }}
-                    >
-                      <Activity className="w-3 h-3" />
-                      Week 1 · Foundation
-                    </span>
-                    <h2 className="text-lg font-bold text-gray-900">Driving Simulation</h2>
-                    <p className="text-sm text-gray-500 mt-1 leading-relaxed">
-                      Face real-world distraction scenarios and train your decision-making.
-                    </p>
-                  </div>
-                  <Link
-                    href="/simulation"
-                    id="start-simulation-btn"
-                    className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
-                    style={{ background: '#059669', boxShadow: '0 2px 12px rgba(5,150,105,0.3)' }}
-                  >
-                    <PlayCircle className="w-4 h-4" />
-                    Start Session
-                    <ArrowUpRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-
-                <div className="grid grid-cols-3 gap-3 pt-5 border-t border-gray-100">
-                  {scenarios.map((s) => (
+            {/* Simulation readiness card */}
+            <FadeUp delay={0.08}>
+              <div className="bg-primary rounded-xl border border-subtle overflow-hidden">
+                {/* Colored accent strip */}
+                <div className="h-0.5 w-full bg-primary" />
+                <div className="p-5">
+                  <div className="flex items-start gap-3 mb-4">
                     <div
-                      key={s.name}
-                      className="flex items-center gap-2.5 p-3 rounded-xl bg-gray-50 border border-gray-100"
+                      className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+                      style={{ background: 'rgba(5,150,105,0.1)', border: '1px solid rgba(5,150,105,0.2)' }}
                     >
-                      <div
-                        className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                        style={{ background: `${s.color}15`, border: `1px solid ${s.color}30` }}
-                      >
-                        <s.icon className="w-3.5 h-3.5" style={{ color: s.color }} />
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-gray-800">{s.name}</p>
-                        <p className="text-[11px] text-gray-400">{s.difficulty}</p>
-                      </div>
+                      <Car className="w-4.5 h-4.5 text-brand-600 dark:text-brand-400" />
                     </div>
-                  ))}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h2 className="text-sm font-bold text-primary">Driving Simulation</h2>
+                        <span
+                          className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                          style={{ background: 'rgba(5,150,105,0.1)', color: '#059669', border: '1px solid rgba(5,150,105,0.2)' }}
+                        >
+                          <Activity className="w-2.5 h-2.5" />
+                          Week 1
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted leading-relaxed">
+                        Face real-world distraction scenarios — phone calls, messages, navigation alerts — and train your split-second decision-making.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Scenario chips */}
+                  <div className="grid grid-cols-3 gap-2 pt-4 border-t border-subtle">
+                    {scenarios.map((s) => (
+                      <div
+                        key={s.name}
+                        className="flex items-center gap-2 p-2.5 rounded-lg border border-subtle bg-secondary"
+                      >
+                        <div
+                          className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0"
+                          style={{ background: `${s.color}12`, border: `1px solid ${s.color}25` }}
+                        >
+                          <s.icon className="w-3 h-3" style={{ color: s.color }} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-semibold text-primary leading-none truncate">{s.name}</p>
+                          <p className="text-[10px] text-muted mt-0.5">{s.difficulty}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </FadeUp>
 
-            {/* Last Session */}
-            {localSessionData.percentile !== null && (
-              <FadeUp delay={0.15}>
-                <div className={`${CARD} p-6`}>
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-base font-bold text-gray-900">Your Last Session</h2>
-                    {localSessionData.timestamp && (
-                      <span className="text-xs text-gray-400">{localSessionData.timestamp}</span>
-                    )}
-                  </div>
-                  <div className="rounded-xl p-4 bg-gray-50 border border-gray-100">
-                    <div className="flex gap-8 mb-4 pb-4 border-b border-gray-200">
-                      <div>
-                        <p className={LABEL + ' mb-1'}>Global Ranking</p>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-3xl font-black text-emerald-600">{localSessionData.percentile}%</span>
+            {/* Last Session Intelligence — always shown, conditionally filled */}
+            <FadeUp delay={0.13}>
+              <div className="bg-primary rounded-xl border border-card p-5">
+                <CardHeader
+                  icon={BarChart2}
+                  iconColor="#60a5fa"
+                  iconBg="rgba(96,165,250,0.1)"
+                  title="Last Session Intelligence"
+                  right={
+                    localSessionData.timestamp && (
+                      <span className="text-[10px] text-muted font-medium">{localSessionData.timestamp}</span>
+                    )
+                  }
+                />
+
+                {localSessionData.percentile !== null ? (
+                  <div className="space-y-4">
+                    {/* Metric row */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3 rounded-lg bg-secondary border border-subtle">
+                        <p className="label-caps mb-1.5">Global Ranking</p>
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-2xl font-bold mono-data text-primary">
+                            {localSessionData.percentile}%
+                          </span>
                           {localSessionData.delta && localSessionData.delta.status !== 'baseline' && (
-                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                              localSessionData.delta.status === 'improvement' ? 'bg-green-100 text-green-700' :
-                              localSessionData.delta.status === 'decline' ? 'bg-red-100 text-red-700' :
-                              'bg-gray-200 text-gray-600'
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                              localSessionData.delta.status === 'improvement'
+                                ? 'bg-secondary text-primary border border-subtle'
+                                : localSessionData.delta.status === 'decline'
+                                ? 'bg-secondary text-primary border border-subtle'
+                                : 'bg-secondary text-muted'
                             }`}>
                               {localSessionData.delta.val > 0 ? '+' : ''}{localSessionData.delta.val}%
                             </span>
                           )}
                         </div>
+                        <p className="text-[10px] text-muted mt-1">percentile</p>
                       </div>
-                      <div>
-                        <p className={LABEL + ' mb-1'}>Personal Best</p>
-                        <p className="text-xl font-bold text-gray-700">{localSessionData.best}% 🏆</p>
+                      <div className="p-3 rounded-lg bg-secondary border border-subtle">
+                        <p className="label-caps mb-1.5">Personal Best</p>
+                        <p className="text-2xl font-bold mono-data text-primary">{localSessionData.best}%</p>
+                        <p className="text-[10px] text-muted mt-1">all-time high</p>
                       </div>
                     </div>
+
+                    {/* Insights */}
                     {localSessionData.insights && localSessionData.insights.length > 0 && (
-                      <ul className="space-y-1.5">
+                      <div className="space-y-1.5">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">Session Insights</p>
                         {localSessionData.insights.map((ins, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                            <span className="text-emerald-500 mt-0.5 shrink-0">•</span>
+                          <div key={i} className="flex items-start gap-2 text-xs text-secondary">
+                            <CheckCircle2 className="w-3 h-3 text-brand-500 mt-0.5 shrink-0" />
                             {ins}
-                          </li>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     )}
                   </div>
-                </div>
-              </FadeUp>
-            )}
-
-            {/* AI Feedback */}
-            <FadeUp delay={0.2}>
-              <div className={`${CARD} p-6`}>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-emerald-50 border border-emerald-100">
-                    <Zap className="w-3.5 h-3.5 text-emerald-600" />
+                ) : (
+                  <div className="rounded-lg bg-secondary border border-subtle p-4 text-center">
+                    <Activity className="w-5 h-5 text-muted mx-auto mb-2" />
+                    <p className="text-xs text-muted">No session data yet.</p>
+                    <p className="text-[11px] text-muted mt-0.5">Complete your first simulation to see intelligence here.</p>
                   </div>
-                  <h2 className="text-base font-bold text-gray-900">AI Feedback</h2>
+                )}
+              </div>
+            </FadeUp>
+
+            {/* AI Coaching Feedback */}
+            <FadeUp delay={0.18}>
+              <div className="bg-primary rounded-xl border border-card p-5">
+                <CardHeader
+                  icon={Zap}
+                  iconColor="#a78bfa"
+                  iconBg="rgba(167,139,250,0.1)"
+                  title="AI Coaching Feedback"
+                />
+                <div className="rounded-lg bg-secondary border border-subtle p-4">
+                  <p className="text-sm text-secondary leading-relaxed">
+                    {isLoading
+                      ? 'Analyzing your driving behavior…'
+                      : (stats?.ai_feedback || 'Complete a session to receive personalized AI driver coaching based on your behavioral profile.')}
+                  </p>
                 </div>
-                <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 border border-gray-100 rounded-xl p-4">
-                  {isLoading ? 'Analyzing your driving behavior…' :
-                    (stats?.ai_feedback || 'Complete a session to receive personalized AI driver coaching.')}
-                </p>
               </div>
             </FadeUp>
           </div>
 
-          {/* ── Right column ── */}
-          <div className="space-y-4">
+          {/* ── Right column (1/3) ── */}
+          <div className="flex flex-col gap-4">
 
-            {/* Driver Profile */}
-            <FadeUp delay={0.15}>
-              <div className={`${CARD} p-5`}>
-                <p className={LABEL + ' mb-3'}>Driver Profile</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-violet-50 border border-violet-100">
-                    <Car className="w-5 h-5 text-violet-600" />
+            {/* Behavioral Profile card */}
+            <FadeUp delay={0.1}>
+              <div className="bg-primary rounded-xl border border-card p-5">
+                <SectionLabel>Behavioral Profile</SectionLabel>
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary border border-subtle">
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.2)' }}
+                  >
+                    <Brain className="w-4.5 h-4.5 text-violet-500 dark:text-violet-400" />
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900 capitalize">
-                      {user.profile_type === 'unknown' ? 'Not assessed' : user.profile_type}
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-primary capitalize truncate">
+                      {profileKnown ? user.profile_type?.replace('_', ' ') : 'Not Assessed'}
                     </p>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {user.profile_type === 'unknown' ? 'Complete a session' : 'Behavioral profile'}
+                    <p className="text-[11px] text-muted mt-0.5">
+                      {profileKnown ? 'Behavioral profile active' : 'Complete a calibration session'}
                     </p>
                   </div>
                 </div>
+                {!profileKnown && (
+                  <Link
+                    href="/onboarding"
+                    className="mt-3 flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-xs font-semibold text-primary border border-subtle bg-secondary hover:bg-tertiary transition-colors duration-150"
+                  >
+                    <Zap className="w-3 h-3" />
+                    Start Calibration
+                  </Link>
+                )}
               </div>
             </FadeUp>
 
             {/* Quick Actions */}
-            <FadeUp delay={0.2}>
-              <div className={`${CARD} p-5`}>
-                <p className={LABEL + ' mb-2'}>Quick Actions</p>
+            <FadeUp delay={0.15}>
+              <div className="bg-primary rounded-xl border border-card p-5">
+                <SectionLabel>Quick Navigation</SectionLabel>
                 <div className="space-y-0.5">
-                  {[
-                    { label: 'Behavioral Dossier', icon: Shield, href: '/dashboard/report' },
-                    { label: 'View Progress', icon: TrendingUp, href: '/dashboard/progress' },
-                    { label: 'Learning Center', icon: Activity, href: '/lessons' },
-                  ].map((a) => (
+                  {quickActions.map((a) => (
                     <Link key={a.label} href={a.href}>
-                      <div className="flex items-center gap-3 px-2 py-2.5 rounded-lg hover:bg-gray-50 transition-colors duration-150 cursor-pointer group">
-                        <a.icon className="w-4 h-4 text-gray-400 group-hover:text-emerald-600 transition-colors" />
-                        <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 flex-1 transition-colors">{a.label}</span>
-                        <ChevronRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-emerald-500 transition-colors" />
+                      <div className="flex items-center gap-3 px-2.5 py-2.5 rounded-lg hover:bg-secondary transition-colors duration-150 group cursor-pointer">
+                        <a.icon className="w-3.5 h-3.5 text-muted group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-secondary group-hover:text-primary transition-colors leading-none">{a.label}</p>
+                          <p className="text-[10px] text-muted mt-0.5">{a.desc}</p>
+                        </div>
+                        <ChevronRight className="w-3 h-3 text-muted group-hover:text-brand-500 transition-colors flex-shrink-0" />
                       </div>
                     </Link>
                   ))}
@@ -331,62 +455,80 @@ export default function DashboardPage() {
             </FadeUp>
 
             {/* Recommended Lessons */}
-            <FadeUp delay={0.25}>
-              <div className={`${CARD} p-5`}>
-                <p className={LABEL + ' mb-3'}>Recommended Lessons</p>
-                <div className="space-y-2.5">
+            <FadeUp delay={0.2}>
+              <div className="bg-primary rounded-xl border border-card p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <SectionLabel>Recommended Lessons</SectionLabel>
+                  <Link href="/lessons" className="text-[10px] font-semibold text-brand-600 dark:text-brand-400 hover:underline">
+                    View all
+                  </Link>
+                </div>
+                <div className="space-y-2">
                   {lessons.length === 0 && !isLoading && (
-                    <p className="text-sm text-gray-400 bg-gray-50 border border-gray-100 rounded-xl p-3">
-                      No recommendations yet.
-                    </p>
+                    <div className="rounded-lg bg-secondary border border-subtle p-3 text-center">
+                      <p className="text-xs text-muted">No recommendations yet. Complete a session first.</p>
+                    </div>
                   )}
                   {isLoading && (
                     <>
-                      <div className="h-16 rounded-xl bg-gray-100 animate-pulse" />
-                      <div className="h-16 rounded-xl bg-gray-100 animate-pulse opacity-60" />
+                      <div className="h-14 rounded-lg bg-secondary animate-pulse" />
+                      <div className="h-14 rounded-lg bg-secondary animate-pulse opacity-60" />
                     </>
                   )}
                   {lessons.slice(0, 2).map((lesson) => (
-                    <div key={lesson.id} className="p-3 rounded-xl border border-gray-100 bg-gray-50 hover:border-gray-200 transition-all duration-150 cursor-pointer group">
-                      <div className="flex items-start justify-between gap-2">
-                        <h4 className="text-sm font-semibold text-gray-800 group-hover:text-emerald-700 transition-colors leading-snug">{lesson.title}</h4>
-                        <span className="text-[10px] uppercase font-bold text-gray-400 px-1.5 py-0.5 rounded-md bg-white border border-gray-200 shrink-0">{lesson.difficulty}</span>
+                    <Link key={lesson.id} href="/lessons">
+                      <div className="p-3 rounded-lg border border-subtle bg-secondary hover:border-brand-500/40 hover:bg-tertiary transition-all duration-150 cursor-pointer group">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <h4 className="text-xs font-semibold text-primary group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors leading-snug truncate">
+                            {lesson.title}
+                          </h4>
+                          <span className="text-[9px] uppercase font-bold text-muted px-1.5 py-0.5 rounded bg-tertiary border border-subtle shrink-0">
+                            {lesson.difficulty}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-muted line-clamp-2 leading-relaxed">{lesson.description}</p>
                       </div>
-                      <p className="text-xs text-gray-400 mt-1 line-clamp-2">{lesson.description}</p>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               </div>
             </FadeUp>
 
             {/* Recent Mistakes */}
-            <FadeUp delay={0.3}>
-              <div className={`${CARD} p-5`}>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-amber-50 border border-amber-100">
-                    <AlertTriangle className="w-3 h-3 text-amber-600" />
-                  </div>
-                  <p className={LABEL}>Recent Mistakes</p>
-                </div>
+            <FadeUp delay={0.25}>
+              <div className="bg-primary rounded-xl border border-card p-5">
+                <CardHeader
+                  icon={AlertTriangle}
+                  iconColor="#fbbf24"
+                  iconBg="rgba(251,191,36,0.1)"
+                  title="Recent Mistakes"
+                />
                 <div className="space-y-2">
                   {isFetchingLatest ? (
                     <>
-                      <div className="h-11 rounded-xl bg-gray-100 animate-pulse" />
-                      <div className="h-11 rounded-xl bg-gray-100 animate-pulse opacity-60" />
+                      <div className="h-10 rounded-lg bg-secondary animate-pulse" />
+                      <div className="h-10 rounded-lg bg-secondary animate-pulse opacity-60" />
                     </>
                   ) : !latestData || latestData.mistakes.length === 0 ? (
-                    <p className="text-sm text-gray-400 bg-gray-50 border border-gray-100 rounded-xl p-3">
-                      No recent mistakes. Great work!
-                    </p>
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-secondary border border-subtle">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-brand-500 flex-shrink-0" />
+                      <p className="text-xs text-secondary">No recent mistakes. Keep it up!</p>
+                    </div>
                   ) : (
                     latestData.mistakes.map((m, i) => (
                       <div
                         key={i}
-                        className="p-3 rounded-xl text-sm"
-                        style={{ background: 'rgba(251,191,36,0.05)', border: '1px solid rgba(251,191,36,0.18)', borderLeft: '3px solid #fbbf24' }}
+                        className="p-3 rounded-lg text-xs"
+                        style={{
+                          background: 'rgba(251,191,36,0.04)',
+                          border: '1px solid rgba(251,191,36,0.15)',
+                          borderLeft: '2px solid #fbbf24',
+                        }}
                       >
-                        <p className="font-semibold text-gray-800 capitalize">{m.scenario.replace('_', ' ')}</p>
-                        <p className={`text-xs mt-0.5 font-medium ${(m.response || '').includes('Unsafe') ? 'text-red-500' : 'text-amber-600'}`}>{m.response}</p>
+                        <p className="font-semibold text-primary capitalize">{m.scenario.replace('_', ' ')}</p>
+                        <p className={`mt-0.5 font-medium ${(m.response || '').includes('Unsafe') ? 'text-red-500 dark:text-red-400' : 'text-amber-500 dark:text-amber-400'}`}>
+                          {m.response}
+                        </p>
                       </div>
                     ))
                   )}

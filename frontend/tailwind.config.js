@@ -5,8 +5,33 @@ module.exports = {
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  darkMode: 'class',
   theme: {
     extend: {
+      backgroundColor: {
+        primary: 'var(--bg-primary)',
+        secondary: 'var(--bg-secondary)',
+        tertiary: 'var(--bg-tertiary)',
+        'app-shell': 'var(--bg-app-shell)',
+        overlay: 'var(--overlay-light)',
+        'overlay-heavy': 'var(--overlay-heavy)',
+        input: 'var(--input-bg)',
+      },
+      textColor: {
+        primary: 'var(--text-primary)',
+        secondary: 'var(--text-secondary)',
+        muted: 'var(--text-muted)',
+        input: 'var(--input-text)',
+      },
+      borderColor: {
+        subtle: 'var(--border-subtle)',
+        strong: 'var(--border-strong)',
+        card: 'var(--card-border)',
+        input: 'var(--input-border)',
+      },
+      placeholderColor: {
+        input: 'var(--input-placeholder)',
+      },
       colors: {
         // Brand — deep teal/emerald + electric cyan
         brand: {
@@ -55,10 +80,17 @@ module.exports = {
           600: '#0891b2',
           700: '#0e7490',
         },
+        design: {
+          'obsidian': '#09090B',
+          'smoked': '#18181B',
+          'ivory': '#FAFAF9',
+          'pearl': '#F4F4F5',
+          'tungsten': '#A1A1AA',
+        }
       },
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui'],
-        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+        sans: ['Geist Sans', 'Inter', 'ui-sans-serif', 'system-ui'],
+        mono: ['Geist Mono', 'JetBrains Mono', 'ui-monospace', 'monospace'],
       },
       fontSize: {
         '2xs': ['0.625rem', { lineHeight: '1rem' }],
@@ -138,13 +170,7 @@ module.exports = {
         },
       },
       boxShadow: {
-        'brand':    '0 0 20px rgba(5, 150, 105, 0.35), 0 0 60px rgba(5, 150, 105, 0.1)',
-        'brand-sm': '0 0 10px rgba(5, 150, 105, 0.2)',
-        'glow':     '0 0 40px rgba(5, 150, 105, 0.15)',
-        'card':     '0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05)',
-        'card-lg':  '0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06)',
-        'dark-card':'0 4px 32px rgba(0, 0, 0, 0.5)',
-        'inset-top':'inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
+        'none': 'none',
       },
       backdropBlur: {
         xs: '2px',

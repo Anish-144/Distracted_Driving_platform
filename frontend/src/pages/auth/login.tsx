@@ -11,6 +11,7 @@ import { loginSuccess, setLoading, setError } from '@/store/authSlice';
 import { login } from '@/api/auth';
 import { ShieldCheck, Mail, Lock, Loader2, ArrowRight, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
+import ThemeToggle from '@/components/common/ThemeToggle';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -86,8 +87,12 @@ export default function LoginPage() {
       </Head>
 
       {/* Full-screen cinematic scene */}
-      <div className="min-h-screen flex items-center justify-center relative overflow-hidden"
-           style={{ background: 'linear-gradient(160deg, #040812 0%, #080e1c 40%, #0d1527 100%)' }}>
+      <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-app-shell transition-colors duration-400">
+        
+        {/* Theme Toggle */}
+        <div className="absolute top-6 right-6 z-50">
+          <ThemeToggle />
+        </div>
 
         {/* ── Ambient background ── */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -111,19 +116,17 @@ export default function LoginPage() {
             transition={{ duration: 6, delay: 3, ease: 'easeInOut', repeat: Infinity }}
           />
           <motion.div
-            className="absolute -bottom-20 right-1/4 w-[350px] h-[350px] rounded-full"
-            style={{ background: 'radial-gradient(circle, rgba(8,145,178,0.07) 0%, transparent 70%)' }}
+            className="absolute -bottom-20 right-1/4 w-[350px] h-[350px] rounded-full bg-slate-900/10"
             animate={{ y: [0, 20, 0] }}
             transition={{ duration: 5, delay: 2, ease: 'easeInOut', repeat: Infinity }}
           />
 
           {/* Grid */}
-          <div
-            className="absolute inset-0 opacity-20"
+          <div 
+            className="absolute inset-0 opacity-[0.05]"
             style={{
-              backgroundImage: 'linear-gradient(rgba(5,150,105,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(5,150,105,0.08) 1px, transparent 1px)',
-              backgroundSize: '64px 64px',
-              maskImage: 'radial-gradient(ellipse at center, black 40%, transparent 75%)',
+              backgroundImage: 'linear-gradient(var(--border-subtle) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px)',
+              backgroundSize: '40px 40px'
             }}
           />
 
@@ -131,7 +134,7 @@ export default function LoginPage() {
           {[...Array(7)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute w-1 h-1 rounded-full bg-brand-400"
+              className="absolute w-1 h-1 rounded-full bg-slate-400"
               style={{
                 left: `${12 + i * 13}%`,
                 bottom: '-4px',
@@ -160,70 +163,45 @@ export default function LoginPage() {
         >
           {/* Logo */}
           <motion.div className="flex flex-col items-center mb-10" variants={itemVariants}>
-            <motion.div
-              className="w-20 h-20 rounded-3xl flex items-center justify-center mb-5 relative"
-              style={{ background: 'linear-gradient(135deg, #059669, #0891b2)' }}
-              initial={{ scale: 0.6, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 1, ease: [0.34, 1.56, 0.64, 1], delay: 0.1 }}
-            >
-              {/* Glow ring */}
-              <motion.div
-                className="absolute inset-0 rounded-3xl"
-                style={{ boxShadow: '0 0 0px rgba(5,150,105,0.4)' }}
-                animate={{ boxShadow: ['0 0 0px rgba(5,150,105,0.3)', '0 0 40px rgba(5,150,105,0.5)', '0 0 0px rgba(5,150,105,0.3)'] }}
-                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-              />
-              <ShieldCheck className="w-10 h-10 text-white" />
-            </motion.div>
+            <div className="flex justify-center mb-6">
+              <div 
+                className="w-16 h-16 rounded-2xl flex items-center justify-center bg-slate-800 border border-slate-700"
+              >
+                <ShieldCheck className="w-8 h-8 text-white" />
+              </div>
+            </div>
 
             <motion.h1
               className="text-3xl font-bold text-white mb-1.5 tracking-tight"
               variants={itemVariants}
             >
-              SafeDrive{' '}
-              <span style={{
-                background: 'linear-gradient(135deg, #34d399, #38bdf8)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}>
-                AI
-              </span>
+              SafeDrive AI
             </motion.h1>
-            <motion.p className="text-gray-400 text-sm" variants={itemVariants}>
+            <motion.p className="text-slate-400 text-sm" variants={itemVariants}>
               Sign in to your training account
             </motion.p>
           </motion.div>
 
           {/* Glass card */}
           <motion.div
-            className="rounded-2xl p-8"
-            style={{
-              background: 'rgba(255,255,255,0.06)',
-              backdropFilter: 'blur(24px) saturate(1.6)',
-              WebkitBackdropFilter: 'blur(24px) saturate(1.6)',
-              border: '1px solid rgba(255,255,255,0.10)',
-              boxShadow: '0 24px 64px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)',
-            }}
+            className="rounded-2xl p-8 bg-slate-900 border border-slate-800"
             variants={itemVariants}
           >
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               {/* Email */}
               <motion.div variants={itemVariants}>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+                <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
                   Email Address
                 </label>
                 <div className="relative">
                   <Mail
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200"
-                    style={{ color: focusedField === 'email' ? '#34d399' : '#6b7280' }}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"
                   />
                   <input
                     id="email"
                     type="email"
                     placeholder="you@example.com"
-                    className="input-field pl-10 w-full text-sm"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-600 focus:outline-none focus:border-slate-600 transition-colors"
                     onFocus={() => setFocusedField('email')}
                     {...register('email')}
                     onBlur={(e) => {
@@ -231,16 +209,6 @@ export default function LoginPage() {
                       setFocusedField(null);
                     }}
                   />
-                  {/* Focus glow */}
-                  {focusedField === 'email' && (
-                    <motion.div
-                      className="absolute inset-0 rounded-xl pointer-events-none"
-                      style={{ boxShadow: '0 0 0 2px rgba(5,150,105,0.3)' }}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                    />
-                  )}
                 </div>
                 {errors.email && (
                   <p className="mt-1.5 text-xs text-red-400">{errors.email.message}</p>
@@ -249,19 +217,18 @@ export default function LoginPage() {
 
               {/* Password */}
               <motion.div variants={itemVariants}>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+                <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
                   Password
                 </label>
                 <div className="relative">
                   <Lock
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200"
-                    style={{ color: focusedField === 'password' ? '#34d399' : '#6b7280' }}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"
                   />
                   <input
                     id="password"
                     type="password"
                     placeholder="••••••••"
-                    className="input-field pl-10 w-full text-sm"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-600 focus:outline-none focus:border-slate-600 transition-colors"
                     onFocus={() => setFocusedField('password')}
                     {...register('password')}
                     onBlur={(e) => {
@@ -280,26 +247,9 @@ export default function LoginPage() {
                 id="login-submit-btn"
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full relative overflow-hidden py-3.5 rounded-xl font-bold text-white mt-2 flex items-center justify-center gap-2"
-                style={{
-                  background: 'linear-gradient(135deg, #059669, #0891b2)',
-                  boxShadow: '0 8px 32px rgba(5,150,105,0.35)',
-                }}
-                whileHover={{ scale: 1.01, boxShadow: '0 12px 40px rgba(5,150,105,0.45)' }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ duration: 0.15 }}
+                className="relative w-full py-3 rounded-xl text-sm font-bold bg-white text-black hover:bg-slate-200 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2"
                 variants={itemVariants}
               >
-                {/* Shimmer */}
-                <motion.div
-                  className="absolute inset-0"
-                  style={{
-                    background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%)',
-                    backgroundSize: '200% 100%',
-                  }}
-                  animate={{ backgroundPosition: ['-200% 0', '200% 0'] }}
-                  transition={{ duration: 2.5, repeat: Infinity, ease: 'linear' }}
-                />
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -335,11 +285,11 @@ export default function LoginPage() {
             {/* Divider */}
             <motion.div className="flex items-center gap-3 my-5" variants={itemVariants}>
               <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
-              <span className="text-gray-500 text-xs">or</span>
+              <span className="text-muted text-xs">or</span>
               <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
             </motion.div>
 
-            <motion.p className="text-center text-sm text-gray-400" variants={itemVariants}>
+            <motion.p className="text-center text-sm text-muted" variants={itemVariants}>
               Don&apos;t have an account?{' '}
               <Link
                 href="/auth/register"
@@ -352,7 +302,7 @@ export default function LoginPage() {
           </motion.div>
 
           <motion.p
-            className="text-center text-xs text-gray-600 mt-6"
+            className="text-center text-xs text-secondary mt-6"
             variants={itemVariants}
           >
             AI-Powered Distracted Driving Training Platform

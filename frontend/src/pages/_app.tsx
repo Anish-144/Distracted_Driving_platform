@@ -2,6 +2,7 @@ import type { AppProps } from 'next/app';
 import { Provider } from 'react-redux';
 import { store } from '@/store';
 import { Toaster } from 'react-hot-toast';
+import { ThemeProvider } from '@/context/ThemeContext';
 import '@/styles/globals.css';
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 
@@ -22,10 +23,10 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
-          <div className="bg-white border border-gray-200 rounded-lg p-8 max-w-md w-full text-center shadow-md">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Something went wrong</h1>
-            <p className="text-gray-500 mb-6 pb-6 border-b border-gray-100">
+        <div className="min-h-screen flex items-center justify-center bg-primary p-6">
+          <div className="bg-secondary border border-subtle rounded-lg p-8 max-w-md w-full text-center">
+            <h1 className="text-2xl font-bold text-primary mb-2">Something went wrong</h1>
+            <p className="text-muted mb-6 pb-6 border-b border-subtle">
               An unexpected error occurred. Please refresh the page or try again later.
             </p>
             <button 
@@ -46,16 +47,16 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <ErrorBoundary>
       <Provider store={store}>
-        <Component {...pageProps} />
-        <Toaster
+        <ThemeProvider>
+          <Component {...pageProps} />
+          <Toaster
           position="top-right"
           toastOptions={{
             style: {
-              background: '#ffffff',
-              color: '#111827',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-              borderRadius: '0.5rem',
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border-subtle)',
+              padding: '16px 24px',
+              color: 'var(--text-primary)',
               fontSize: '0.875rem',
             },
             success: {
@@ -67,6 +68,7 @@ export default function App({ Component, pageProps }: AppProps) {
             duration: 3500,
           }}
         />
+        </ThemeProvider>
       </Provider>
     </ErrorBoundary>
   );
