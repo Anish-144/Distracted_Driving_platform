@@ -2,15 +2,16 @@
 PersonalityProfile model — stores the psychological onboarding assessment results.
 
 Separate from simulation-derived profile_type on User.
-This captures self-reported trait scores used for:
-  - Behavioral consistency analysis (self vs simulation divergence)
-  - Initial lesson seeding before simulation data exists
-  - Research-grade psychological metrics
+This captures BOTH self-reported prior scores AND behaviorally-inferred scores:
+  - Self-reported priors: 4 indirect questions (Layer 1)
+  - Behavioral calibration: 6 micro-simulation signals (Layer 2)
+  - Mismatch analysis: overconfidence detection (Layer 3)
+  - Blended probabilistic profile with confidence score
 """
 
 import uuid
 from datetime import datetime
-from sqlalchemy import String, Float, Text, DateTime, func, Integer
+from sqlalchemy import String, Float, Text, DateTime, func, Integer, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 from app.database import Base
 
@@ -71,6 +72,65 @@ class PersonalityProfile(Base):
     raw_answers: Mapped[str | None] = mapped_column(
         Text, nullable=True,
         comment="JSON array of {question_id, answer_value} submitted during onboarding"
+    )
+
+    # ── Behavioral Calibration Layer 2 Fields ─────────────────────────────────
+    # Populated after micro-simulation scenarios complete.
+    calibration_completed: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False,
+        comment="True once all behavioral calibration micro-simulations have been run"
+    )
+    calibration_confidence: Mapped[float] = mapped_column(
+        Float, default=0.0, nullable=False,
+        comment="0.0–1.0 confidence in behaviorally-inferred profile; increases with more scenario data"
+    )
+    prior_weight: Mapped[float] = mapped_column(
+        Float, default=1.0, nullable=False,
+        comment="Weight of self-report in blended profile (1.0=prior only, 0.3=behavioral dominant)"
+    )
+
+    # ── Behaviorally-Inferred Trait Scores ───────────────────────────────────
+    # These override the self-reported scores once calibration is complete.
+    # Blended: final_score = prior_weight * reported + (1-prior_weight) * behavioral
+    behavioral_impulsiveness: Mapped[float] = mapped_column(
+        Float, default=0.5, nullable=False,
+        comment="Impulsiveness inferred from calibration scenario interaction timing"
+    )
+    behavioral_attention: Mapped[float] = mapped_column(
+        Float, default=0.5, nullable=False,
+        comment="Attention control inferred from distraction click patterns"
+    )
+    behavioral_notification_fixation: Mapped[float] = mapped_column(
+        Float, default=0.5, nullable=False,
+        comment="New dimension: how strongly user is drawn to notification stimuli"
+    )
+    behavioral_urgency_susceptibility: Mapped[float] = mapped_column(
+        Float, default=0.5, nullable=False,
+        comment="New dimension: susceptibility to urgency/countdown pressure"
+    )
+    behavioral_authority_compliance: Mapped[float] = mapped_column(
+        Float, default=0.5, nullable=False,
+        comment="Authority compliance inferred from conflicting-authority scenario"
+    )
+    behavioral_cognitive_overload: Mapped[float] = mapped_column(
+        Float, default=0.5, nullable=False,
+        comment="New dimension: how quickly cognitive load collapses under complexity"
+    )
+
+    # ── Mismatch / Overconfidence Analysis ────────────────────────────────────
+    overconfidence_index: Mapped[float] = mapped_column(
+        Float, default=0.0, nullable=False,
+        comment="Positive=user overestimates own control; Negative=underestimates. Range: -1.0 to 1.0"
+    )
+    mismatch_flags: Mapped[str | None] = mapped_column(
+        Text, nullable=True,
+        comment="JSON array of human-readable mismatch descriptions from Layer 3 analysis"
+    )
+
+    # ── Calibration Telemetry (full raw blob) ─────────────────────────────────
+    onboarding_telemetry: Mapped[str | None] = mapped_column(
+        Text, nullable=True,
+        comment="JSON blob of aggregated calibration scenario telemetry for re-scoring"
     )
 
     # ── Session context ───────────────────────────────────────────────────────

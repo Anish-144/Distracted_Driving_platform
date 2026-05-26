@@ -19,6 +19,9 @@ from app.models import user_lesson as _user_lesson_model  # noqa: F401
 from app.models import personality_profile as _personality_profile_model  # noqa: F401
 from app.models import generated_scenario as _generated_scenario_model  # noqa: F401
 from app.models import cognitive_report as _cognitive_report_model # noqa: F401
+from app.models import behavioral_state as _behavioral_state_model  # noqa: F401
+from app.models import calibration_event as _calibration_event_model  # noqa: F401
+from app.models import intervention_log as _intervention_log_model  # noqa: F401
 
 # Setup structured logging
 logging.basicConfig(
@@ -58,6 +61,7 @@ async def lifespan(app: FastAPI):
     from app.models.lesson import Lesson, LessonTag
     from app.models.scenario import Scenario, SEED_SCENARIOS
     from app.services import auth_service
+    # pyrefly: ignore [missing-import]
     from sqlalchemy import select
 
     async with AsyncSessionLocal() as session:

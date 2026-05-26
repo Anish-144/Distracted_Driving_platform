@@ -2,14 +2,12 @@
  * AppShell — unified layout wrapper used by every authenticated page.
  *
  * Provides:
- *  - Sidebar (left, fixed width)
- *  - Navbar  (top, sticky)
- *  - Page content area with standardised padding / max-width
+ *  - Sidebar (left, fixed width via --sidebar-width CSS variable)
+ *  - Navbar  (top, sticky within the content column)
+ *  - Page content area with isolated scroll, standardised padding / max-width
  *
- * Design tokens baked in (matching the reference screenshot):
- *  - bg: #f0fdf9 (very light mint)
- *  - sidebar: white, 240px wide, clean border-right
- *  - content: max-w-5xl, px-8 py-8
+ * Props:
+ *  - maxWidth: 'default' (max-w-5xl) | 'wide' (max-w-7xl) — for report/research pages
  */
 import { ReactNode } from 'react';
 import Sidebar from './Sidebar';
@@ -19,19 +17,26 @@ interface AppShellProps {
   children: ReactNode;
   className?: string;
   style?: React.CSSProperties;
+  maxWidth?: 'default' | 'wide';
 }
 
-export default function AppShell({ children, className = '', style }: AppShellProps) {
+export default function AppShell({ children, className = '', style, maxWidth = 'default' }: AppShellProps) {
+  const contentMaxWidth = maxWidth === 'wide' ? 'max-w-7xl' : 'max-w-5xl';
+
   return (
     <div
-      className={`min-h-screen flex font-sans text-gray-900 ${className}`}
-      style={style || { background: '#f0fdf9' }}
+      className={`h-screen overflow-hidden flex bg-app-shell font-sans ${className}`}
+      style={style}
     >
+      {/* Sidebar: fixed-height, self-contained scroll */}
       <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0">
+
+      {/* Content column: flex col, takes remaining width, scrolls independently */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Navbar sticks to the top of this column, not the full page */}
         <Navbar />
-        <main className="flex-1 px-6 py-8 lg:px-10 lg:py-10">
-          <div className="max-w-5xl mx-auto w-full">
+        <main className="flex-1 overflow-y-auto px-6 py-8 lg:px-10 lg:py-10">
+          <div className={`${contentMaxWidth} mx-auto w-full`}>
             {children}
           </div>
         </main>

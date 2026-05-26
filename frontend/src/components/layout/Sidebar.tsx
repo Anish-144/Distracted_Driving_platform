@@ -7,132 +7,138 @@ import {
   BarChart2,
   Settings,
   ShieldCheck,
-  Zap,
   Microscope,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const navItems = [
+const primaryNav = [
   { label: 'Dashboard',  href: '/dashboard',          icon: LayoutDashboard },
-  { label: 'Simulation', href: '/simulation',          icon: Car },
+  { label: 'Simulation', href: '/simulation',          icon: Car,       badge: 'Go' },
   { label: 'Lessons',    href: '/lessons',             icon: BookOpen },
   { label: 'Progress',   href: '/dashboard/progress',  icon: BarChart2 },
   { label: 'Research',   href: '/dashboard/research',  icon: Microscope },
+];
+
+const secondaryNav = [
   { label: 'Settings',   href: '/settings',            icon: Settings },
 ];
 
 const navVariants = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.05, delayChildren: 0.15 } },
+  visible: { transition: { staggerChildren: 0.04, delayChildren: 0.1 } },
 };
 
 const itemVariants = {
-  hidden:   { opacity: 0, x: -12 },
-  visible:  { opacity: 1, x: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } },
+  hidden:  { opacity: 0, x: -10 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
 };
+
+function NavItem({ item, isActive }: { item: typeof primaryNav[0]; isActive: boolean }) {
+  return (
+    <motion.div variants={itemVariants}>
+      <Link href={item.href}>
+        <div
+          id={`sidebar-${item.label.toLowerCase()}`}
+          className={clsx('nav-link group', isActive && 'active')}
+        >
+          {/* Active indicator bar */}
+          <AnimatePresence>
+            {isActive && (
+              <motion.div
+                className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-[60%] rounded-r-full bg-primary"
+                layoutId="sidebar-indicator"
+                initial={{ scaleY: 0, opacity: 0 }}
+                animate={{ scaleY: 1, opacity: 1 }}
+                exit={{ scaleY: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              />
+            )}
+          </AnimatePresence>
+
+          <item.icon
+            className={clsx(
+              'w-4 h-4 flex-shrink-0 transition-colors duration-200',
+              isActive ? 'text-primary' : 'text-muted group-hover:text-primary'
+            )}
+          />
+          <span className="flex-1 truncate">{item.label}</span>
+
+          {'badge' in item && item.badge && (
+            <span className="badge-brand ml-auto text-[10px]">
+              {item.badge}
+            </span>
+          )}
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
 
 export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden lg:flex w-64 flex-col min-h-screen relative z-30 flex-shrink-0">
-      {/* Glass panel */}
-      <div
-        className="flex flex-col h-full"
-        style={{
-          background: 'rgba(255,255,255,0.82)',
-          backdropFilter: 'blur(24px) saturate(1.8)',
-          WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
-          borderRight: '1px solid rgba(0,0,0,0.07)',
-          boxShadow: '1px 0 0 0 rgba(0,0,0,0.04)',
-        }}
-      >
-        {/* Branding */}
-        <motion.div
-          className="h-16 flex items-center gap-3 px-5 border-b border-black/[0.06] flex-shrink-0"
-          initial={false}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <motion.div
-            className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #059669, #0891b2)' }}
-            animate={{ boxShadow: ['0 0 0px rgba(5,150,105,0.3)', '0 0 20px rgba(5,150,105,0.4)', '0 0 0px rgba(5,150,105,0.3)'] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            <ShieldCheck className="w-5 h-5 text-white" />
-          </motion.div>
-          <div>
-            <p className="font-bold text-gray-900 text-sm tracking-tight">SafeDrive AI</p>
-            <p className="text-[11px] text-gray-400 font-medium">Training Platform</p>
-          </div>
-        </motion.div>
+    <aside
+      className="hidden lg:flex flex-col h-screen flex-shrink-0 relative z-30"
+      style={{ width: 'var(--sidebar-width)' }}
+    >
+      {/* Glass panel: fills full height, no external overflow */}
+      <div className="flex flex-col h-full bg-secondary border-r border-subtle">
 
-        {/* Nav */}
-        <motion.nav
-          className="flex-1 px-3 py-6 space-y-0.5 overflow-y-auto"
-          variants={navVariants}
-          initial={false}
-          animate="visible"
-        >
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.14em] px-3 mb-3">
+        {/* Branding — fixed height matches Navbar */}
+        <div className="h-16 flex items-center gap-3 px-5 border-b border-subtle flex-shrink-0">
+          <div
+            className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 bg-tertiary border border-subtle"
+          >
+            <ShieldCheck className="w-4 h-4 text-primary" />
+          </div>
+          <div className="min-w-0">
+            <p className="font-bold text-primary text-sm tracking-tight leading-none">SafeDrive AI</p>
+            <p className="text-[10px] text-muted font-medium mt-0.5">Training Platform</p>
+          </div>
+        </div>
+
+        {/* Primary nav — scrollable if content overflows */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3 flex flex-col gap-0.5">
+          <p className="label-caps px-3 mb-2">
             Navigation
           </p>
+          <motion.nav
+            variants={navVariants}
+            initial={false}
+            animate="visible"
+            className="flex flex-col gap-0.5"
+          >
+            {primaryNav.map((item) => (
+              <NavItem key={item.href} item={item} isActive={pathname === item.href} />
+            ))}
+          </motion.nav>
 
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <motion.div key={item.href} variants={itemVariants}>
-                <Link href={item.href}>
-                  <div
-                    id={`sidebar-${item.label.toLowerCase()}`}
-                    className={clsx(
-                      'relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium cursor-pointer group',
-                      'transition-all duration-300',
-                      isActive
-                        ? 'text-brand-700 bg-brand-50/80'
-                        : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100/80'
-                    )}
-                    style={isActive ? {
-                      boxShadow: '0 0 0 1px rgba(5,150,105,0.15), 0 1px 4px rgba(5,150,105,0.08)'
-                    } : undefined}
-                  >
-                    {/* Active indicator bar */}
-                    <AnimatePresence>
-                      {isActive && (
-                        <motion.div
-                          className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[60%] rounded-r-full"
-                          style={{ background: 'linear-gradient(180deg, #059669, #0891b2)' }}
-                          layoutId="sidebar-indicator"
-                          initial={{ scaleY: 0, opacity: 0 }}
-                          animate={{ scaleY: 1, opacity: 1 }}
-                          exit={{ scaleY: 0, opacity: 0 }}
-                          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                        />
-                      )}
-                    </AnimatePresence>
+          {/* Visual separator before secondary nav */}
+          <div className="my-3 mx-3 h-px bg-subtle opacity-60" />
 
-                    <item.icon
-                      className={clsx(
-                        'w-4 h-4 flex-shrink-0 transition-colors duration-200',
-                        isActive ? 'text-brand-600' : 'text-gray-400 group-hover:text-gray-600'
-                      )}
-                    />
-                    <span className="flex-1">{item.label}</span>
+          <p className="label-caps px-3 mb-2">
+            Account
+          </p>
+          <motion.nav
+            variants={navVariants}
+            initial={false}
+            animate="visible"
+            className="flex flex-col gap-0.5"
+          >
+            {secondaryNav.map((item) => (
+              <NavItem key={item.href} item={item} isActive={pathname === item.href} />
+            ))}
+          </motion.nav>
+        </div>
 
-                    {item.label === 'Simulation' && (
-                      <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-brand-100 text-brand-700 border border-brand-200">
-                        Go
-                      </span>
-                    )}
-                  </div>
-                </Link>
-              </motion.div>
-            );
-          })}
-        </motion.nav>
-
+        {/* Footer brand mark */}
+        <div className="flex-shrink-0 px-5 py-4 border-t border-subtle">
+          <p className="text-[10px] text-muted font-medium leading-snug">
+            © 2025 Shreya Dixit Foundation
+          </p>
+        </div>
       </div>
     </aside>
   );

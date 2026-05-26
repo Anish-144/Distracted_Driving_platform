@@ -1,21 +1,29 @@
 """
-Onboarding routes — Psychological Personality Assessment.
+Onboarding routes — Behavioral Calibration Engine.
 
 Endpoints:
-  GET  /api/onboarding/questions         — Fetch assessment question bank
-  POST /api/onboarding/submit            — Submit answers, derive personality profile
-  GET  /api/onboarding/profile/me        — Get the authenticated user's personality profile
-  GET  /api/onboarding/consistency/me    — Get behavioral consistency analysis
+  GET  /api/onboarding/questions                  — Fetch Layer 1 self-report question bank
+  POST /api/onboarding/submit                     — Submit Layer 1 priors, derive initial profile
+  GET  /api/onboarding/calibration/scenarios      — Fetch Layer 2 behavioral scenario definitions
+  POST /api/onboarding/calibration/submit         — Submit Layer 2 behavioral telemetry
+  GET  /api/onboarding/profile/me                 — Get authenticated user's personality profile
+  GET  /api/onboarding/consistency/me             — Get behavioral consistency analysis
+
+Architecture:
+  Layer 1: Self-reported priors (4 indirect questions, no dimension labels)
+  Layer 2: Behavioral calibration telemetry from micro-simulations (6 scenarios)
+  Layer 3: Mismatch analysis — overconfidence detection, behavioral vs reported divergence
 
 Resilience design:
-  - If the personality_profiles table doesn't exist yet (migration pending),
-    /submit returns a computed in-memory result instead of a 500 crash.
-  - Every DB write is wrapped with try/except so the user always completes onboarding.
-  - All operations emit structured logs for diagnostics.
+  - If personality_profiles table doesn't exist, /submit returns computed in-memory result.
+  - All DB writes wrapped with try/except — users always complete onboarding.
+  - Structured logs for full diagnostics.
 """
 
+import json
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status
+# pyrefly: ignore [missing-import]
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
 from typing import List, Optional
@@ -26,10 +34,12 @@ from app.routes.auth import get_current_user
 from app.services.personality_profiler import (
     personality_profiler,
     ASSESSMENT_QUESTIONS,
+    CALIBRATION_SCENARIOS,
     _derive_profile_label,
     TRAIT_DIMENSIONS,
 )
 from app.models.behavioral_state import BehavioralState
+# pyrefly: ignore [missing-import]
 from sqlalchemy import select, text
 
 logger = logging.getLogger(__name__)
@@ -47,7 +57,8 @@ class QuestionOption(BaseModel):
 class AssessmentQuestion(BaseModel):
     id: str
     text: str
-    dimension: str
+    # NOTE: 'dimension' is deliberately NOT included in the response model.
+    # Exposing the measured dimension to the client destroys measurement validity.
     options: List[QuestionOption]
 
 
@@ -58,6 +69,41 @@ class AssessmentAnswer(BaseModel):
 
 class SubmitAssessmentRequest(BaseModel):
     answers: List[AssessmentAnswer]
+
+
+class CalibrationScenarioResponse(BaseModel):
+    id: str
+    title: str
+    duration_ms: int
+    ui_type: str
+    instruction: str
+    # primary_traits is server-side only — NOT included in response
+
+
+class CalibrationEventTelemetry(BaseModel):
+    """Raw telemetry from a single behavioral calibration scenario."""
+    scenario_id: str
+    first_response_ms: int = 0
+    time_to_choice_ms: int = 0
+    interaction_count: int = 0
+    distraction_clicks: int = 0
+    re_read_count: int = 0
+    choice_made: str = ""
+    abandoned: bool = False
+    # Scenario-specific fields (optional — only relevant to specific scenarios)
+    choice_changed: Optional[bool] = None
+    followed_audio_authority: Optional[bool] = None
+    followed_visual_rule: Optional[bool] = None
+    primary_task_completed: Optional[bool] = None
+    first_distraction_at_pulse: Optional[int] = None
+    yielded_at_escalation_level: Optional[int] = None
+    avg_response_speed_ms: Optional[int] = None
+    changed_decision_under_pressure: Optional[bool] = None
+    chose_higher_risk_option: Optional[bool] = None
+
+
+class SubmitCalibrationRequest(BaseModel):
+    events: List[CalibrationEventTelemetry]
 
 
 class PersonalityProfileResponse(BaseModel):
@@ -76,8 +122,18 @@ class PersonalityProfileResponse(BaseModel):
     attention_mismatch: float
     emotional_stability_mismatch: float
     total_simulations_since_assessment: int
+    # Behavioral calibration fields
+    calibration_completed: bool = False
+    calibration_confidence: float = 0.0
+    behavioral_impulsiveness: float = 0.5
+    behavioral_attention: float = 0.5
+    behavioral_notification_fixation: float = 0.5
+    behavioral_urgency_susceptibility: float = 0.5
+    behavioral_authority_compliance: float = 0.5
+    behavioral_cognitive_overload: float = 0.5
+    overconfidence_index: float = 0.0
+    mismatch_flags: List[str] = []
     has_completed_assessment: bool = True
-    # Extra field: indicates if the DB write succeeded or used in-memory fallback
     persisted: bool = True
 
 
@@ -90,25 +146,64 @@ class ConsistencyResponse(BaseModel):
     flags: List[str]
     has_data: bool
     interpretation: str
+    # Extended calibration fields
+    calibration_completed: bool = False
+    calibration_confidence: float = 0.0
+    overconfidence_index: float = 0.0
 
 
 # ── Helper: table existence check ─────────────────────────────────────────────
 
 async def _personality_table_exists(db: AsyncSession) -> bool:
-    """
-    Quick check whether personality_profiles table exists in PostgreSQL.
-    Returns True for SQLite (create_all handles it) or if the table exists.
-    """
     try:
-        await db.execute(
-            text("SELECT 1 FROM personality_profiles LIMIT 1")
-        )
+        await db.execute(text("SELECT 1 FROM personality_profiles LIMIT 1"))
         return True
     except Exception:
         return False
 
 
-# ── Helper: in-memory fallback response ──────────────────────────────────────
+# ── Helper: serialize profile to response ─────────────────────────────────────
+
+def _profile_to_response(profile, persisted: bool = True) -> PersonalityProfileResponse:
+    """Convert a PersonalityProfile ORM object to the API response model."""
+    # Safely parse mismatch_flags JSON
+    mismatch_flags = []
+    if profile.mismatch_flags:
+        try:
+            mismatch_flags = json.loads(profile.mismatch_flags)
+        except Exception:
+            mismatch_flags = []
+
+    return PersonalityProfileResponse(
+        onboarding_profile_label=profile.onboarding_profile_label,
+        impulsiveness_score=profile.impulsiveness_score,
+        attention_control_score=profile.attention_control_score,
+        emotional_reactivity_score=profile.emotional_reactivity_score,
+        authority_compliance_score=profile.authority_compliance_score,
+        cognitive_patience_score=profile.cognitive_patience_score,
+        risk_tolerance_score=profile.risk_tolerance_score,
+        stress_resilience_score=profile.stress_resilience_score,
+        multitasking_tendency_score=profile.multitasking_tendency_score,
+        consistency_score=profile.consistency_score,
+        self_awareness_score=profile.self_awareness_score,
+        impulsiveness_mismatch=profile.impulsiveness_mismatch,
+        attention_mismatch=profile.attention_mismatch,
+        emotional_stability_mismatch=profile.emotional_stability_mismatch,
+        total_simulations_since_assessment=profile.total_simulations_since_assessment,
+        calibration_completed=getattr(profile, "calibration_completed", False),
+        calibration_confidence=getattr(profile, "calibration_confidence", 0.0),
+        behavioral_impulsiveness=getattr(profile, "behavioral_impulsiveness", 0.5),
+        behavioral_attention=getattr(profile, "behavioral_attention", 0.5),
+        behavioral_notification_fixation=getattr(profile, "behavioral_notification_fixation", 0.5),
+        behavioral_urgency_susceptibility=getattr(profile, "behavioral_urgency_susceptibility", 0.5),
+        behavioral_authority_compliance=getattr(profile, "behavioral_authority_compliance", 0.5),
+        behavioral_cognitive_overload=getattr(profile, "behavioral_cognitive_overload", 0.5),
+        overconfidence_index=getattr(profile, "overconfidence_index", 0.0),
+        mismatch_flags=mismatch_flags,
+        has_completed_assessment=True,
+        persisted=persisted,
+    )
+
 
 def _build_fallback_response(
     scores: dict,
@@ -132,6 +227,8 @@ def _build_fallback_response(
         attention_mismatch=0.0,
         emotional_stability_mismatch=0.0,
         total_simulations_since_assessment=0,
+        calibration_completed=False,
+        calibration_confidence=0.0,
         has_completed_assessment=True,
         persisted=persisted,
     )
@@ -144,25 +241,53 @@ async def get_assessment_questions(
     current_user: User = Depends(get_current_user),
 ):
     """
-    Return the full psychological assessment question bank.
-    Questions cover 8 psychological dimensions and are phrased
-    indirectly to prevent obvious gaming of results.
+    Return the Layer 1 self-report question bank.
+
+    IMPORTANT: Dimension labels are intentionally excluded from the response.
+    Exposing which trait is being measured would allow users to game their answers,
+    destroying the measurement validity of the self-report priors.
     """
     logger.info(
-        "Assessment questions requested: user_id=%s email=%s",
+        "Layer 1 questions requested: user_id=%s email=%s",
         current_user.id, current_user.email,
     )
     return [
         AssessmentQuestion(
             id=q["id"],
             text=q["text"],
-            dimension=q["dimension"],
+            # dimension intentionally omitted — server-side only
             options=[
                 QuestionOption(value=o["value"], text=o["text"])
                 for o in q["options"]
             ]
         )
         for q in ASSESSMENT_QUESTIONS
+    ]
+
+
+@router.get("/calibration/scenarios", response_model=List[CalibrationScenarioResponse])
+async def get_calibration_scenarios(
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Return Layer 2 behavioral calibration scenario definitions.
+
+    IMPORTANT: primary_traits are intentionally excluded from the response.
+    Users should not know what trait is being measured during each scenario.
+    """
+    logger.info(
+        "Calibration scenarios requested: user_id=%s", current_user.id
+    )
+    return [
+        CalibrationScenarioResponse(
+            id=s["id"],
+            title=s["title"],
+            duration_ms=s["duration_ms"],
+            ui_type=s["ui_type"],
+            instruction=s["instruction"],
+            # primary_traits intentionally omitted
+        )
+        for s in CALIBRATION_SCENARIOS
     ]
 
 
@@ -173,38 +298,27 @@ async def submit_assessment(
     current_user: User = Depends(get_current_user),
 ):
     """
-    Process onboarding assessment answers and derive personality profile.
+    Process Layer 1 self-report priors and derive initial personality profile.
 
-    RESILIENT: If the personality_profiles table is missing (pending migration),
-    the endpoint returns a computed in-memory result instead of a 500 error.
-    The user always completes onboarding successfully.
+    This sets weak prior scores only (prior_weight=0.4).
+    The profile label will be refined once Layer 2 behavioral calibration completes.
 
-    Steps:
-    1. Validate minimum answer count
-    2. Score answers across 8 psychological dimensions
-    3. Derive profile label from scores
-    4. Attempt DB persistence (graceful fallback if table missing)
-    5. Return profile response
+    Minimum 3 answers required (reduced from 5 — only 4 questions now).
     """
     user_id = current_user.id
     answer_count = len(request.answers)
 
     logger.info(
-        "Onboarding submission started: user_id=%s answer_count=%d",
+        "Layer 1 submission started: user_id=%s answer_count=%d",
         user_id, answer_count,
     )
 
-    if answer_count < 5:
-        logger.warning(
-            "Insufficient answers: user_id=%s count=%d (minimum 5 required)",
-            user_id, answer_count,
-        )
+    if answer_count < 3:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Minimum 5 answers required for valid personality assessment",
+            detail="Minimum 3 answers required for valid prior assessment",
         )
 
-    # Step 1: Score answers in-memory (always succeeds, no DB needed)
     answers_dicts = [
         {"question_id": a.question_id, "answer_value": a.answer_value}
         for a in request.answers
@@ -213,74 +327,144 @@ async def submit_assessment(
     label = _derive_profile_label(scores)
 
     logger.info(
-        "Personality scored: user_id=%s label=%s imp=%.2f att=%.2f emo=%.2f",
+        "Layer 1 scored: user_id=%s label=%s imp=%.2f att=%.2f",
         user_id, label,
         scores.get("impulsiveness_score", 0.5),
         scores.get("attention_control_score", 0.5),
-        scores.get("emotional_reactivity_score", 0.5),
     )
 
-    # Step 2: Check table existence before attempting write
     table_ok = await _personality_table_exists(db)
-
     if not table_ok:
         logger.error(
-            "SCHEMA ERROR: personality_profiles table does not exist. "
-            "user_id=%s — returning in-memory result. "
-            "Run: docker exec distracted_driving_backend python -c "
-            "\"import asyncio; from app.database import init_db; asyncio.run(init_db())\"",
+            "SCHEMA ERROR: personality_profiles missing. user_id=%s — returning in-memory result.",
             user_id,
         )
-        # Return graceful in-memory result — user completes onboarding normally
         return _build_fallback_response(scores, label, persisted=False)
 
-    # Step 3: Attempt DB persistence
     try:
         profile = await personality_profiler.process_assessment(
-            db=db,
-            user_id=user_id,
-            answers=answers_dicts,
+            db=db, user_id=user_id, answers=answers_dicts,
         )
         await db.commit()
         logger.info(
-            "Personality profile persisted: user_id=%s label=%s profile_id=%s",
+            "Layer 1 profile persisted: user_id=%s label=%s profile_id=%s",
             user_id, label, profile.id,
         )
-        return PersonalityProfileResponse(
-            onboarding_profile_label=profile.onboarding_profile_label,
-            impulsiveness_score=profile.impulsiveness_score,
-            attention_control_score=profile.attention_control_score,
-            emotional_reactivity_score=profile.emotional_reactivity_score,
-            authority_compliance_score=profile.authority_compliance_score,
-            cognitive_patience_score=profile.cognitive_patience_score,
-            risk_tolerance_score=profile.risk_tolerance_score,
-            stress_resilience_score=profile.stress_resilience_score,
-            multitasking_tendency_score=profile.multitasking_tendency_score,
-            consistency_score=profile.consistency_score,
-            self_awareness_score=profile.self_awareness_score,
-            impulsiveness_mismatch=profile.impulsiveness_mismatch,
-            attention_mismatch=profile.attention_mismatch,
-            emotional_stability_mismatch=profile.emotional_stability_mismatch,
-            total_simulations_since_assessment=profile.total_simulations_since_assessment,
-            has_completed_assessment=True,
-            persisted=True,
-        )
+        return _profile_to_response(profile, persisted=True)
 
     except Exception as exc:
-        # Non-fatal: DB write failed but scoring succeeded
-        # Roll back the broken transaction and return in-memory result
         try:
             await db.rollback()
         except Exception:
             pass
-
         logger.error(
-            "DB write failed for personality profile: user_id=%s error=%s "
-            "— returning in-memory fallback. User onboarding will complete normally.",
-            user_id, str(exc),
-            exc_info=True,
+            "DB write failed for Layer 1 profile: user_id=%s error=%s — in-memory fallback.",
+            user_id, str(exc), exc_info=True,
         )
         return _build_fallback_response(scores, label, persisted=False)
+
+
+@router.post("/calibration/submit", response_model=PersonalityProfileResponse, status_code=status.HTTP_200_OK)
+async def submit_calibration(
+    request: SubmitCalibrationRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Process Layer 2 behavioral calibration telemetry from micro-simulations.
+
+    Receives interaction telemetry from 1–6 behavioral scenarios.
+    Extracts trait evidence, updates behavioral scores, runs Layer 3 mismatch analysis,
+    and re-derives the profile label from blended prior + behavioral evidence.
+
+    Minimum 1 scenario event required.
+    """
+    user_id = current_user.id
+    event_count = len(request.events)
+
+    logger.info(
+        "Layer 2 calibration submission: user_id=%s events=%d",
+        user_id, event_count,
+    )
+
+    if event_count < 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least 1 calibration scenario event required",
+        )
+
+    # Convert pydantic models to dicts for the scorer
+    scenario_events = []
+    for ev in request.events:
+        telemetry = {
+            "first_response_ms": ev.first_response_ms,
+            "time_to_choice_ms": ev.time_to_choice_ms,
+            "interaction_count": ev.interaction_count,
+            "distraction_clicks": ev.distraction_clicks,
+            "re_read_count": ev.re_read_count,
+            "choice_made": ev.choice_made,
+            "abandoned": ev.abandoned,
+        }
+        # Include optional scenario-specific fields if present
+        if ev.choice_changed is not None:
+            telemetry["choice_changed"] = ev.choice_changed
+        if ev.followed_audio_authority is not None:
+            telemetry["followed_audio_authority"] = ev.followed_audio_authority
+        if ev.followed_visual_rule is not None:
+            telemetry["followed_visual_rule"] = ev.followed_visual_rule
+        if ev.primary_task_completed is not None:
+            telemetry["primary_task_completed"] = ev.primary_task_completed
+        if ev.first_distraction_at_pulse is not None:
+            telemetry["first_distraction_at_pulse"] = ev.first_distraction_at_pulse
+        if ev.yielded_at_escalation_level is not None:
+            telemetry["yielded_at_escalation_level"] = ev.yielded_at_escalation_level
+        if ev.avg_response_speed_ms is not None:
+            telemetry["avg_response_speed_ms"] = ev.avg_response_speed_ms
+        if ev.changed_decision_under_pressure is not None:
+            telemetry["changed_decision_under_pressure"] = ev.changed_decision_under_pressure
+        if ev.chose_higher_risk_option is not None:
+            telemetry["chose_higher_risk_option"] = ev.chose_higher_risk_option
+
+        scenario_events.append({
+            "scenario_id": ev.scenario_id,
+            "telemetry": telemetry,
+        })
+
+    table_ok = await _personality_table_exists(db)
+    if not table_ok:
+        logger.error(
+            "SCHEMA ERROR: personality_profiles missing during calibration. user_id=%s", user_id
+        )
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database schema not ready. Run pending migrations.",
+        )
+
+    try:
+        profile = await personality_profiler.process_calibration(
+            db=db, user_id=user_id, scenario_events=scenario_events,
+        )
+        await db.commit()
+        logger.info(
+            "Layer 2 calibration persisted: user_id=%s label=%s confidence=%.2f overconfidence=%.2f",
+            user_id, profile.onboarding_profile_label,
+            profile.calibration_confidence, profile.overconfidence_index,
+        )
+        return _profile_to_response(profile, persisted=True)
+
+    except Exception as exc:
+        try:
+            await db.rollback()
+        except Exception:
+            pass
+        logger.error(
+            "Calibration processing failed: user_id=%s error=%s",
+            user_id, str(exc), exc_info=True,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Calibration processing failed. Please retry.",
+        )
 
 
 @router.get("/profile/me", response_model=PersonalityProfileResponse)
@@ -289,35 +473,27 @@ async def get_my_personality_profile(
     current_user: User = Depends(get_current_user),
 ):
     """
-    Return the authenticated user's personality profile from onboarding assessment.
-    Returns a 'not assessed' placeholder if assessment not yet completed
-    or if the table doesn't exist yet.
+    Return the authenticated user's personality profile.
+    Includes both Layer 1 prior scores and Layer 2 behavioral scores (if calibration complete).
     """
     user_id = current_user.id
 
-    # Graceful: if table doesn't exist, return unauthenticated profile
     table_ok = await _personality_table_exists(db)
     if not table_ok:
         logger.warning(
-            "profile/me: personality_profiles table missing — returning placeholder: user_id=%s",
-            user_id,
+            "profile/me: personality_profiles table missing — returning placeholder: user_id=%s", user_id
         )
         return PersonalityProfileResponse(
             onboarding_profile_label="unknown",
-            impulsiveness_score=0.5,
-            attention_control_score=0.5,
-            emotional_reactivity_score=0.5,
-            authority_compliance_score=0.5,
-            cognitive_patience_score=0.5,
-            risk_tolerance_score=0.5,
-            stress_resilience_score=0.5,
-            multitasking_tendency_score=0.5,
-            consistency_score=1.0,
-            self_awareness_score=0.5,
-            impulsiveness_mismatch=0.0,
-            attention_mismatch=0.0,
+            impulsiveness_score=0.5, attention_control_score=0.5,
+            emotional_reactivity_score=0.5, authority_compliance_score=0.5,
+            cognitive_patience_score=0.5, risk_tolerance_score=0.5,
+            stress_resilience_score=0.5, multitasking_tendency_score=0.5,
+            consistency_score=1.0, self_awareness_score=0.5,
+            impulsiveness_mismatch=0.0, attention_mismatch=0.0,
             emotional_stability_mismatch=0.0,
             total_simulations_since_assessment=0,
+            calibration_completed=False,
             has_completed_assessment=False,
             persisted=False,
         )
@@ -332,48 +508,26 @@ async def get_my_personality_profile(
         logger.info("No personality profile found: user_id=%s", user_id)
         return PersonalityProfileResponse(
             onboarding_profile_label="unknown",
-            impulsiveness_score=0.5,
-            attention_control_score=0.5,
-            emotional_reactivity_score=0.5,
-            authority_compliance_score=0.5,
-            cognitive_patience_score=0.5,
-            risk_tolerance_score=0.5,
-            stress_resilience_score=0.5,
-            multitasking_tendency_score=0.5,
-            consistency_score=1.0,
-            self_awareness_score=0.5,
-            impulsiveness_mismatch=0.0,
-            attention_mismatch=0.0,
+            impulsiveness_score=0.5, attention_control_score=0.5,
+            emotional_reactivity_score=0.5, authority_compliance_score=0.5,
+            cognitive_patience_score=0.5, risk_tolerance_score=0.5,
+            stress_resilience_score=0.5, multitasking_tendency_score=0.5,
+            consistency_score=1.0, self_awareness_score=0.5,
+            impulsiveness_mismatch=0.0, attention_mismatch=0.0,
             emotional_stability_mismatch=0.0,
             total_simulations_since_assessment=0,
+            calibration_completed=False,
             has_completed_assessment=False,
             persisted=False,
         )
 
     logger.info(
-        "Personality profile retrieved: user_id=%s label=%s simulations=%d",
+        "Profile retrieved: user_id=%s label=%s calibrated=%s simulations=%d",
         user_id, profile.onboarding_profile_label,
+        getattr(profile, "calibration_completed", False),
         profile.total_simulations_since_assessment,
     )
-    return PersonalityProfileResponse(
-        onboarding_profile_label=profile.onboarding_profile_label,
-        impulsiveness_score=profile.impulsiveness_score,
-        attention_control_score=profile.attention_control_score,
-        emotional_reactivity_score=profile.emotional_reactivity_score,
-        authority_compliance_score=profile.authority_compliance_score,
-        cognitive_patience_score=profile.cognitive_patience_score,
-        risk_tolerance_score=profile.risk_tolerance_score,
-        stress_resilience_score=profile.stress_resilience_score,
-        multitasking_tendency_score=profile.multitasking_tendency_score,
-        consistency_score=profile.consistency_score,
-        self_awareness_score=profile.self_awareness_score,
-        impulsiveness_mismatch=profile.impulsiveness_mismatch,
-        attention_mismatch=profile.attention_mismatch,
-        emotional_stability_mismatch=profile.emotional_stability_mismatch,
-        total_simulations_since_assessment=profile.total_simulations_since_assessment,
-        has_completed_assessment=True,
-        persisted=True,
-    )
+    return _profile_to_response(profile, persisted=True)
 
 
 @router.get("/consistency/me", response_model=ConsistencyResponse)
@@ -382,26 +536,24 @@ async def get_consistency_analysis(
     current_user: User = Depends(get_current_user),
 ):
     """
-    Return behavioral consistency analysis:
-    How well does the user's self-reported personality match their simulation behavior?
+    Return behavioral consistency analysis.
+
+    Compares the user's profile (Layer 1 priors + Layer 2 behavioral evidence)
+    against their actual simulation performance.
 
     Requires: completed onboarding + at least 5 simulation events.
-    Returns safe placeholder data if requirements not met or table missing.
     """
     user_id = current_user.id
 
-    # Graceful: table check
     table_ok = await _personality_table_exists(db)
     if not table_ok:
         return ConsistencyResponse(
-            consistency_score=0.0,
-            self_awareness_score=0.0,
-            impulsiveness_mismatch=0.0,
-            attention_mismatch=0.0,
+            consistency_score=0.0, self_awareness_score=0.0,
+            impulsiveness_mismatch=0.0, attention_mismatch=0.0,
             emotional_stability_mismatch=0.0,
-            flags=[],
-            has_data=False,
-            interpretation="Personality assessment database is initializing. Complete the assessment and run a simulation to enable this analysis.",
+            flags=[], has_data=False,
+            interpretation="Personality assessment database is initializing.",
+            calibration_completed=False, calibration_confidence=0.0, overconfidence_index=0.0,
         )
 
     try:
@@ -412,17 +564,14 @@ async def get_consistency_analysis(
 
     if profile is None:
         return ConsistencyResponse(
-            consistency_score=0.0,
-            self_awareness_score=0.0,
-            impulsiveness_mismatch=0.0,
-            attention_mismatch=0.0,
+            consistency_score=0.0, self_awareness_score=0.0,
+            impulsiveness_mismatch=0.0, attention_mismatch=0.0,
             emotional_stability_mismatch=0.0,
-            flags=[],
-            has_data=False,
-            interpretation="Complete the personality assessment first to enable consistency analysis.",
+            flags=[], has_data=False,
+            interpretation="Complete the behavioral calibration first to enable consistency analysis.",
+            calibration_completed=False, calibration_confidence=0.0, overconfidence_index=0.0,
         )
 
-    # Fetch behavioral state
     try:
         state_result = await db.execute(
             select(BehavioralState).where(BehavioralState.user_id == user_id)
@@ -433,29 +582,51 @@ async def get_consistency_analysis(
         state = None
 
     if state is None or state.total_events < 5:
+        calibration_flags = []
+        if profile.mismatch_flags:
+            try:
+                calibration_flags = json.loads(profile.mismatch_flags)
+            except Exception:
+                pass
+
         return ConsistencyResponse(
             consistency_score=profile.consistency_score,
             self_awareness_score=profile.self_awareness_score,
             impulsiveness_mismatch=profile.impulsiveness_mismatch,
             attention_mismatch=profile.attention_mismatch,
             emotional_stability_mismatch=profile.emotional_stability_mismatch,
-            flags=[],
+            flags=calibration_flags,
             has_data=False,
             interpretation="Complete at least 5 simulation events to enable cross-session consistency analysis.",
+            calibration_completed=getattr(profile, "calibration_completed", False),
+            calibration_confidence=getattr(profile, "calibration_confidence", 0.0),
+            overconfidence_index=getattr(profile, "overconfidence_index", 0.0),
         )
 
-    # Compute fresh consistency analysis
     analysis = personality_profiler._compute_consistency(profile, state)
 
+    # Merge calibration mismatch flags with simulation consistency flags
+    all_flags = list(analysis.flags)
+    if profile.mismatch_flags:
+        try:
+            cal_flags = json.loads(profile.mismatch_flags)
+            # Deduplicate — add calibration flags not already covered
+            all_flags = list(dict.fromkeys(cal_flags + all_flags))
+        except Exception:
+            pass
+
     logger.info(
-        "Consistency analysis computed: user_id=%s score=%.2f self_awareness=%.2f flags=%d",
-        user_id, analysis.consistency_score, analysis.self_awareness_score, len(analysis.flags),
+        "Consistency analysis: user_id=%s score=%.2f self_awareness=%.2f flags=%d calibrated=%s",
+        user_id, analysis.consistency_score, analysis.self_awareness_score,
+        len(all_flags), getattr(profile, "calibration_completed", False),
     )
 
     interpretation = _build_consistency_interpretation(
         analysis.consistency_score,
         analysis.self_awareness_score,
-        analysis.flags,
+        all_flags,
+        calibration_completed=getattr(profile, "calibration_completed", False),
+        overconfidence_index=getattr(profile, "overconfidence_index", 0.0),
     )
 
     return ConsistencyResponse(
@@ -464,9 +635,12 @@ async def get_consistency_analysis(
         impulsiveness_mismatch=analysis.impulsiveness_mismatch,
         attention_mismatch=analysis.attention_mismatch,
         emotional_stability_mismatch=analysis.emotional_stability_mismatch,
-        flags=analysis.flags,
+        flags=all_flags,
         has_data=True,
         interpretation=interpretation,
+        calibration_completed=getattr(profile, "calibration_completed", False),
+        calibration_confidence=getattr(profile, "calibration_confidence", 0.0),
+        overconfidence_index=getattr(profile, "overconfidence_index", 0.0),
     )
 
 
@@ -477,36 +651,24 @@ async def check_schema_health(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Diagnostic: Check if the personality_profiles table exists in the DB.
-    Returns schema status so frontend can detect migration lag.
-    """
+    """Diagnostic: Check if the personality_profiles table exists."""
     table_ok = await _personality_table_exists(db)
-    logger.info(
-        "Schema health check: user_id=%s personality_profiles_exists=%s",
-        current_user.id, table_ok,
-    )
     return {
         "personality_profiles_table": "ok" if table_ok else "missing",
         "status": "ready" if table_ok else "schema_pending",
         "message": (
             "Database schema is ready."
             if table_ok
-            else "personality_profiles table not yet created. Restart the backend container to trigger create_all()."
+            else "personality_profiles table missing. Run pending Alembic migrations."
         ),
     }
 
-
-# ── Re-trigger init_db endpoint ───────────────────────────────────────────────
 
 @router.post("/admin/migrate")
 async def trigger_schema_migration(
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Emergency: Re-run init_db() to create any missing tables.
-    Safe to call on a running system — create_all uses IF NOT EXISTS internally.
-    """
+    """Emergency: Re-run init_db() to create any missing tables."""
     logger.warning(
         "Manual schema migration triggered: user_id=%s email=%s",
         current_user.id, current_user.email,
@@ -514,8 +676,7 @@ async def trigger_schema_migration(
     try:
         from app.database import init_db
         await init_db()
-        logger.info("Manual init_db() completed successfully")
-        return {"status": "success", "message": "Database schema refreshed. personality_profiles table created if missing."}
+        return {"status": "success", "message": "Database schema refreshed."}
     except Exception as exc:
         logger.error("Manual init_db() failed: %s", exc, exc_info=True)
         raise HTTPException(
@@ -530,12 +691,22 @@ def _build_consistency_interpretation(
     consistency_score: float,
     self_awareness_score: float,
     flags: list,
+    calibration_completed: bool = False,
+    overconfidence_index: float = 0.0,
 ) -> str:
+    base = ""
     if consistency_score >= 0.85:
-        return "Strong self-awareness. Your self-reported personality closely matches your simulation behavior — a rare cognitive trait."
+        base = "Strong self-awareness. Your self-reported profile closely matches both behavioral calibration and simulation behavior."
     elif consistency_score >= 0.65:
-        return f"Moderate self-awareness. Minor divergences detected between your self-perception and simulation behavior ({len(flags)} mismatch indicator(s))."
+        base = f"Moderate self-awareness. Minor divergences detected across {len(flags)} indicator(s)."
     elif consistency_score >= 0.4:
-        return f"Significant behavioral inconsistency detected. Your simulation decisions diverge from your self-reported traits in {len(flags)} key dimension(s). This is common and indicates areas where cognitive bias affects self-assessment."
+        base = f"Significant behavioral inconsistency detected across {len(flags)} key dimension(s). This is common and indicates areas where cognitive bias affects self-assessment."
     else:
-        return "Strong behavioral inconsistency. Your actual driving decisions under pressure differ substantially from your self-reported personality profile — a high-value insight for targeted training."
+        base = "Strong behavioral inconsistency. Your actual decisions under pressure differ substantially from your self-reported profile — a high-value insight for targeted training."
+
+    if calibration_completed and overconfidence_index > 0.25:
+        base += f" Behavioral calibration detected overconfidence in self-control (index: {overconfidence_index:.2f})."
+    elif calibration_completed and overconfidence_index < -0.20:
+        base += " Behavioral calibration detected better real-world performance than self-reported."
+
+    return base
