@@ -42,13 +42,17 @@ class LessonResponse(BaseModel):
 class AILessonResponse(BaseModel):
     id: str
     title: str
-    behavioral_target: str
-    why_it_matters: str
-    ai_coaching_advice: str
-    exercises: List[str]
-    personalized_insight: str
-    improvement_goal: str
-    simulation_modes: List[str]
+    lesson_category: str
+    behavioral_diagnosis: str
+    psychological_interpretation: str
+    real_world_risk_impact: str
+    cognitive_coaching_narrative: str
+    scenario_replay_analysis: str
+    behavioral_exercises: List[str]
+    mental_conditioning_techniques: List[str]
+    attention_reinforcement_tasks: List[str]
+    future_risk_projection: str
+    personalized_improvement_strategy: str
     difficulty: str
     driver_type: str
     reaction_time_target: float
@@ -73,18 +77,23 @@ class CompleteLessonRequest(BaseModel):
 def _serialize_ai_lesson(lesson: UserLesson) -> AILessonResponse:
     """Convert UserLesson ORM object to API response."""
     try:
-        exercises = json.loads(lesson.exercises) if lesson.exercises else []
+        behavioral_exercises = json.loads(lesson.behavioral_exercises) if lesson.behavioral_exercises else []
     except Exception:
-        exercises = [lesson.exercises] if lesson.exercises else []
+        behavioral_exercises = []
 
     try:
-        simulation_modes = json.loads(lesson.simulation_modes) if lesson.simulation_modes else []
+        mental_conditioning_techniques = json.loads(lesson.mental_conditioning_techniques) if lesson.mental_conditioning_techniques else []
     except Exception:
-        simulation_modes = [lesson.simulation_modes] if lesson.simulation_modes else []
+        mental_conditioning_techniques = []
+
+    try:
+        attention_reinforcement_tasks = json.loads(lesson.attention_reinforcement_tasks) if lesson.attention_reinforcement_tasks else []
+    except Exception:
+        attention_reinforcement_tasks = []
 
     # Calculate simulation source dynamically
     sim_source = "Standard Driving Simulation"
-    text_to_search = (lesson.title + " " + (lesson.generated_reason or "") + " " + lesson.behavioral_target).lower()
+    text_to_search = (lesson.title + " " + (lesson.generated_reason or "") + " " + lesson.behavioral_diagnosis).lower()
     if "phone" in text_to_search or "call" in text_to_search or "ring" in text_to_search:
         sim_source = "Phone Call Simulation"
     elif "gps" in text_to_search or "route" in text_to_search or "rerout" in text_to_search:
@@ -113,13 +122,17 @@ def _serialize_ai_lesson(lesson: UserLesson) -> AILessonResponse:
     return AILessonResponse(
         id=lesson.id,
         title=lesson.title,
-        behavioral_target=lesson.behavioral_target,
-        why_it_matters=lesson.why_it_matters,
-        ai_coaching_advice=lesson.ai_coaching_advice,
-        exercises=exercises,
-        personalized_insight=lesson.personalized_insight,
-        improvement_goal=lesson.improvement_goal,
-        simulation_modes=simulation_modes,
+        lesson_category=lesson.lesson_category,
+        behavioral_diagnosis=lesson.behavioral_diagnosis,
+        psychological_interpretation=lesson.psychological_interpretation,
+        real_world_risk_impact=lesson.real_world_risk_impact,
+        cognitive_coaching_narrative=lesson.cognitive_coaching_narrative,
+        scenario_replay_analysis=lesson.scenario_replay_analysis,
+        behavioral_exercises=behavioral_exercises,
+        mental_conditioning_techniques=mental_conditioning_techniques,
+        attention_reinforcement_tasks=attention_reinforcement_tasks,
+        future_risk_projection=lesson.future_risk_projection,
+        personalized_improvement_strategy=lesson.personalized_improvement_strategy,
         difficulty=lesson.difficulty,
         driver_type=lesson.driver_type,
         reaction_time_target=lesson.reaction_time_target,

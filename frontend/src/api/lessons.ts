@@ -25,13 +25,17 @@ export const getAllLessons = async (): Promise<Lesson[]> => {
 export interface AILesson {
   id: string;
   title: string;
-  behavioral_target: string;
-  why_it_matters: string;
-  ai_coaching_advice: string;
-  exercises: string[];
-  personalized_insight: string;
-  improvement_goal: string;
-  simulation_modes: string[];
+  lesson_category: string;
+  behavioral_diagnosis: string;
+  psychological_interpretation: string;
+  real_world_risk_impact: string;
+  cognitive_coaching_narrative: string;
+  scenario_replay_analysis: string;
+  behavioral_exercises: string[];
+  mental_conditioning_techniques: string[];
+  attention_reinforcement_tasks: string[];
+  future_risk_projection: string;
+  personalized_improvement_strategy: string;
   difficulty: string;
   driver_type: string;
   reaction_time_target: number;

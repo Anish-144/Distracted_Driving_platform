@@ -162,46 +162,67 @@ async def end_session(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
     updated = await session_service.end_session(db, session_id)
+    await db.commit()
 
     # ── Trigger Cognitive Report Generation ───────────────────────────────────
     # We use a helper function to run this in a background task so it doesn't 
     # block the response. We need to create a new session since the current 
     # one might be closed by the dependency injection.
     async def _generate_report_bg(u_id: str, s_id: str, score: float):
+        # ALL imports must be inside this nested async function — it runs in a
+        # separate background task and cannot access outer-scope lazy imports.
         from app.database import AsyncSessionLocal
         from app.services.cognitive_report_service import cognitive_report_service
         from app.services.behavior_analyzer import behavior_analyzer
         from app.models.event import Event
-        
-        async with AsyncSessionLocal() as bg_db:
-            summary = await behavior_analyzer.get_summary(bg_db, u_id)
-            state_result = await bg_db.execute(select(BehavioralState).where(BehavioralState.user_id == u_id))
-            behavioral_state = state_result.scalar_one_or_none()
-            
-            events_result = await bg_db.execute(
-                select(Event).where(Event.session_id == s_id).order_by(Event.timestamp)
-            )
-            events = events_result.scalars().all()
-            session_events = [
-                {
-                    "event_type": e.event_type,
-                    "decision_type": getattr(e, "user_response", "unknown"),
-                    "reaction_time": getattr(e, "reaction_time", 0.0) or 0.0,
-                    "urgency": getattr(e, "urgency_level", "medium"),
-                }
-                for e in events
-            ]
-            
-            if behavioral_state and summary:
-                await cognitive_report_service.generate_report(
-                    db=bg_db,
-                    user_id=u_id,
-                    session_id=s_id,
-                    behavioral_summary=summary,
-                    behavioral_state=behavioral_state,
-                    session_events=session_events,
-                    session_score=score
+        from app.models.behavioral_state import BehavioralState  # ← CRITICAL FIX
+        import logging
+        _log = logging.getLogger(__name__)
+
+        try:
+            async with AsyncSessionLocal() as bg_db:
+                summary = await behavior_analyzer.get_summary(bg_db, u_id)
+                state_result = await bg_db.execute(
+                    select(BehavioralState).where(BehavioralState.user_id == u_id)
                 )
+                behavioral_state = state_result.scalar_one_or_none()
+
+                # Use correct Event model field names:
+                # ✓ response_time (not reaction_time)
+                # ✓ user_response (not decision_type directly)
+                # Event has no urgency_level — default to "medium"
+                events_result = await bg_db.execute(
+                    select(Event).where(Event.session_id == s_id)
+                    .order_by(Event.triggered_at)
+                )
+                events = events_result.scalars().all()
+                session_events = [
+                    {
+                        "event_type": e.event_type.value if hasattr(e.event_type, 'value') else str(e.event_type),
+                        "decision_type": e.user_response.value if e.user_response and hasattr(e.user_response, 'value') else "unknown",
+                        "reaction_time": e.response_time or 0.0,
+                        "urgency": "medium",  # Event model has no urgency_level field
+                    }
+                    for e in events
+                ]
+
+                if behavioral_state and summary:
+                    await cognitive_report_service.generate_report(
+                        db=bg_db,
+                        user_id=u_id,
+                        session_id=s_id,
+                        behavioral_summary=summary,
+                        behavioral_state=behavioral_state,
+                        session_events=session_events,
+                        session_score=score
+                    )
+                    await bg_db.commit()  # ← CRITICAL FIX: persist the report
+                    _log.info("Cognitive report persisted for session %s", s_id)
+                else:
+                    _log.warning("Skipping report: behavioral_state=%s summary=%s", behavioral_state, summary)
+        except Exception as exc:
+            import logging as _lg
+            _lg.getLogger(__name__).error("_generate_report_bg failed: %s", exc, exc_info=True)
 
     background_tasks.add_task(_generate_report_bg, current_user.id, session_id, updated.score)
     

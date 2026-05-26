@@ -37,13 +37,14 @@
   }
 
   body {
-    @apply bg-gray-50 text-gray-900 font-sans;
+    @apply bg-surface-950 text-gray-100 font-sans;
+    background: linear-gradient(160deg, #040812 0%, #080e1c 40%, #0d1527 100%);
     min-height: 100vh;
     overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold text-gray-900 leading-tight;
+    @apply font-semibold text-white leading-tight;
     letter-spacing: -0.02em;
   }
 
@@ -55,10 +56,19 @@
   a:hover { @apply text-brand-700; }
 
   input, textarea, select {
-    @apply bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2.5
-           placeholder-gray-400 shadow-sm;
+    @apply bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2.5
+           placeholder-white/40 shadow-sm backdrop-blur-sm;
     transition: border-color var(--duration-micro) var(--ease-smooth),
                 box-shadow var(--duration-micro) var(--ease-smooth);
+  }
+  
+  /* Autofill fixes for dark mode */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover, 
+  input:-webkit-autofill:focus, 
+  input:-webkit-autofill:active{
+    -webkit-box-shadow: 0 0 0 30px #0d1527 inset !important;
+    -webkit-text-fill-color: white !important;
   }
 
   input:focus, textarea:focus, select:focus {
@@ -75,19 +85,19 @@
 @layer components {
   /* ── Cards ── */
   .card {
-    @apply bg-white rounded-xl border border-gray-200/80 shadow-sm p-6;
+    @apply bg-white/5 backdrop-blur-md rounded-xl border border-white/10 shadow-sm p-6 text-white;
     transition: box-shadow var(--duration-base) var(--ease-expo-out),
                 border-color var(--duration-base) var(--ease-expo-out),
                 transform var(--duration-base) var(--ease-expo-out);
   }
 
   .card:hover {
-    @apply shadow-md border-gray-300/70;
+    @apply shadow-md border-white/20;
     transform: translateY(-1px);
   }
 
   .card-elevated {
-    @apply bg-white rounded-xl border border-gray-200/80 shadow-md p-6;
+    @apply bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-md p-6 text-white;
   }
 
   /* Glass card */
@@ -125,8 +135,8 @@
   .btn-primary:active { transform: translateY(0); }
 
   .btn-secondary {
-    @apply bg-white hover:bg-gray-50 text-gray-700 font-medium
-           px-5 py-2.5 rounded-lg border border-gray-200 shadow-sm
+    @apply bg-white/10 hover:bg-white/15 text-gray-200 font-medium
+           px-5 py-2.5 rounded-lg border border-white/20 shadow-sm
            inline-flex items-center justify-center gap-2;
     transition: all var(--duration-micro) var(--ease-smooth);
   }
@@ -141,7 +151,7 @@
   }
 
   .btn-ghost {
-    @apply text-gray-600 hover:text-gray-900 hover:bg-gray-100
+    @apply text-gray-400 hover:text-white hover:bg-white/10
            px-3 py-2 rounded-lg font-medium;
     transition: all var(--duration-micro) var(--ease-smooth);
   }
@@ -251,13 +261,13 @@
 
   /* ── Page container ── */
   .page-container {
-    @apply min-h-screen flex flex-col bg-gray-50 text-gray-900;
+    @apply min-h-screen flex flex-col text-gray-100;
   }
 
   /* ── Section header ── */
   .section-header {
     @apply flex items-center justify-between mb-5 pb-2;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   /* ── Cinematic section label ── */
@@ -267,8 +277,8 @@
 
   /* ── Stat card ── */
   .stat-card {
-    @apply bg-white rounded-2xl border border-gray-200/80 p-6;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.03);
+    @apply bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 text-white;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
     transition: transform var(--duration-base) var(--ease-expo-out),
                 box-shadow var(--duration-base) var(--ease-expo-out),
                 border-color var(--duration-base) var(--ease-expo-out);
@@ -276,8 +286,8 @@
 
   .stat-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
-    @apply border-gray-300/60;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    @apply border-white/20;
   }
 }
 
