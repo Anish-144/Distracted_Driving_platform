@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import AppShell from '@/components/layout/AppShell';
 import { FadeUp } from '@/components/motion/ScrollReveal';
+import TelemetryCard from '@/components/dashboard/TelemetryCard';
 import client from '@/api/client';
 import { CognitiveReport } from '@/api/ai';
 import { motion } from 'framer-motion';
@@ -88,7 +89,7 @@ function ScoreGauge({
  />
  </svg>
  <div className="absolute inset-0 flex items-center justify-center">
- <span className="text-lg font-extrabold text-white">{Math.round(value * 100)}%</span>
+ <span className="text-lg font-extrabold text-primary">{Math.round(value * 100)}%</span>
  </div>
  </div>
  <p className="text-xs font-bold text-primary text-center leading-tight">{label}</p>
@@ -114,7 +115,7 @@ function MismatchBar({
  const severity = isLow ? 'Low divergence' : isMed ? 'Moderate divergence' : 'High divergence';
 
  return (
- <div className="flex items-center gap-3 py-2.5 border-b border-white/5 last:border-0">
+ <div className="flex items-center gap-3 py-2.5 border-b border-subtle last:border-0">
  <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
  <Icon className="w-4 h-4 text-muted" />
  </div>
@@ -193,7 +194,7 @@ export default function ResearchDashboard() {
  <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center">
  <BarChart3 className="w-5 h-5 text-brand-400" />
  </div>
- <h1 className="text-3xl font-extrabold tracking-tight text-white">Observability Engine</h1>
+ <h1 className="text-3xl font-extrabold tracking-tight text-primary">Observability Engine</h1>
  </div>
  <p className="text-muted text-sm max-w-2xl">
  Research-grade analytics spanning behavioral adaptation, psychological trait analysis, cognitive consistency, and intervention effectiveness.
@@ -206,10 +207,8 @@ export default function ResearchDashboard() {
  <button
  id="tab-behavioral"
  onClick={() => setActiveTab('behavioral')}
- className={`px-5 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${
- activeTab === 'behavioral'
- ? 'bg-brand-500/20 text-brand-400 border border-brand-500/30'
- : 'text-muted hover:text-primary hover:bg-secondary'
+ className={`px-5 py-2 rounded-lg text-sm transition-all duration-200 ${
+ activeTab === 'behavioral' ? 'tab-active' : 'tab-inactive'
  }`}
  >
  Behavioral Analytics
@@ -217,10 +216,8 @@ export default function ResearchDashboard() {
  <button
  id="tab-psychological"
  onClick={() => setActiveTab('psychological')}
- className={`px-5 py-2 rounded-lg text-sm font-bold transition-all duration-200 flex items-center gap-2 ${
- activeTab === 'psychological'
- ? 'bg-brand-500/20 text-brand-400 border border-brand-500/30'
- : 'text-muted hover:text-primary hover:bg-secondary'
+ className={`px-5 py-2 rounded-lg text-sm transition-all duration-200 flex items-center gap-2 ${
+ activeTab === 'psychological' ? 'tab-active' : 'tab-inactive'
  }`}
  >
  <Brain className="w-4 h-4" />
@@ -239,103 +236,83 @@ export default function ResearchDashboard() {
  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
 
  <FadeUp delay={0.1}>
- <div className={`${CARD} p-6 border-l-4 border-l-brand-500 bg-brand-500/5`}>
- <div className="flex justify-between items-start mb-4">
- <div className="p-2 rounded-lg bg-brand-500/10"><ShieldAlert className="w-5 h-5 text-brand-400" /></div>
- <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Adaptation</span>
- </div>
- <h3 className="text-sm font-semibold text-gray-300 mb-1">Unsafe Decision Reduction</h3>
- <div className="flex items-baseline gap-2">
- <span className="text-3xl font-extrabold text-white">{metrics.unsafe_decision_reduction_pct}%</span>
- </div>
- <p className="text-xs text-muted mt-3 pt-3 border-t border-subtle leading-relaxed">
- <strong className="text-primary">Explainability:</strong> Frequency drop of impulsive/unsafe decisions between your first and last simulation sessions.
- </p>
- </div>
+ <TelemetryCard
+ icon={ShieldAlert}
+ theme="brand"
+ category="Adaptation"
+ title="Unsafe Decision Reduction"
+ value={`${metrics.unsafe_decision_reduction_pct}%`}
+ explanation="Frequency drop of impulsive/unsafe decisions between your first and last simulation sessions."
+ />
  </FadeUp>
 
  <FadeUp delay={0.2}>
- <div className={`${CARD} p-6 border-l-4 border-l-blue-500 bg-blue-500/5`}>
- <div className="flex justify-between items-start mb-4">
- <div className="p-2 rounded-lg bg-blue-500/10"><Target className="w-5 h-5 text-blue-400" /></div>
- <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Intervention</span>
- </div>
- <h3 className="text-sm font-semibold text-gray-300 mb-1">Authority Success Rate</h3>
- <div className="flex items-baseline gap-2">
- <span className="text-3xl font-extrabold text-white">{metrics.authority_success_rate_pct}%</span>
- </div>
- <p className="text-xs text-gray-400 mt-3 pt-3 border-t border-subtle leading-relaxed">
- <strong className="text-gray-200">Explainability:</strong> Rate at which authority escalation successfully forced a safe decision on the subsequent event.
- </p>
- </div>
+ <TelemetryCard
+ icon={Target}
+ theme="blue"
+ category="Intervention"
+ title="Authority Success Rate"
+ value={`${metrics.authority_success_rate_pct}%`}
+ explanation="Rate at which authority escalation successfully forced a safe decision on the subsequent event."
+ />
  </FadeUp>
 
  <FadeUp delay={0.3}>
- <div className={`${CARD} p-6 border-l-4 border-l-amber-500 bg-amber-500/5`}>
- <div className="flex justify-between items-start mb-4">
- <div className="p-2 rounded-lg bg-amber-500/10"><ZapOff className="w-5 h-5 text-amber-400" /></div>
- <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Stress Test</span>
- </div>
- <h3 className="text-sm font-semibold text-gray-300 mb-1">Cognitive Overload Failure</h3>
- <div className="flex items-baseline gap-2">
- <span className="text-3xl font-extrabold text-white">{metrics.cognitive_overload_failure_pct}%</span>
- </div>
- <p className="text-xs text-gray-400 mt-3 pt-3 border-t border-subtle leading-relaxed">
- <strong className="text-gray-200">Explainability:</strong> Likelihood of an unsafe decision when exposed to multiple simultaneous distractions.
- </p>
- </div>
+ <TelemetryCard
+ icon={ZapOff}
+ theme="amber"
+ category="Stress Test"
+ title="Cognitive Overload Failure"
+ value={`${metrics.cognitive_overload_failure_pct}%`}
+ explanation="Likelihood of an unsafe decision when exposed to multiple simultaneous distractions."
+ />
  </FadeUp>
 
  <FadeUp delay={0.4}>
- <div className={`${CARD} p-6 border-l-4 border-l-purple-500 bg-purple-500/5`}>
- <div className="flex justify-between items-start mb-4">
- <div className="p-2 rounded-lg bg-purple-500/10"><Clock className="w-5 h-5 text-purple-400" /></div>
- <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Processing</span>
- </div>
- <h3 className="text-sm font-semibold text-gray-300 mb-1">Avg Hesitation Recovery</h3>
- <div className="flex items-baseline gap-2">
- <span className="text-3xl font-extrabold text-white">{metrics.avg_hesitation_recovery_sec}</span>
- <span className="text-sm font-semibold text-gray-500">sec</span>
- </div>
- <p className="text-xs text-gray-400 mt-3 pt-3 border-t border-subtle leading-relaxed">
- <strong className="text-gray-200">Explainability:</strong> Average response time immediately following a severe cognitive distraction event.
- </p>
- </div>
+ <TelemetryCard
+ icon={Clock}
+ theme="purple"
+ category="Processing"
+ title="Avg Hesitation Recovery"
+ value={metrics.avg_hesitation_recovery_sec}
+ suffix="sec"
+ explanation="Average response time immediately following a severe cognitive distraction event."
+ />
  </FadeUp>
 
  <FadeUp delay={0.5} className="md:col-span-2">
- <div className={`${DARK_CARD} p-6 text-white`}>
+ <div className={`${DARK_CARD} p-6 text-primary`}>
  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
  <div>
  <div className="flex items-center gap-2 mb-2">
- <Activity className="w-4 h-4 text-gray-400" />
- <h3 className="text-sm font-semibold text-gray-300">Intervention Fatigue Index</h3>
+ <Activity className="w-4 h-4 text-muted" />
+ <h3 className="text-sm font-semibold text-secondary">Intervention Fatigue Index</h3>
  </div>
  <div className="flex items-baseline gap-2 mb-2">
- <span className="text-4xl font-extrabold text-white">{metrics.intervention_fatigue_index}%</span>
+ <span className="text-4xl font-extrabold text-primary font-mono">{metrics.intervention_fatigue_index}%</span>
  </div>
- <p className="text-xs text-gray-400 max-w-md">
- <strong className="text-gray-200">Explainability:</strong> The rate at which AI coaching becomes less effective over long sessions. A high index means the driver starts ignoring interventions.
+ <p className="text-xs text-muted max-w-md">
+ <strong className="text-primary">Explainability:</strong> The rate at which AI coaching becomes less effective over long sessions. A high index means the driver starts ignoring interventions.
  </p>
  </div>
  <div className="flex-shrink-0 bg-secondary p-4 rounded-xl border border-subtle">
- <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider font-bold">Total Interventions</p>
- <p className="text-2xl font-bold text-white">{metrics.total_interventions_tracked} recorded</p>
+ <p className="text-xs text-muted mb-1 uppercase tracking-wider font-bold">Total Interventions</p>
+ <p className="text-2xl font-bold text-primary">{metrics.total_interventions_tracked} recorded</p>
  </div>
  </div>
  </div>
  </FadeUp>
  </div>
  ) : (
- <div className="text-center py-16 bg-secondary border border-subtle rounded-2xl">
- <GitBranch className="w-12 h-12 text-gray-500 mx-auto mb-4" />
- <h3 className="text-lg font-bold text-white mb-2">Awaiting Longitudinal Data</h3>
- <p className="text-sm text-gray-400 max-w-md mx-auto mb-6">
- The Observability Engine requires at least one complete session to generate research-grade behavioral insights.
- </p>
+ <div className="empty-state-card">
+ <div className="icon-wrapper">
+ <GitBranch className="icon" />
+ </div>
+ <h3>Awaiting Longitudinal Data</h3>
+ <p>The Observability Engine requires at least one complete session to generate research-grade behavioral insights.</p>
  <button
  onClick={() => router.push('/simulation')}
- className="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white text-sm font-bold rounded-xl flex items-center gap-2 mx-auto transition-colors shadow-brand-500/20"
+ className="btn-primary"
  >
  Run Simulation <ArrowRight className="w-4 h-4" />
  </button>
@@ -348,15 +325,15 @@ export default function ResearchDashboard() {
  {activeTab === 'psychological' && (
  <>
  {!hasPsychData ? (
- <div className="text-center py-16 bg-secondary border border-subtle rounded-2xl">
- <Brain className="w-12 h-12 text-gray-500 mx-auto mb-4" />
- <h3 className="text-lg font-bold text-white mb-2">Assessment Not Completed</h3>
- <p className="text-sm text-gray-400 max-w-md mx-auto mb-6">
- Complete the Behavioral Assessment to unlock psychological trait analysis, self-awareness scores, and consistency metrics.
- </p>
+ <div className="empty-state-card">
+ <div className="icon-wrapper">
+ <Brain className="icon" />
+ </div>
+ <h3>Assessment Not Completed</h3>
+ <p>Complete the Behavioral Assessment to unlock psychological trait analysis, self-awareness scores, and consistency metrics.</p>
  <button
  onClick={() => router.push('/onboarding')}
- className="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white text-sm font-bold rounded-xl flex items-center gap-2 mx-auto transition-colors shadow-brand-500/20"
+ className="btn-primary"
  >
  <Brain className="w-4 h-4" />
  Take Assessment <ArrowRight className="w-4 h-4" />
@@ -370,20 +347,20 @@ export default function ResearchDashboard() {
  <div className={`${CARD} p-6`}>
  <div className="flex items-start gap-5">
  <div className="w-14 h-14 rounded-2xl bg-tertiary flex items-center justify-center flex-shrink-0">
- <Brain className="w-7 h-7 text-white" />
+ <Brain className="w-7 h-7 text-primary" />
  </div>
  <div className="flex-1">
  <p className="text-[11px] font-bold uppercase tracking-widest text-brand-400 mb-1">Onboarding Profile</p>
- <h2 className="text-2xl font-extrabold text-white mb-1">
+ <h2 className="text-2xl font-extrabold text-primary mb-1">
  {PROFILE_LABELS[psychMetrics!.onboarding_profile_label] || 'Unknown Profile'}
  </h2>
- <p className="text-sm text-gray-400">
+ <p className="text-sm text-muted">
  Based on {psychMetrics!.total_simulations_since_assessment} simulation session(s) since assessment.
  </p>
  </div>
  <div className="flex-shrink-0 text-right">
- <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Self-Awareness</p>
- <p className="text-3xl font-extrabold text-white">
+ <p className="text-[10px] font-bold uppercase tracking-widest text-muted mb-1">Self-Awareness</p>
+ <p className="text-3xl font-extrabold text-primary font-mono">
  {Math.round(psychMetrics!.self_awareness_score * 100)}%
  </p>
  </div>
@@ -394,7 +371,7 @@ export default function ResearchDashboard() {
  {/* Score Gauges */}
  <FadeUp delay={0.1}>
  <div className={`${CARD} p-6`}>
- <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-6">Psychological Vulnerability Scores</p>
+ <p className="text-[11px] font-bold uppercase tracking-widest text-muted mb-6">Psychological Vulnerability Scores</p>
  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
  <ScoreGauge
  value={psychMetrics!.emotional_susceptibility_score}
@@ -430,8 +407,8 @@ export default function ResearchDashboard() {
  <div className={`${CARD} p-6`}>
  <div className="flex items-center justify-between mb-5">
  <div>
- <p className="text-[11px] font-bold uppercase tracking-widest text-gray-500 mb-1">Consistency Analysis</p>
- <h3 className="text-base font-bold text-white">Self-Perception vs Actual Behavior</h3>
+ <p className="text-[11px] font-bold uppercase tracking-widest text-muted mb-1">Consistency Analysis</p>
+ <h3 className="text-base font-bold text-primary">Self-Perception vs Actual Behavior</h3>
  </div>
  <div className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full ${
  psychMetrics!.behavioral_consistency_score >= 0.75
@@ -481,17 +458,17 @@ export default function ResearchDashboard() {
 
  {/* Explanation */}
  <FadeUp delay={0.3}>
- <div className={`${DARK_CARD} p-6 text-white`}>
+ <div className={`${DARK_CARD} p-6 text-primary`}>
  <div className="flex items-start gap-4">
  <div className="w-10 h-10 rounded-xl bg-tertiary flex items-center justify-center flex-shrink-0">
- <Shield className="w-5 h-5 text-white" />
+ <Shield className="w-5 h-5 text-primary" />
  </div>
  <div>
- <h3 className="text-sm font-bold text-white mb-2">What is the Consistency Score?</h3>
- <p className="text-xs text-gray-400 leading-relaxed">
+ <h3 className="text-sm font-bold text-primary mb-2">What is the Consistency Score?</h3>
+ <p className="text-xs text-muted leading-relaxed">
  The behavioral consistency score (0–100%) measures how accurately your self-reported personality matches your actual simulation behavior. A score of 100% means you perfectly predict your own reactions. Scores below 60% indicate a cognitive gap between your self-model and your instinctive responses — a high-value insight for targeted training.
  </p>
- <p className="text-xs text-gray-500 mt-3">
+ <p className="text-xs text-muted mt-3">
  This metric updates automatically after each simulation session.
  </p>
  </div>

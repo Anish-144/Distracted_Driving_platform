@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 import { useAppDispatch } from '@/store';
 import { loginSuccess, setLoading, setError } from '@/store/authSlice';
 import { register as registerUser } from '@/api/auth';
-import { ShieldCheck, User, Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
+import { Car, User, Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ThemeToggle from '@/components/common/ThemeToggle';
 
@@ -25,21 +25,40 @@ const registerSchema = z.object({
 
 type RegisterForm = z.infer<typeof registerSchema>;
 
+const containerVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.15 } },
+};
+
+const itemVariants = {
+  hidden:  { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.25, 0.46, 0.45, 0.94] } },
+};
+
+// Human-centered platform values — no tactical status language
+const PLATFORM_VALUES = [
+  {
+    icon: '🛡️',
+    title: 'Safer Roads',
+    body: 'Reduce distracted driving incidents through behavioral awareness and gentle coaching.',
+  },
+  {
+    icon: '🧠',
+    title: 'Cognitive Clarity',
+    body: 'Understand your attention patterns and build lasting focus habits behind the wheel.',
+  },
+  {
+    icon: '🌿',
+    title: 'Wellness-First',
+    body: 'A calming, supportive experience designed around your journey — not surveillance.',
+  },
+];
+
 export default function RegisterPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
-
-  const containerVariants = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.08, delayChildren: 0.2 } },
-  };
-
-  const itemVariants = {
-    hidden:  { opacity: 0, y: 24 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } },
-  };
 
   const {
     register,
@@ -66,7 +85,7 @@ export default function RegisterPage() {
           token: response.access_token,
         })
       );
-      toast.success(`Welcome aboard, ${response.name}! Let's get started with a quick quiz. 🚀`);
+      toast.success(`Welcome aboard, ${response.name}!`);
       router.push('/onboarding');
     } catch (err: any) {
       const msg = err?.response?.data?.detail || 'Registration failed. Please try again.';
@@ -77,217 +96,303 @@ export default function RegisterPage() {
     }
   };
 
+  // All colors via CSS custom properties — no hardcoded values
+  const getInputStyle = (field: string) => ({
+    backgroundColor: 'var(--input-bg)',
+    border: `1px solid ${focusedField === field ? 'var(--color-primary)' : 'var(--input-border)'}`,
+    color: 'var(--input-text)',
+    boxShadow: focusedField === field ? '0 0 0 3px rgba(74, 109, 130, 0.12)' : 'none',
+  });
+
+  const getIconColor = (field: string) =>
+    focusedField === field ? 'var(--color-primary)' : 'var(--text-muted)';
+
   return (
     <>
       <Head>
         <title>Create Account — SafeDrive AI</title>
-        <meta name="description" content="Join SafeDrive AI to start your distracted driving prevention training." />
+        <meta name="description" content="Join SafeDrive AI and start your journey toward safer, more focused driving through behavioral intelligence." />
       </Head>
 
-      {/* Full-screen cinematic scene */}
-      <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-app-shell transition-colors duration-400">
+      {/* Full-screen two-panel layout — fully theme-responsive */}
+      <div className="min-h-screen flex overflow-hidden" style={{ backgroundColor: 'var(--bg-primary)' }}>
 
         {/* Theme Toggle */}
-        <div className="absolute top-6 right-6 z-50">
+        <div className="absolute top-5 right-5 z-50">
           <ThemeToggle />
         </div>
 
-        {/* ── Ambient background ── */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {/* Brand orbs */}
-          <motion.div
-            className="absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full"
-            style={{ background: 'radial-gradient(circle, rgba(5,150,105,0.12) 0%, transparent 70%)' }}
-            animate={{ y: [0, -30, 0], x: [0, 15, 0], scale: [1, 1.03, 1] }}
-            transition={{ duration: 9, ease: 'easeInOut', repeat: Infinity }}
-          />
-          <motion.div
-            className="absolute -top-20 -right-20 w-[500px] h-[500px] rounded-full"
-            style={{ background: 'radial-gradient(circle, rgba(8,145,178,0.10) 0%, transparent 70%)' }}
-            animate={{ y: [0, -20, 0], x: [0, -15, 0] }}
-            transition={{ duration: 7, delay: 1.5, ease: 'easeInOut', repeat: Infinity }}
-          />
-          <motion.div
-            className="absolute bottom-0 left-1/4 w-[400px] h-[400px] rounded-full"
-            style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.07) 0%, transparent 70%)' }}
-            animate={{ y: [0, -20, 0] }}
-            transition={{ duration: 6, delay: 3, ease: 'easeInOut', repeat: Infinity }}
-          />
-          <motion.div
-            className="absolute -bottom-20 right-1/4 w-[350px] h-[350px] rounded-full bg-surface-secondary"
-            animate={{ y: [0, 20, 0] }}
-            transition={{ duration: 5, delay: 2, ease: 'easeInOut', repeat: Infinity }}
-          />
-
-          {/* Grid */}
-          <div 
-            className="absolute inset-0 opacity-[0.05]"
+        {/* ── LEFT PANEL — Brand Identity ── */}
+        <motion.div
+          className="hidden lg:flex lg:w-[45%] flex-col justify-between relative overflow-hidden"
+          style={{ backgroundColor: 'var(--bg-secondary)', borderRight: '1px solid var(--border-subtle)' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.7 }}
+        >
+          {/* Soft ambient radial mesh — warm, NOT cyber grid */}
+          <div
+            className="absolute inset-0 pointer-events-none"
             style={{
-              backgroundImage: 'linear-gradient(var(--border-subtle) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px)',
-              backgroundSize: '40px 40px'
+              background: [
+                'radial-gradient(ellipse 65% 55% at 80% 15%, rgba(107, 138, 107, 0.08) 0%, transparent 70%)',
+                'radial-gradient(ellipse 55% 65% at 20% 80%, rgba(74, 109, 130, 0.07) 0%, transparent 70%)',
+                'radial-gradient(ellipse 70% 50% at 50% 50%, rgba(142, 126, 116, 0.04) 0%, transparent 80%)',
+              ].join(', '),
             }}
           />
 
-          {/* Floating particles */}
-          {[...Array(7)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-1 h-1 rounded-full bg-brand-400"
-              style={{
-                left: `${12 + i * 13}%`,
-                bottom: '-4px',
-                opacity: 0,
-              }}
-              animate={{
-                y: [0, -(typeof window !== 'undefined' ? window.innerHeight + 100 : 900)],
-                opacity: [0, 0.4, 0.4, 0],
-              }}
-              transition={{
-                duration: 10 + i * 1.5,
-                delay: i * 1.8,
-                ease: 'linear',
-                repeat: Infinity,
-              }}
-            />
-          ))}
-        </div>
+          {/* Main content */}
+          <div className="relative z-10 flex flex-col items-start justify-center flex-1 px-12 py-16">
 
-        {/* ── Register card ── */}
+            {/* Brand mark */}
+            <motion.div
+              className="flex items-center justify-center w-12 h-12 rounded-2xl mb-8"
+              style={{
+                backgroundColor: 'var(--color-primary)',
+                boxShadow: '0 4px 16px rgba(74, 109, 130, 0.25)',
+              }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <Car className="w-6 h-6" style={{ color: 'var(--color-on-primary)' }} />
+            </motion.div>
+
+            <motion.h1
+              className="text-4xl font-medium mb-2"
+              style={{ color: 'var(--text-primary)', letterSpacing: '-0.02em' }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+            >
+              SafeDrive AI
+            </motion.h1>
+
+            {/* Tagline — human copy, not system language */}
+            <motion.p
+              className="text-sm font-medium mb-10"
+              style={{ color: 'var(--text-secondary)', letterSpacing: '0.01em' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.35 }}
+            >
+              Your journey to safer driving starts here.
+            </motion.p>
+
+            {/* Platform values — human-centered */}
+            <motion.div
+              className="space-y-3.5 w-full"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45 }}
+            >
+              {PLATFORM_VALUES.map((val) => (
+                <div
+                  key={val.title}
+                  className="flex items-start gap-4 rounded-2xl px-4 py-3.5"
+                  style={{
+                    backgroundColor: 'var(--bg-card)',
+                    border: '1px solid var(--card-border)',
+                    boxShadow: '0 1px 6px rgba(0,0,0,0.04)',
+                  }}
+                >
+                  <span className="text-xl mt-0.5 flex-shrink-0">{val.icon}</span>
+                  <div>
+                    <p className="text-sm font-semibold mb-0.5" style={{ color: 'var(--text-primary)' }}>
+                      {val.title}
+                    </p>
+                    <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                      {val.body}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+
+          {/* Footer */}
+          <div
+            className="relative z-10 px-12 pb-8"
+            style={{ borderTop: '1px solid var(--border-subtle)' }}
+          >
+            <p className="text-xs pt-6" style={{ color: 'var(--text-muted)', letterSpacing: '0.02em' }}>
+              AI-powered distracted driving prevention platform
+            </p>
+          </div>
+        </motion.div>
+
+        {/* ── RIGHT PANEL — Register Form ── */}
         <motion.div
-          className="w-full max-w-md px-4 relative z-10 my-12"
+          className="flex-1 flex flex-col items-center justify-center relative px-6 py-12 overflow-y-auto"
+          style={{ backgroundColor: 'var(--bg-primary)' }}
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
-          {/* Logo */}
-          <motion.div className="flex flex-col items-center mb-10" variants={itemVariants}>
-            <div className="flex justify-center mb-6">
-              <div 
-                className="w-12 h-12 rounded-xl flex items-center justify-center bg-tertiary border border-subtle"
-              >
-                <ShieldCheck className="w-6 h-6 text-primary" />
-              </div>
-            </div>
-
-            <motion.h1
-              className="text-3xl font-bold text-on-surface mb-1.5 tracking-tight text-center"
-              variants={itemVariants}
+          {/* Mobile brand */}
+          <motion.div className="lg:hidden flex items-center gap-3 mb-8" variants={itemVariants}>
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center"
+              style={{ backgroundColor: 'var(--color-primary)' }}
             >
-              Create Account
-            </motion.h1>
-            <motion.p className="text-muted text-sm text-center" variants={itemVariants}>
-              Start your safe driving journey today
-            </motion.p>
+              <Car className="w-5 h-5" style={{ color: 'var(--color-on-primary)' }} />
+            </div>
+            <span className="font-semibold text-lg" style={{ color: 'var(--text-primary)' }}>SafeDrive AI</span>
           </motion.div>
 
-          {/* Glass card */}
-          <motion.div
-            className="rounded-2xl p-8 bg-surface border border-subtle"
-            variants={itemVariants}
-          >
+          {/* Form block */}
+          <div className="w-full max-w-sm">
+
+            {/* Heading */}
+            <motion.div className="mb-7" variants={itemVariants}>
+              <h2
+                className="text-xl font-semibold mb-1.5"
+                style={{ color: 'var(--text-primary)', letterSpacing: '-0.01em' }}
+              >
+                Create your account
+              </h2>
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                Start your behavioral driving training today
+              </p>
+            </motion.div>
+
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              {/* Name */}
+
+              {/* Full Name */}
               <motion.div variants={itemVariants}>
-                <label htmlFor="name" className="block text-sm font-medium text-secondary mb-2">
+                <label
+                  htmlFor="name"
+                  className="block text-xs font-semibold uppercase mb-2"
+                  style={{ color: 'var(--text-secondary)', letterSpacing: '0.06em' }}
+                >
                   Full Name
                 </label>
                 <div className="relative">
                   <User
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200"
-                    style={{ color: focusedField === 'name' ? 'var(--color-primary)' : '#6b7280' }}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-150"
+                    style={{ color: getIconColor('name') }}
                   />
                   <input
                     id="name"
                     type="text"
                     placeholder="John Doe"
-                    className="input-field pl-10 w-full text-sm"
+                    className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl transition-all duration-150 outline-none"
+                    style={getInputStyle('name')}
                     onFocus={() => setFocusedField('name')}
                     {...register('name')}
                     onBlur={(e) => { register('name').onBlur(e); setFocusedField(null); }}
                   />
                 </div>
-                {errors.name && <p className="mt-1.5 text-xs text-red-400">{errors.name.message}</p>}
+                {errors.name && (
+                  <p className="mt-1.5 text-xs" style={{ color: '#A85C5C' }}>{errors.name.message}</p>
+                )}
               </motion.div>
 
               {/* Email */}
               <motion.div variants={itemVariants}>
-                <label htmlFor="email" className="block text-sm font-medium text-secondary mb-2">
+                <label
+                  htmlFor="email"
+                  className="block text-xs font-semibold uppercase mb-2"
+                  style={{ color: 'var(--text-secondary)', letterSpacing: '0.06em' }}
+                >
                   Email Address
                 </label>
                 <div className="relative">
                   <Mail
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200"
-                    style={{ color: focusedField === 'email' ? 'var(--color-primary)' : '#6b7280' }}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-150"
+                    style={{ color: getIconColor('email') }}
                   />
                   <input
                     id="email"
                     type="email"
                     placeholder="you@example.com"
-                    className="input-field pl-10 w-full text-sm"
+                    className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl transition-all duration-150 outline-none"
+                    style={getInputStyle('email')}
                     onFocus={() => setFocusedField('email')}
                     {...register('email')}
                     onBlur={(e) => { register('email').onBlur(e); setFocusedField(null); }}
                   />
                 </div>
-                {errors.email && <p className="mt-1.5 text-xs text-red-400">{errors.email.message}</p>}
+                {errors.email && (
+                  <p className="mt-1.5 text-xs" style={{ color: '#A85C5C' }}>{errors.email.message}</p>
+                )}
               </motion.div>
 
               {/* Password */}
               <motion.div variants={itemVariants}>
-                <label htmlFor="password" className="block text-sm font-medium text-secondary mb-2">
+                <label
+                  htmlFor="password"
+                  className="block text-xs font-semibold uppercase mb-2"
+                  style={{ color: 'var(--text-secondary)', letterSpacing: '0.06em' }}
+                >
                   Password
                 </label>
                 <div className="relative">
                   <Lock
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200"
-                    style={{ color: focusedField === 'password' ? 'var(--color-primary)' : '#6b7280' }}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-150"
+                    style={{ color: getIconColor('password') }}
                   />
                   <input
                     id="password"
                     type="password"
                     placeholder="Min. 6 characters"
-                    className="input-field pl-10 w-full text-sm"
+                    className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl transition-all duration-150 outline-none"
+                    style={getInputStyle('password')}
                     onFocus={() => setFocusedField('password')}
                     {...register('password')}
                     onBlur={(e) => { register('password').onBlur(e); setFocusedField(null); }}
                   />
                 </div>
-                {errors.password && <p className="mt-1.5 text-xs text-red-400">{errors.password.message}</p>}
+                {errors.password && (
+                  <p className="mt-1.5 text-xs" style={{ color: '#A85C5C' }}>{errors.password.message}</p>
+                )}
               </motion.div>
 
               {/* Confirm Password */}
               <motion.div variants={itemVariants}>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-secondary mb-2">
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-xs font-semibold uppercase mb-2"
+                  style={{ color: 'var(--text-secondary)', letterSpacing: '0.06em' }}
+                >
                   Confirm Password
                 </label>
                 <div className="relative">
                   <Lock
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200"
-                    style={{ color: focusedField === 'confirmPassword' ? 'var(--color-primary)' : '#6b7280' }}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-150"
+                    style={{ color: getIconColor('confirmPassword') }}
                   />
                   <input
                     id="confirmPassword"
                     type="password"
                     placeholder="Re-enter password"
-                    className="input-field pl-10 w-full text-sm"
+                    className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl transition-all duration-150 outline-none"
+                    style={getInputStyle('confirmPassword')}
                     onFocus={() => setFocusedField('confirmPassword')}
                     {...register('confirmPassword')}
                     onBlur={(e) => { register('confirmPassword').onBlur(e); setFocusedField(null); }}
                   />
                 </div>
-                {errors.confirmPassword && <p className="mt-1.5 text-xs text-red-400">{errors.confirmPassword.message}</p>}
+                {errors.confirmPassword && (
+                  <p className="mt-1.5 text-xs" style={{ color: '#A85C5C' }}>{errors.confirmPassword.message}</p>
+                )}
               </motion.div>
 
+              {/* Primary CTA */}
               <motion.button
                 id="register-submit-btn"
                 type="submit"
                 disabled={isSubmitting}
-                className="relative w-full py-2.5 rounded-lg text-sm font-bold text-on-primary bg-primary transition-all duration-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] hover:bg-opacity-90 active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2"
+                className="w-full py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.99] disabled:opacity-60 mt-1"
                 style={{
-                  background: 'var(--color-primary)',
-                  color: 'var(--color-on-primary)'
+                  backgroundColor: 'var(--color-primary)',
+                  color: 'var(--color-on-primary)',
+                  boxShadow: '0 4px 14px rgba(74, 109, 130, 0.25)',
                 }}
                 variants={itemVariants}
+                whileHover={{ filter: 'brightness(1.06)', translateY: -1 }}
+                whileTap={{ scale: 0.99 }}
               >
                 {isSubmitting ? (
                   <>
@@ -303,32 +408,37 @@ export default function RegisterPage() {
               </motion.button>
             </form>
 
-            <motion.div className="flex items-center gap-3 my-5" variants={itemVariants}>
-              <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
-              <span className="text-muted text-xs">or</span>
-              <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
+            {/* Divider */}
+            <motion.div className="flex items-center gap-3 my-6" variants={itemVariants}>
+              <div className="flex-1 h-px" style={{ backgroundColor: 'var(--border-subtle)' }} />
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>or</span>
+              <div className="flex-1 h-px" style={{ backgroundColor: 'var(--border-subtle)' }} />
             </motion.div>
 
-            <motion.p className="text-center text-sm text-muted" variants={itemVariants}>
+            <motion.p
+              className="text-center text-sm"
+              style={{ color: 'var(--text-secondary)' }}
+              variants={itemVariants}
+            >
               Already have an account?{' '}
-              <Link href="/auth/login" className="font-semibold transition-colors duration-200" style={{ color: '#34d399' }}>
+              <Link
+                href="/auth/login"
+                className="font-semibold transition-colors duration-150"
+                style={{ color: 'var(--color-primary)' }}
+              >
                 Sign in
               </Link>
             </motion.p>
-          </motion.div>
 
-          <motion.div className="mt-6 grid grid-cols-3 gap-3" variants={itemVariants}>
-            {[
-              { icon: '🎯', label: 'Behavioral Training' },
-              { icon: '🤖', label: 'AI Voice Agents' },
-              { icon: '📊', label: 'Progress Tracking' },
-            ].map((feat) => (
-              <div key={feat.label} className="text-center p-3 rounded-xl border border-subtle bg-secondary">
-                <div className="text-xl mb-1">{feat.icon}</div>
-                <div className="text-[10px] text-muted leading-tight">{feat.label}</div>
-              </div>
-            ))}
-          </motion.div>
+            {/* Footer */}
+            <motion.p
+              className="text-center text-xs mt-8"
+              style={{ color: 'var(--text-muted)', letterSpacing: '0.01em' }}
+              variants={itemVariants}
+            >
+              Your behavioral driving platform
+            </motion.p>
+          </div>
         </motion.div>
       </div>
     </>

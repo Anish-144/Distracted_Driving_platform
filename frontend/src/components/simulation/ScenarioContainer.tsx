@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { eventTriggered, eventResolved, sessionRestored } from '@/store/sessionSlice';
-import { fetchProgressData, generateNewAILessonFromSession } from '@/store/progressSlice';
+import { fetchProgressData, generateNewAILessonFromSession, generateSessionCognitiveReport } from '@/store/progressSlice';
 import {
   aiRequestStarted,
   aiMessageReceived,
@@ -309,7 +309,7 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
       <div className="max-w-md mx-auto animate-slide-up text-center">
         <div className="card">
           <div className="text-6xl mb-4">{grade.emoji}</div>
-          <h2 className="text-2xl font-bold text-white mb-1">Session Complete!</h2>
+          <h2 className="text-2xl font-bold text-primary mb-1">Session Complete!</h2>
           <p className={`text-lg font-semibold ${grade.color} mb-2`}>{grade.label}</p>
           <div className="w-32 h-32 mx-auto my-6 relative">
             <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
@@ -318,17 +318,17 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className={`text-3xl font-bold ${grade.color}`}>{Math.round(finalScore)}</span>
-              <span className="text-gray-400 text-xs">/ 100</span>
+              <span className="text-muted text-xs">/ 100</span>
             </div>
           </div>
-          <p className="text-gray-400 text-sm mb-6">You completed {TOTAL_EVENTS} distraction scenarios. {finalScore >= 70 ? ' Great safe driving instincts!' : ' Keep practicing to improve!'}</p>
+          <p className="text-muted text-sm mb-6">You completed {TOTAL_EVENTS} distraction scenarios. {finalScore >= 70 ? ' Great safe driving instincts!' : ' Keep practicing to improve!'}</p>
           
           <div className="flex flex-col gap-2.5 mb-6">
             <button onClick={async () => {
               try {
-                await dispatch(generateNewAILessonFromSession(sessionId)).unwrap();
+                await dispatch(generateSessionCognitiveReport(sessionId)).unwrap();
                 toast.success('Cognitive Report generated successfully!');
-                setTimeout(() => router.push('/dashboard/report'), 1200);
+                setTimeout(() => router.push(`/dashboard/report?sessionId=${sessionId}`), 1200);
               } catch (err: any) { toast.error(err || 'Failed to generate report.'); }
             }} disabled={isGenerating} className="btn-primary w-full flex items-center justify-center gap-2 py-3">
               {isGenerating ? 'Analyzing Session...' : 'Generate Cognitive Behavioral Report'}
@@ -343,7 +343,7 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
   return (
     <div className="max-w-3xl mx-auto">
       <div className="flex items-center gap-3 mb-4">
-        <span className="text-sm text-gray-400">Phase {currentEvent ? eventsCount : eventsCount} of {TOTAL_EVENTS}</span>
+        <span className="text-sm text-muted">Phase {currentEvent ? eventsCount : eventsCount} of {TOTAL_EVENTS}</span>
         <div className="flex-1 bg-gray-800 rounded-full h-1.5 overflow-hidden">
           <div className="bg-brand-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${(eventsCount / TOTAL_EVENTS) * 100}%` }} />
         </div>
@@ -370,7 +370,7 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
           ) : !currentEvent || !activeScenario ? (
             <div className="animate-pulse text-center my-12">
               <div className="text-5xl mb-3">🚗</div>
-              <p className="text-gray-400 text-sm">Driving safely... awaiting events.</p>
+              <p className="text-muted text-sm">Driving safely... awaiting events.</p>
             </div>
           ) : (
             <>

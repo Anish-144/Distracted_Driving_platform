@@ -50,7 +50,7 @@ export default function DistractionEvent({ scenario, escalationLevel }: Distract
         <span className="text-[10px] font-bold uppercase tracking-wider text-brand-400 block mb-1">
           Live Environment Context
         </span>
-        <p className="text-sm text-slate-300 leading-relaxed italic">
+        <p className="text-sm text-secondary leading-relaxed italic">
           {scenario.narrative_context}
         </p>
       </div>
@@ -68,7 +68,7 @@ export default function DistractionEvent({ scenario, escalationLevel }: Distract
           </div>
           <div className="flex-1 pt-1">
             <div className="flex items-center gap-2">
-              <span className="text-white font-bold text-sm tracking-wide capitalize">
+              <span className="text-primary font-bold text-sm tracking-wide capitalize">
                 {scenario.distraction_type.replace('_', ' ')}
               </span>
               {escalationLevel >= 2 && (
@@ -76,7 +76,7 @@ export default function DistractionEvent({ scenario, escalationLevel }: Distract
               )}
             </div>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-[10px] font-mono text-gray-400 bg-gray-900/50 px-1.5 py-0.5 rounded border border-gray-700">
+              <span className="text-[10px] font-mono text-muted bg-gray-900/50 px-1.5 py-0.5 rounded border border-gray-700">
                 Lvl {escalationLevel} Escalation
               </span>
               <span className="text-[10px] font-mono text-brand-400 uppercase">
@@ -88,7 +88,7 @@ export default function DistractionEvent({ scenario, escalationLevel }: Distract
 
         {/* Dynamic Escalation Text */}
         <div className="relative z-10 bg-slate-900/80 rounded-xl p-4 border border-slate-700/50 min-h-[80px] flex items-center">
-          <p className="text-gray-100 text-sm font-medium leading-relaxed">
+          <p className="text-primary text-sm font-medium leading-relaxed">
             {getActiveEscalation()}
           </p>
         </div>
@@ -96,11 +96,11 @@ export default function DistractionEvent({ scenario, escalationLevel }: Distract
 
       {/* Live Metrics HUD */}
       <div className="mt-4 flex justify-between px-2">
-        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 tracking-wider">
+        <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted tracking-wider">
           <Activity className="w-3.5 h-3.5 text-blue-400" />
           COGNITIVE LOAD: {escalationLevel === 1 ? 'MODERATE' : escalationLevel === 2 ? 'ELEVATED' : 'CRITICAL'}
         </div>
-        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 tracking-wider">
+        <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted tracking-wider">
           <ShieldAlert className="w-3.5 h-3.5 text-red-400" />
           TARGET: {scenario.target_weakness.toUpperCase().slice(0, 20)}...
         </div>

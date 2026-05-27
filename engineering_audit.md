@@ -362,3 +362,381 @@ The overall authentication architecture is **highly deterministic and robust**:
 *   `Axios` interceptors gracefully handle 401s by aggressively purging `localStorage` and forcing a redirect to `/auth/login`.
 *   Redux `authSlice` synchronously rehydrates state from `localStorage` preventing SSR vs. Client hydration mismatch loops on `_app.tsx`.
 *   Backend utilizes secure `OAuth2PasswordBearer` and Python-Jose JWT generation.
+
+---
+
+## SECTION 11 — LIGHT MODE CONTRAST CALIBRATION PHASE (PHASE 5)
+
+### 11.1 — Calibration Summary
+Addressed severe foreground hierarchy collapse in light mode where text faded into backgrounds and telemetry values lacked emphasis. The design system from `DESIGN.md` (Soft Premium Clinical Workspace) was explicitly enforced to fix these issues while maintaining a cinematic UI feel.
+
+### 11.2 — Technical Implementations
+*   **Typography Recalibration**: Darkened `--text-primary` to Soft Slate (`#3F4249`) and rebalanced secondary/muted text across `globals.css` to restore daylight readability without resorting to pure black.
+*   **Telemetry Hardening**: Applied `text-primary` and `font-mono` explicitly to telemetry numerics across `research.tsx` and related dashboard panels to ensure operational command-center readability.
+*   **Surface & Border Rebalancing**: Adjusted `card-border`, `border-subtle`, and `border-strong` to visibly anchor elements against the Ivory (`#FCFBF8`) and Warm Off-white (`#F6F4EE`) backgrounds.
+*   **Accent Recalibration**: Removed washed-out pastels from light mode badges by explicitly setting deeper text and border tokens (`bg-brand-100 text-brand-800 border-brand-300`). Added `tracking-wide` and `font-semibold` to harden emphasis.
+*   **Global Variable Fixing**: Re-mapped hardcoded `text-white` classes in dashboard components and `globals.css` body properties to dynamic `--text-primary` vars so light mode actually renders dynamically instead of being permanently forced into dark mode styles.
+
+### 11.3 — Remaining Weaknesses
+*   Wait for additional QA testing on edge cases where SVGs or tertiary text might still rely on legacy `text-gray-400` that was missed during the global replacement. Some interactive chart tooltips in Recharts may need manual background color auditing for light mode.
+
+---
+
+## SECTION 12 — VISUAL FATIGUE REDUCTION (PHASE 6)
+
+### 12.1 — Refinement Summary
+The initial light mode calibration improved typography contrast, but highlighted a secondary issue: large ivory regions created a "foggy" and overexposed feel, causing visual fatigue during long sessions. The UI was refined toward an "editorial operational workspace" aesthetic.
+
+### 12.2 — Technical Implementations
+*   **Tonal Anchoring**: Darkened the main application background (`--bg-app-shell`) to a deeper, paper-like warmth (`#F3F0E9`), which allows the bright Ivory (`#FDFCF8`) cards to pop and provides true structural depth without relying on harsh drop shadows.
+*   **Graphite Hierarchy**: Updated `--text-primary` to a deeper Graphite (`#272A30`), bringing calm, premium operational clarity that is sustainable over long usage periods without being pure black.
+*   **Component Semantic Abstraction**: Major architectural refactor of global components (`.card`, `.btn-secondary`, `.btn-ghost`). Removed hardcoded Dark Mode utility classes (`bg-white/5`, `text-white`) and replaced them with semantic CSS variables (`--bg-card`, `--btn-secondary-bg`, `--text-primary`). This ensures that structural elements now properly adapt to Light Mode using anchored panels rather than washing out into translucent pastel fogs.
+*   **Tailwind Design Tokens**: Expanded `tailwind.config.js` with specific `.design` palette additions: `paper`, `graphite`, `graphite-muted`.
+
+---
+
+## SECTION 13 — AI LESSON GENERATION PIPELINE DEBUGGING (PHASE 7)
+
+### 13.1 — Root Cause
+The "Generate AI Lesson" pipeline was failing silently because a recent update added new personalized coaching fields (e.g., `lesson_category`, `behavioral_diagnosis`) to the backend ORM model, but no Alembic migration was applied to add these columns to PostgreSQL. Furthermore, a divergent Alembic state (multiple head revisions) locked out any database schema updates. The backend threw a 500 `UndefinedColumnError`, which the frontend swallowed with a generic toast.
+
+### 13.2 — Architectural Issue
+The UI's state management for the generation pipeline (`isGenerating`) had no dedicated way to surface specific rejection details to the UI in a persistent manner. The async thunk threw a rejection, but the component scope inside `lessons/index.tsx` was missing the necessary selector definition to extract the newly added `generateError` state from Redux, leading to a build failure when trying to reference it.
+
+### 13.3 — Why Stale JSX References Happened
+When the `generateError` state was injected into the Redux `progressSlice` and the JSX was updated to render the error block conditionally (`{generateError && ...}`), the local component's `useAppSelector` hook was not updated to destructure `generateError` from the Redux store. This caused Next.js to fail during the strict TS compilation phase (`npm run build`) because `generateError` was out of scope.
+
+### 13.4 — Mitigation Strategy Going Forward
+*   **Frontend**: Always ensure destructuring is aligned with JSX usage when relying on Redux state. Next.js builds run strict TypeScript checks, so missing references will immediately block deployments.
+*   **Database**: Avoid manual raw SQL schema modifications. All model changes must immediately generate an Alembic script (`alembic revision --autogenerate`) and be committed together.
+*   **UX Resilience**: API requests must have explicit fallback UI blocks instead of ephemeral toast errors, so failures do not leave users staring at static pages.
+
+---
+
+## SECTION 14 � AUTH FLOW CINEMATIC COMPOSITION REFINEMENT (PHASE 8)
+
+### 14.1 � Problem Summary
+The auth flow (login and register pages) suffered from compounded issues: floating gradient orbs and animated particles created startup SaaS aesthetics incompatible with the Behavioral Intelligence OS identity. The auth card felt disconnected and floating. Button CTAs were inconsistent between pages (white button on login vs. CSS variable on register). Typography was weak with flat utility class hierarchy. Excessive whitespace created low-density, unintentional layouts.
+
+### 14.2 � Tonal Architecture Implemented
+Three-level tonal stack aligned with the Cinematic Intelligence Terminal design system: Canvas (#13151A) page body, Left Brand Panel (#151719) separated by 1px structural border, Right Form Panel (#1E2126) elevated one tone, Input Fields (#13151A) recessed below the panel surface for tactile depth.
+
+### 14.3 � Compositional Anchoring
+Split-panel layout (55/45 Login, 45/55 Register) grounds the form into the page architecture � no floating card. Brand identity lives in the left panel with a dot-grid texture (radial-gradient at low opacity) providing operational atmosphere. A subtle horizontal scan-line gradient adds depth without visual noise.
+
+### 14.4 � Typography Hierarchy Corrections
+Primary heading #F0EDE8 warm ivory. Subtitle #4A5060 muted graphite. Field labels #6B7280 JetBrains Mono uppercase with 0.08em tracking. Footer telemetry #2E3138. All labels use JetBrains Mono to signal operational context.
+
+### 14.5 � Button System Unification
+Primary CTA: #E8E4DF background, #13151A text, no glow, no shadow � solid warm ivory. Hover lifts to #F0EDE8. Dev Bypass: transparent, rgba(52,211,153,0.18) border, muted sage text 55% opacity using JetBrains Mono. Links: restrained #34d399 sage green. Fully unified tactical hierarchy.
+
+### 14.6 � Operational Identity Markers
+JetBrains Mono status indicators in the left panel replace decorative animated orbs: Login shows "Behavioral Analysis Engine � ACTIVE", "AI Coaching System � ONLINE", "Session Encryption � SECURED". Register shows "Onboarding Protocol � READY", "Profile Analysis � STANDBY". Reinforces intelligence-terminal identity with meaningful system telemetry.
+
+### 14.7 � Fatigue Reduction
+All decorative animated elements (floating orbs, particles, blob animations) removed. Static atmospheric elements only: dot-grid texture, subtle scan-line, structural borders. Auth pages are intentionally always dark (cinematic entry terminal) regardless of app theme � ThemeToggle persists but the auth environment is permanently grounded.
+
+### 14.8 � Validation Status
+npm run build passes with zero TypeScript errors. Both pages verified: /auth/login (539ms) and /auth/register (1156ms) in the production build route table.
+
+---
+
+## Visual Identity Recalibration Audit — 2026-05-27 21:07
+
+### Summary
+Full recalibration of the distracted driving platform's visual identity away from cybersecurity/terminal aesthetics toward premium human-centered behavioral intelligence and mobility UX. This was a targeted correction of significant aesthetic drift that had accumulated across the Stitch design system, CSS theme layer, auth pages, and Tailwind configuration.
+
+---
+
+### Root Cause: Aesthetic Drift
+
+The platform had drifted into a cyber/terminal aesthetic through several accumulating decisions:
+
+| Layer | Problem |
+|---|---|
+| Stitch MCP Design System | Named "Kinetic Intelligence System" — dark (#10131b), JetBrains Mono labels, neon sage-green (#45dfa4) accents |
+| globals.css dark mode | Obsidian canvas #040812 base; hardcoded g-white/10 text-white in base input styles |
+| login.tsx / egister.tsx | Hardcoded style={{ background: '#13151A' }} on root containers — theme system bypassed entirely |
+| 	ailwind.config.js | Primary sans font was Geist Sans; brand color scale was neon emerald-teal |
+| Copy/Language | ACTIVE / ONLINE / SECURED / STANDBY / INITIALIZED as status labels |
+| Backgrounds | Dot-grid matrix and scan-line overlays on auth panels |
+
+---
+
+### Changes Made
+
+#### 1. DESIGN.md — Visual Identity Recalibration
+- **Renamed** design system: "Soft Premium Clinical Workspace" → "Premium Behavioral Mobility Intelligence"
+- **Established** clear brand personality: Calm. Grounded. Trustworthy. Human. Intelligent.
+- **Added** explicit STRICTLY AVOID section: dot-grids, cyber colors, tactical language, monospace UI labels, neon glows, scan-lines
+- **Defined** dark mode palette: warm deep-slate #1A1D22 (blue-gray undertone), NOT obsidian black
+- **Clarified** typographic rule: Inter exclusively for all UI — no JetBrains Mono / Geist Mono
+- **Added** auth flow specification: zero hardcoded colors, human copy, no status indicators
+- **Primary accent** changed: neon emerald #059669 → calm desaturated blue #4A6D82 (trust, automotive)
+- **Secondary accent**: sage #6B8A6B (wellness, safety consciousness)
+
+#### 2. Stitch MCP — Design System Update
+- Uploaded new DESIGN.md (base64) to project 15242131693786604308 ("SafeDrive AI Auth Flow")
+- Created new design system from uploaded MD via create_design_system_from_design_md
+- New design system name: "Calm Intelligence Mobility UX"
+- Color mode: Light-first (warm ivory) with calm warm-slate dark mode
+- Font: Inter exclusively (body, headline, label-caps) — JetBrains Mono removed
+- Auth flow guidelines embedded in design system
+
+#### 3. globals.css — Theme System Repair
+
+**Dark mode recalibration:**
+- --bg-primary: #040812 (obsidian) → #1A1D22 (warm deep slate)
+- --bg-card: changed from cyber glass to gba(255,255,255,0.04) subtle lift
+- --bg-secondary: #18181B → #21252C (warmer panel)
+- --text-primary dark: #FAFAF9 → #EAE7E2 (warm ivory, not stark white)
+- Added --color-primary, --color-secondary, --color-tertiary, --color-primary-container semantic vars
+
+**Hardcoded component fixes:**
+- input base: removed hardcoded g-white/10 border-white/20 text-white — now uses semantic CSS vars
+- utofill: removed hardcoded #0d1527 — now uses ar(--input-bg) and ar(--input-text)
+- stat-card: removed hardcoded g-white/5 border-white/10 text-white — now uses CSS vars
+- section-header border: gba(255,255,255,0.1) → ar(--border-subtle)
+- 
+av-link active state: now uses ar(--color-primary) and ar(--color-primary-container)
+- page-container: removed hardcoded 	ext-gray-100
+
+**Removed cyber-specific classes:**
+- grid-bg / grid-bg-dark — dot-matrix grid backgrounds (REMOVED)
+- glow-brand, glow-blue, glow-green, glow-amber, glow-red — neon glow helpers (REMOVED)
+- tn-cinematic — cyber green gradient CTA (REMOVED, replaced with tn-premium)
+
+**New additions:**
+- tn-premium: calm blue-to-sage gradient, ox-shadow: 0 6px 24px rgba(74,109,130,0.25) — no neon
+- .glass / .dark .glass: now correct for both modes — light uses ivory glass, dark uses warm slate glass
+- g-ambient-warm: replaces grid-bg — warm radial mesh, NOT matrix lines
+- 	ext-gradient-brand: blue-to-sage gradient (removed neon green-to-cyan)
+- pulse-soft animation: replaces pulse-glow-brand — calm blue shadow, no neon glow
+
+#### 4. login.tsx — Auth Page Rewrite
+
+**Removed:**
+- style={{ background: '#13151A' }} root container (theme bypass — FIXED)
+- Left panel #151719, right panel #1E2126 hardcoded backgrounds
+- DOT_GRID dot-matrix pattern constant and usage
+- Scan-line atmospheric overlay (green linear-gradient)
+- All ontFamily: 'JetBrains Mono, monospace' inline styles on labels
+- Status indicators: ACTIVE / ONLINE / SECURED (tactical operations language)
+- ontFamily: 'JetBrains Mono' monospace version footer string
+- ShieldCheck icon (security/surveillance framing)
+
+**Replaced with:**
+- All backgrounds use ar(--bg-primary), ar(--bg-secondary) — fully theme-responsive
+- Left panel: warm radial mesh ambient (3-layer ellipse gradients, low-opacity)
+- Left panel content: three human-centered feature bullets (Behavioral Coaching, AI Pattern Recognition, Progress Tracking)
+- Label typography: 	ext-xs font-semibold uppercase in Inter via ar(--text-secondary) — no monospace
+- Input styles: ar(--input-bg), ar(--input-border), ar(--input-text) — theme-responsive
+- Focus state: ar(--color-primary) border + gba(74,109,130,0.12) ring — calm, not neon
+- CTA: ar(--color-primary) background — desaturated blue, not white-on-dark
+- Car icon from lucide-react replaces ShieldCheck (automotive vs security framing)
+- Tagline: "Drive Focused. Stay Present." (human copy)
+- Footer: "Your behavioral driving platform" (not monospace version string)
+- Dev bypass: uses ar(--border-subtle) and ar(--text-muted) — not neon green
+
+#### 5. egister.tsx — Auth Page Rewrite
+- Identical treatment to login.tsx
+- Left panel: three platform value cards (Safer Roads, Cognitive Clarity, Wellness-First)
+- Tagline: "Your journey to safer driving starts here."
+- getInputStyle() helper: fully semantic CSS vars
+- getIconColor() helper: ar(--color-primary) on focus, ar(--text-muted) at rest
+- Removed: READY / STANDBY status indicators, monospace labels, dot-grid, scan-line, hardcoded dark backgrounds
+
+#### 6. 	ailwind.config.js — Design Token Alignment
+
+**Font stack:**
+- ontFamily.sans: Geist Sans → Inter (primary), removed JetBrains Mono from mono fallback
+
+**Brand color scale:**
+- Old: neon emerald-teal (#059669 → #34d399) — cyber SOC palette
+- New: calm desaturated blue (#4A6D82 primary at 500) — trust, automotive, clarity
+
+**New color scales added:**
+- sage.* — muted sage green (wellness, safety) — 50-900 scale
+- stone.* — warm stone (grounded, human warmth) — 50-900 scale
+
+**Removed:**
+- surface.* dark scale (950-400) — cyber atmospheric colors
+- cyan.* scale — SOC depth layering colors
+- ccent.* scale (amber) — replaced by sage/stone
+
+**Design token updates:**
+- design.* palette: removed obsidian, smoked, pearl, graphite, graphite-muted, 	ungsten
+- Added: dark-base, dark-panel, dark-elevated, dark-outline, warm-ivory-text, cool-muted
+- outline updated: #CFC9C0 → #D3CECC (matches DESIGN.md)
+- outline-variant updated: #E2DDD5 → #E4DFD6 (matches DESIGN.md)
+
+**Letter spacing:**
+- Renamed: cinematic → label-wide (0.06em), wide-xl → label-xl (0.10em)
+
+**Background images:**
+- rand-gradient: neon #059669 → #0891b2 → calm #4A6D82 → #6B8A6B
+- Removed: dark-gradient, mesh-brand, mesh-subtle (cyber mesh backgrounds)
+- Added: mbient-warm, mbient-warm-dark (warm radial mesh)
+
+**Animation:**
+- pulse-glow-brand → pulse-soft (calm blue shadow amplitude, not neon glow)
+- Removed: particle animation (particle-drift — cyber atmospheric effect)
+- Slowed ambient float timings: more human, less mechanical
+
+---
+
+### Theme System Verification
+
+| Component | Before | After |
+|---|---|---|
+| Login page root | style={{ background: '#13151A' }} hardcoded | ar(--bg-primary) semantic |
+| Register page root | style={{ background: '#13151A' }} hardcoded | ar(--bg-primary) semantic |
+| Auth left panel | #151719 hardcoded | ar(--bg-secondary) semantic |
+| Auth right panel | #1E2126 hardcoded | ar(--bg-primary) semantic |
+| Input base styles | g-white/10 text-white | ar(--input-bg) var(--input-text) |
+| Autofill | #0d1527 hardcoded | ar(--input-bg) var(--input-text) |
+| stat-card | g-white/5 text-white | ar(--bg-card) var(--text-primary) |
+| section-header border | gba(255,255,255,0.1) | ar(--border-subtle) |
+| page-container text | 	ext-gray-100 hardcoded | ar(--text-primary) |
+| Dark mode base | #040812 obsidian | #1A1D22 warm deep-slate |
+
+---
+
+### Copy / Language Corrections
+
+| Old (Removed) | New (Added) |
+|---|---|
+| "Behavioral Intelligence System" | "Drive Focused. Stay Present." |
+| ACTIVE | (removed) |
+| ONLINE | (removed) |
+| SECURED | (removed) |
+| READY | (removed) |
+| STANDBY | (removed) |
+| "v2.4.1 — DISTRACTED DRIVING PREVENTION RESEARCH PLATFORM" | "Your behavioral driving platform" |
+| "Sign in to your workspace" | "Welcome back" |
+| "Enter your credentials to access the training platform" | "Sign in to continue your driving journey" |
+
+---
+
+### Files Modified
+- DESIGN.md — visual identity specification rewritten
+- rontend/src/styles/globals.css — full theme system repair
+- rontend/src/pages/auth/login.tsx — complete rewrite
+- rontend/src/pages/auth/register.tsx — complete rewrite
+- rontend/tailwind.config.js — color system, font stack, naming
+- Stitch MCP project 15242131693786604308 — design system updated
+
+---
+
+## May 27, 2026 - Global Typography Token Hardening
+
+**Root Issue Identified**: The theme system was previously only partially semantic. Backgrounds and surfaces respected the theme, but typography was plagued by hardcoded utilities (	ext-white, 	ext-gray-400, dark:text-emerald-400, etc.), resulting in an unreadable light mode and flattened contrast.
+
+**Resolution**:
+1. **Semantic Token Standardization**: Introduced and hardened new semantic text tokens in globals.css and 	ailwind.config.js (	ext-accent, 	ext-success, 	ext-warning, 	ext-destructive, 	ext-overlay).
+2. **Global Eradication of Hardcoded Typography**: Searched the entire codebase and replaced ~85 instances of hardcoded text utilities (	ext-white, 	ext-gray-*, 	ext-zinc-*, dark:text-*) with their semantic equivalents across all pages (lessons/index.tsx, settings.tsx, onboarding.tsx, _app.tsx, simulation components, and more).
+3. **Elimination of Hybrid Theming**: Removed all instances of component-specific dark: overrides on typography, centralizing the behavior into the CSS variables.
+4. **Validation**: Light mode readability is fully stabilized with balanced hierarchy and visually calm contrast. Dark mode retains its premium cinematic depth without breaking. Build verified successfully.
+
+
+## May 27, 2026 - Global Ranking Validity Audit & Remediation
+
+**Original Ranking Flaws**:
+- **Backend Fake Math**: The backend formerly generated percentiles using a fabricated mathematical sigmoid function (aw_p = 100 / (1 + math.exp(-0.1 * (composite_score - 65)))) rather than comparing user averages.
+- **Frontend Mock State**: The dashboard used localStorage to mock "best percentile" scores, creating a disconnected frontend state.
+
+**New Population-Percentile Architecture**:
+1. **Authoritative Backend Ranking**: ackend/app/routes/progress.py now queries the actual database using a percent_rank() window function over unique users' average safety scores.
+2. **Statistical Validity**: The new query aggregates unique sessions per user, computes their behavioral safety index (vg(score)), correctly ignores zero-session test accounts, gracefully handles ties, and prevents division-by-zero or N+1 query patterns.
+3. **Frontend Remediation**: Extracted all mock percentile generation logic and localStorage caching from rontend/src/pages/dashboard/index.tsx. The dashboard metric card now maps directly to the backend's true stats.percentile, relabeled truthfully as "Population Rank" (Global Percentile).
+
+
+## May 27, 2026 - Report Page UX Polish Phase
+
+**Issues Addressed**:
+1. **Light Mode CTA Button**: The 'Start Simulation' button on the cognitive report page was previously locked into a dark mode aesthetic (excessive dark saturation, glowing cyber shadows). This has been migrated to use the centralized semantic .btn-primary class, ensuring it feels premium, calm, and visually harmonious across both themes.
+2. **Breadcrumb Navigation**: The report page displayed a non-standard 'Back to Dashboard' link with a left arrow. This was semantically flawed. It was refactored into a proper breadcrumb element (Dashboard / Report).
+3. **Breadcrumb Hierarchy Refinement**: 'Dashboard' is now a functional, interactive link leveraging 
+ext/link for SPA routing without hard reloads. 'Report' serves as the inactive, muted leaf node, clearly communicating the user's position in the site hierarchy while maintaining a clean, premium rhythm.
+4. **Validation**: Verified that the light mode empty state feels integrated into the "Premium Behavioral Mobility Intelligence" system, ensuring no hydration errors exist after modifications.
+
+
+## May 27, 2026 - Global Interaction Hierarchy & Empty-State Semantics
+
+**Issues Addressed**:
+1. **Global CTA Refinement**: Replaced localized, hardcoded "cyber" CTAs (like g-brand-600 with heavy shadows) across lessons/index.tsx, simulation/index.tsx, and dashboard/report.tsx with a unified .btn-primary semantic class from globals.css. The primary buttons now feel human-centered, calm, and visually harmonious across both themes, eliminating the "dark-theme transplanted into light mode" issue.
+2. **Tab Active-State System**: Centralized tab semantics by introducing .tab-active and .tab-inactive classes in globals.css. We swept through lessons/index.tsx and dashboard/research.tsx to replace massive inline string interpolations with clean, intent-driven semantic classes. Active states are now universally discoverable, intentional, and readable in both light and dark mode.
+3. **Empty-State Psychology**: Re-architected all empty states (e.g. "No AI lessons yet", "Awaiting Longitudinal Data") to use a new .empty-state-card component. We altered the typography and visual hierarchy to ensure that empty states no longer feel like a "blocked" system error, but rather a guided, progressive, and psychologically supportive transition to the next action (e.g. "Your personalized curriculum awaits").
+4. **Validation**: Built the Next.js frontend with zero errors (
+pm run build) and ensured all interaction states were preserved smoothly.
+
+
+## May 27, 2026 - Analytics Grid Stabilization
+
+**Issues Addressed**:
+1. **Telemetry Grid Alignment**: Stabilized the layout of the dashboard/research.tsx analytics grid. Variations in explainability text were causing adjacent telemetry cards to possess vastly different heights, breaking the rigid, professional architecture of the dashboard.
+2. **Semantic Extraction (TelemetryCard.tsx)**: Created a unified, reusable TelemetryCard component under components/dashboard/TelemetryCard.tsx. This replaces the 4 scattered, hardcoded HTML structures in the Behavioral Analytics tab.
+3. **Internal Rhythm System**: The TelemetryCard uses a strict Flexbox hierarchy (lex flex-col h-full) and an explicit lex-1 spacer pushing a standardized, line-clamped footer downwards. This ensures all cards in a row have an identical visual height and vertical rhythm, resolving layout drift.
+4. **Validation**: Built the application and confirmed responsive layout collapse behavior safely defaults from 2 columns to 1 without overflow or hydration issues.
+
+
+## May 27, 2026 - Production Auth Hardening Phase
+
+**Issues Addressed**:
+1. **Dev Bypass Removal**: The 'Dev bypass' authentication flow has been completely eradicated from the login.tsx component. The handleBypass function and the associated "Dev bypass" UI button were stripped out, eliminating the injection of mock user tokens (dev-user-id, mock-dev-token).
+2. **UX Polish**: Form spacing and element rhythm in the authentication pages were preserved. The removal of the bypass button successfully centered the interaction model exclusively around the primary, production-ready "Sign In" path, creating a calmer, more trustworthy user experience.
+3. **Validation**: Built the application via 
+pm run build with zero regressions, dead buttons, or hydration errors. The architecture is now officially restricted to the production authentication path, removing internal sandbox behaviors from the client-facing product.
+
+
+## May 27, 2026 - Theme Inheritance Failure Hardening Phase
+
+**Issues Addressed**:
+1. **Hardcoded Modal Themes**: The LessonDetailModal was rendering deep navy blocks (g-gray-900/50) and neon typography (	ext-violet-200) regardless of the active global theme.
+2. **Semantic Realignment**: Extracted all hardcoded dark mode utility classes across the lesson detail modal, overlays, header/footers, and inner diagnostic cards. Replaced them with the global semantic token architecture (g-secondary, g-card, order-subtle).
+3. **Colored Feedback Adjustments**: Converted static intense colored backgrounds to dynamic alpha blends (g-violet-500/10) and implemented dynamic text variables (	ext-violet-600 dark:text-violet-400). This ensures readability and contrast in both warm light environments and deep slate dark modes.
+4. **Modal Layering Constraints**: Fixed the background dimming by implementing a dual-opacity backdrop (g-black/40 dark:bg-black/60). Corrected footer behavior so content scrolls appropriately behind a sticky layer without transparent clipping.
+5. **Validation**: Built the application via 
+pm run build with zero regressions or hydration errors. Validated smooth layout operations and ergonomic color assignments.
+
+
+## May 27, 2026 - Report Generation Pipeline Recovery Phase
+
+**Issues Addressed**:
+1. **Architecture Mismatch / Race Condition**: When a simulation ended, the backend generated a CognitiveReport using a background task (_generate_report_bg). Meanwhile, the frontend button "Generate Cognitive Behavioral Report" triggered an AILesson generation (generateNewAILessonFromSession), not a report.
+2. **"No Report Available" Error**: Because the frontend routed to /dashboard/report immediately, and it blindly fetched /cognitive-reports/latest, the background task was usually incomplete resulting in a 404 state for the report.
+
+**Fixes Implemented**:
+1. **Synchronous Cognitive Report Endpoint**: Created POST /api/cognitive-reports/generate/{session_id} in the backend. This synchronously evaluates the behavioral payload via LLM and returns the structured report, ensuring it is complete before the frontend continues.
+2. **Precise Session Report Fetching**: Added GET /api/cognitive-reports/session/{session_id} to retrieve a specific report, eliminating the ambiguity of /latest.
+3. **Decoupled Background Tasks**: Removed _generate_report_bg from complete_session in ackend/app/routes/sessions.py.
+4. **Frontend Architecture**: Added generateSessionCognitiveReport async thunk in Redux that hits the new synchronous endpoint. The UI button in ScenarioContainer.tsx now correctly dispatches this and routes to /dashboard/report?sessionId=XYZ.
+5. **Report Page Fix**: eport.tsx now prioritizes fetching the explicit sessionId from the URL, gracefully falling back to /latest only if accessed generically.
+
+
+## May 27, 2026 - Lesson Flow Clarity & Interaction Hardening Phase
+
+**Issues Addressed**:
+1. **Broken Affordance in Workflow Connector**: The "Behavior Improvement Path" in the lessons/index.tsx page featured a large arrow component pointing from a past mistake to a recommended lesson. This arrow visually looked like an interactive CTA (hover states, pointer), but clicking it did nothing. This created interaction ambiguity and poor affordance logic.
+2. **Global Fake Affordances**: Discovered list elements in the eport.tsx UI (Recommended Path section) that behaved visually like buttons (cursor-pointer, hover:bg-tertiary) without having any interactive logic or click handlers.
+
+**Fixes Implemented**:
+1. **Connector Redesign**: Stripped the active button styling from the arrow. Replaced the generic ChevronRight block with a subtle workflow progression connector (a faded gradient line leading into a small pulsing chevron with reduced opacity). This visually communicates a causal relationship ("A leads to B") without signaling that it should be clicked.
+2. **Interaction Hardening**: Removed cursor-pointer, hover-states, and group-hover text color transitions from the Recommended Path items in eport.tsx. They are now clearly styled as passive information elements rather than interactable buttons.
+3. **Responsive Flow**: Validated that the new connector gracefully rotates and stacks vertically on mobile breakpoints, maintaining a cohesive flow.
+
+
+## May 27, 2026 - Lesson Completion State Synchronization Phase
+
+**Issues Addressed**:
+1. **Silent Redux Rejections**: The frontend UI for completing lessons was dispatching completeLesson to Redux without unwrapping the Promise. As a result, even if the backend failed to persist the completion, the frontend silently swallowed the error, falsely displaying a success toast.
+2. **Dashboard Metric Desync**: Completing a lesson did not optimistically update dashboard metrics in Redux, causing the global stats to remain stale until a page refresh.
+3. **Static Lesson Ghosting**: Completed static lessons were given a badge but remained mixed in with active lessons, creating visual clutter and confusing progression.
+4. **No Empty State**: Users who completed all recommended active lessons were left with a broken layout rather than a calm, encouraging empty state.
+
+**Fixes Implemented**:
+1. **Strict Thunk Unwrapping**: Added .unwrap() to the dispatch(completeLesson(...)) calls within AILessonCard and LessonDetailModal. Wrapped the logic in robust 	ry...catch blocks to correctly map backend errors to 	oast.error instead of falsely claiming success.
+2. **Optimistic Store Updates**: Modified completeLesson.fulfilled in progressSlice.ts to optimistically increment state.stats.total_sessions to instantly reflect user activity across the dashboard.
+3. **Component Splitting for Static Lessons**: Separated the static lessons loop into ctiveStaticLessons and completedStaticLessons within lessons/index.tsx. Completed static lessons now move to a dedicated "Completed Recommendations" section with subdued visual styling (opacity, muted borders), mirroring the AI lesson history behavior.
+4. **Calm Empty States**: Implemented an explicit "All Active Modules Completed" empty state that confirms all risks are resolved and encourages starting a new simulation session to uncover further optimization areas.
+

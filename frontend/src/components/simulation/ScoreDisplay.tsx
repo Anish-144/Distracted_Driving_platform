@@ -33,7 +33,7 @@ export default function ScoreDisplay({ score }: ScoreDisplayProps) {
         </div>
       </div>
       <div>
-        <p className="text-xs text-gray-500">Score</p>
+        <p className="text-xs text-muted">Score</p>
         <p className={`text-sm font-semibold ${color}`}>
           {score >= 90 ? 'Excellent' : score >= 70 ? 'Good' : score >= 50 ? 'Fair' : 'At Risk'}
         </p>

@@ -116,13 +116,35 @@ async def get_my_progress(
 
     ai_feedback = generate_feedback(recent_logs, current_user.profile_type.value)
 
-    # Compute a real authoritative percentile based on average score vs an idealized baseline
-    # (In a true production environment, this would query a materialized view of ALL users' average scores)
-    # For now, we ground it mathematically to the backend so it's consistent across devices.
-    composite_score = (avg_score * 0.4) + (latest_score * 0.6)
-    import math
-    raw_p = 100 / (1 + math.exp(-0.1 * (composite_score - 65)))
-    percentile = max(1, min(99, int(round(raw_p))))
+    # True authoritative population percentile based on unique users
+    user_scores_subq = (
+        select(
+            Session.user_id,
+            func.avg(Session.score).label("avg_user_score")
+        )
+        .where(Session.end_time.isnot(None))
+        .group_by(Session.user_id)
+        .subquery()
+    )
+
+    ranked_users = (
+        select(
+            user_scores_subq.c.user_id,
+            func.percent_rank().over(
+                order_by=user_scores_subq.c.avg_user_score.asc()
+            ).label("percentile_rank")
+        )
+        .subquery()
+    )
+
+    stmt_rank = select(ranked_users.c.percentile_rank).where(ranked_users.c.user_id == current_user.id)
+    rank_result = await db.execute(stmt_rank)
+    percentile_rank_fraction = rank_result.scalar()
+
+    if percentile_rank_fraction is None:
+        percentile = 50
+    else:
+        percentile = max(1, min(99, int(round(percentile_rank_fraction * 100))))
 
     # Build timeline for frontend rendering
     timeline = []

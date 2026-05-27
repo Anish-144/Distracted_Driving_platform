@@ -132,10 +132,10 @@ export default function VoiceInput({ onDecision, isActive, isDisabled = false }:
           w-10 h-10 rounded-full flex items-center justify-center
           transition-all duration-200 border-2
           ${!isActive || isDisabled
-            ? 'border-gray-200 text-gray-300 cursor-not-allowed bg-white'
+            ? 'border-subtle text-muted opacity-60 cursor-not-allowed bg-primary'
             : isListening
-              ? 'border-red-400 text-red-500 bg-red-50 animate-pulse shadow-sm shadow-red-200'
-              : 'border-blue-200 text-blue-500 bg-blue-50 hover:bg-blue-100 hover:border-blue-400'
+              ? 'border-subtle text-destructive bg-secondary animate-pulse shadow-sm'
+              : 'border-subtle text-accent bg-primary hover:bg-secondary hover:border-strong'
           }
         `}
       >
@@ -147,7 +147,7 @@ export default function VoiceInput({ onDecision, isActive, isDisabled = false }:
 
       {/* Live transcript preview */}
       {isListening && transcript && (
-        <p className="text-[10px] text-gray-500 italic max-w-[100px] text-center leading-tight truncate">
+        <p className="text-[10px] text-muted italic max-w-[100px] text-center leading-tight truncate">
           &quot;{transcript}&quot;
         </p>
       )}

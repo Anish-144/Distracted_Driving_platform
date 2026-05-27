@@ -166,7 +166,7 @@ export default function SimulationPage() {
  id="begin-simulation-btn"
  onClick={handleStartSession}
  disabled={isStarting}
- className="w-full py-4 bg-brand-600 rounded-xl font-bold text-white text-lg transition-colors flex flex-col items-center justify-center gap-1 hover:bg-brand-500"
+ className="btn-primary w-full py-4 text-lg"
  whileHover={{ scale: 1.01 }}
  whileTap={{ scale: 0.98 }}
  transition={{ duration: 0.15 }}

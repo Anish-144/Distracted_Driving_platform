@@ -1,4 +1,5 @@
 import Head from 'next/head';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -117,7 +118,7 @@ function getRiskLevel(driverType: string): { label: string; bg: string; text: st
  case 'safe':
  return { label: 'Low Risk', bg: 'bg-emerald-50 text-emerald-700 border-emerald-100', text: 'text-emerald-700' };
  default:
- return { label: 'Medium Risk', bg: 'bg-gray-50 text-gray-700 border-gray-100', text: 'text-gray-700' };
+ return { label: 'Medium Risk', bg: 'bg-secondary text-secondary border-subtle', text: 'text-secondary' };
  }
 }
 
@@ -142,7 +143,7 @@ function MetricBar({ label, value, target, unit = '' }: { label: string; value: 
  <div>
  <div className="flex justify-between items-center mb-1">
  <span className="text-xs text-muted">{label}</span>
- <span className="text-xs font-semibold text-gray-700">Target: {target}{unit}</span>
+ <span className="text-xs font-semibold text-secondary">Target: {target}{unit}</span>
  </div>
  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
  <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: color }} />
@@ -183,10 +184,10 @@ function LessonDetailModal({ lesson, onClose, onComplete, completing }: LessonDe
  if (!lesson) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
-      <div className="bg-gray-950 rounded-3xl border border-gray-800 shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto flex flex-col animate-scale-up text-gray-200" style={{ boxShadow: '0 0 50px -10px rgba(139, 92, 246, 0.15)' }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-fade-in">
+      <div className="bg-card rounded-3xl border border-strong shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col animate-scale-up text-primary" style={{ boxShadow: '0 0 50px -10px rgba(139, 92, 246, 0.15)' }}>
         {/* Header - Dossier Style */}
-        <div className="p-8 border-b border-gray-800/60 flex items-start justify-between gap-4 bg-gradient-to-r from-gray-900 to-gray-950">
+        <div className="p-8 border-b border-strong/60 flex items-start justify-between gap-4 bg-secondary rounded-t-3xl shrink-0">
           <div>
             <div className="flex items-center gap-3 mb-3">
               <span className="text-[10px] font-bold uppercase tracking-[0.2em] px-2.5 py-1 rounded-sm border border-violet-500/30 bg-violet-500/10 text-violet-400">
@@ -196,48 +197,48 @@ function LessonDetailModal({ lesson, onClose, onComplete, completing }: LessonDe
                 {lesson.lesson_category}
               </span>
             </div>
-            <h2 className="text-3xl font-bold text-white mb-2">{lesson.title}</h2>
-            <p className="text-sm text-gray-400 max-w-2xl">{lesson.why_received}</p>
+            <h2 className="text-3xl font-bold text-primary mb-2">{lesson.title}</h2>
+            <p className="text-sm text-muted max-w-2xl">{lesson.why_received}</p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-800 text-gray-400 hover:text-white transition-colors">
+          <button onClick={onClose} className="p-2 rounded-xl hover:bg-secondary text-muted hover:text-primary transition-colors">
             <X className="w-6 h-6" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-8 flex-1 overflow-y-auto space-y-8 bg-gray-950 relative">
+        <div className="p-8 flex-1 overflow-y-auto space-y-8 bg-card relative">
           {/* Subtle Grid Background */}
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:30px_30px] pointer-events-none" />
+          <div className="absolute inset-0 bg-[linear-gradient(var(--border-subtle)_1px,transparent_1px),linear-gradient(90deg,var(--border-subtle)_1px,transparent_1px)] bg-[size:30px_30px] opacity-20 pointer-events-none" />
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
             {/* Left Column: Diagnostics & Coaching */}
             <div className="space-y-6">
               {/* Behavioral Diagnosis */}
-              <div className="bg-gray-900/50 border border-gray-800/80 rounded-2xl p-6">
-                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <div className="bg-secondary border border-subtle rounded-2xl p-6">
+                <h3 className="text-xs font-bold text-muted uppercase tracking-wider mb-3 flex items-center gap-2">
                   <Target className="w-4 h-4 text-emerald-400" /> Behavioral Diagnosis
                 </h3>
-                <p className="text-sm text-gray-300 leading-relaxed font-medium">
+                <p className="text-sm text-secondary leading-relaxed font-medium">
                   {lesson.behavioral_diagnosis}
                 </p>
               </div>
 
               {/* Psychological Interpretation */}
-              <div className="bg-gray-900/50 border border-gray-800/80 rounded-2xl p-6">
-                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <div className="bg-secondary border border-subtle rounded-2xl p-6">
+                <h3 className="text-xs font-bold text-muted uppercase tracking-wider mb-3 flex items-center gap-2">
                   <Brain className="w-4 h-4 text-violet-400" /> Psychological Interpretation
                 </h3>
-                <p className="text-sm text-gray-300 leading-relaxed">
+                <p className="text-sm text-secondary leading-relaxed">
                   {lesson.psychological_interpretation}
                 </p>
               </div>
 
               {/* AI Coaching Narrative */}
-              <div className="bg-violet-900/10 border border-violet-500/20 rounded-2xl p-6">
-                <h3 className="text-xs font-bold text-violet-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-violet-400" /> Cognitive Coaching Narrative
+              <div className="bg-violet-500/10 border border-violet-500/20 rounded-2xl p-6">
+                <h3 className="text-xs font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-violet-500" /> Cognitive Coaching Narrative
                 </h3>
-                <p className="text-sm text-violet-200 leading-relaxed italic border-l-2 border-violet-500/50 pl-4">
+                <p className="text-sm text-violet-700 dark:text-violet-200 leading-relaxed italic border-l-2 border-violet-500/50 pl-4">
                   &quot;{lesson.cognitive_coaching_narrative}&quot;
                 </p>
               </div>
@@ -246,45 +247,45 @@ function LessonDetailModal({ lesson, onClose, onComplete, completing }: LessonDe
             {/* Right Column: Risks & Actions */}
             <div className="space-y-6">
               {/* Risk Impact & Projection */}
-              <div className="bg-red-900/10 border border-red-500/20 rounded-2xl p-6">
-                <h3 className="text-xs font-bold text-red-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-red-400" /> Risk Assessment
+              <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6">
+                <h3 className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-red-500" /> Risk Assessment
                 </h3>
                 <div className="space-y-4">
                   <div>
-                    <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Real-World Impact</h4>
-                    <p className="text-sm text-gray-300 leading-relaxed">{lesson.real_world_risk_impact}</p>
+                    <h4 className="text-[10px] font-bold text-muted uppercase tracking-wider mb-1">Real-World Impact</h4>
+                    <p className="text-sm text-secondary leading-relaxed">{lesson.real_world_risk_impact}</p>
                   </div>
                   <div className="h-px bg-red-500/10 w-full" />
                   <div>
-                    <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Future Projection</h4>
-                    <p className="text-sm text-red-300/80 leading-relaxed font-medium">{lesson.future_risk_projection}</p>
+                    <h4 className="text-[10px] font-bold text-muted uppercase tracking-wider mb-1">Future Projection</h4>
+                    <p className="text-sm text-red-600 dark:text-red-300/80 leading-relaxed font-medium">{lesson.future_risk_projection}</p>
                   </div>
                 </div>
               </div>
 
               {/* Scenario Replay Analysis */}
-              <div className="bg-gray-900/50 border border-gray-800/80 rounded-2xl p-6">
-                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <div className="bg-secondary border border-subtle rounded-2xl p-6">
+                <h3 className="text-xs font-bold text-muted uppercase tracking-wider mb-3 flex items-center gap-2">
                   <PlayCircle className="w-4 h-4 text-blue-400" /> Scenario Replay Analysis
                 </h3>
-                <p className="text-sm text-gray-300 leading-relaxed">
+                <p className="text-sm text-secondary leading-relaxed">
                   {lesson.scenario_replay_analysis}
                 </p>
               </div>
 
               {/* Strategy & Focus */}
-              <div className="bg-emerald-900/10 border border-emerald-500/20 rounded-2xl p-6">
-                <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-emerald-400" /> Intervention Strategy
+              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-6">
+                <h3 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-emerald-500" /> Intervention Strategy
                 </h3>
-                <p className="text-sm text-emerald-100/90 leading-relaxed font-medium mb-4">
+                <p className="text-sm text-emerald-700 dark:text-emerald-100/90 leading-relaxed font-medium mb-4">
                   {lesson.personalized_improvement_strategy}
                 </p>
                 {lesson.recommended_focus && (
-                  <div className="bg-gray-950/50 rounded-lg p-3 border border-emerald-500/10">
-                    <h4 className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider mb-1">Target Focus</h4>
-                    <p className="text-xs text-gray-300">{lesson.recommended_focus}</p>
+                  <div className="bg-card/50 rounded-lg p-3 border border-emerald-500/10">
+                    <h4 className="text-[10px] font-bold text-emerald-600 dark:text-emerald-500 uppercase tracking-wider mb-1">Target Focus</h4>
+                    <p className="text-xs text-secondary">{lesson.recommended_focus}</p>
                   </div>
                 )}
               </div>
@@ -292,12 +293,12 @@ function LessonDetailModal({ lesson, onClose, onComplete, completing }: LessonDe
           </div>
 
           {/* Bottom Section: Exercises & Tasks */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10 pt-4 border-t border-gray-800/60">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10 pt-4 border-t border-strong/60">
             <div>
-              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Behavioral Exercises</h3>
+              <h3 className="text-xs font-bold text-muted uppercase tracking-wider mb-3">Behavioral Exercises</h3>
               <ul className="space-y-3">
                 {lesson.behavioral_exercises.map((ex, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm text-gray-400">
+                  <li key={i} className="flex items-start gap-3 text-sm text-muted">
                     <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0" />
                     <span>{ex}</span>
                   </li>
@@ -305,10 +306,10 @@ function LessonDetailModal({ lesson, onClose, onComplete, completing }: LessonDe
               </ul>
             </div>
             <div>
-              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Mental Conditioning</h3>
+              <h3 className="text-xs font-bold text-muted uppercase tracking-wider mb-3">Mental Conditioning</h3>
               <ul className="space-y-3">
                 {lesson.mental_conditioning_techniques.map((ex, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm text-gray-400">
+                  <li key={i} className="flex items-start gap-3 text-sm text-muted">
                     <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-1.5 shrink-0" />
                     <span>{ex}</span>
                   </li>
@@ -316,10 +317,10 @@ function LessonDetailModal({ lesson, onClose, onComplete, completing }: LessonDe
               </ul>
             </div>
             <div>
-              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Reinforcement Tasks</h3>
+              <h3 className="text-xs font-bold text-muted uppercase tracking-wider mb-3">Reinforcement Tasks</h3>
               <ul className="space-y-3">
                 {lesson.attention_reinforcement_tasks.map((ex, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm text-gray-400">
+                  <li key={i} className="flex items-start gap-3 text-sm text-muted">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
                     <span>{ex}</span>
                   </li>
@@ -330,20 +331,20 @@ function LessonDetailModal({ lesson, onClose, onComplete, completing }: LessonDe
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-800/60 bg-gray-900/50 flex items-center justify-between gap-4 rounded-b-3xl">
-          <div className="text-xs font-medium text-gray-500 uppercase tracking-widest">
-            Difficulty: <span className="text-white">{lesson.difficulty}</span>
+        <div className="p-6 border-t border-strong/60 bg-secondary flex items-center justify-between gap-4 rounded-b-3xl shrink-0">
+          <div className="text-xs font-medium text-muted uppercase tracking-widest">
+            Difficulty: <span className="text-primary">{lesson.difficulty}</span>
           </div>
           <div className="flex items-center gap-3">
             {lesson.completed ? (
-              <span className="flex items-center gap-1.5 text-sm font-bold text-emerald-400 bg-emerald-900/20 px-4 py-2 rounded-xl border border-emerald-500/20">
+              <span className="flex items-center gap-1.5 text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-4 py-2 rounded-xl border border-emerald-500/20">
                 <CheckCircle2 className="w-4 h-4" /> Dossier Completed
               </span>
             ) : (
               <button
                 onClick={onComplete}
                 disabled={completing}
-                className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-gray-950 text-sm font-bold px-6 py-2.5 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] disabled:opacity-50"
+                className="btn-primary flex items-center gap-2 disabled:opacity-50"
               >
                 {completing ? (
                   <RefreshCw className="w-4 h-4 animate-spin" />
@@ -407,13 +408,18 @@ function AILessonCard({ lesson, index, onOpen }: { lesson: AILesson; index: numb
  }
  };
 
- const handleComplete = async (e: React.MouseEvent) => {
- e.stopPropagation();
- setCompleting(true);
- await dispatch(completeLesson({ lessonId: lesson.id, score: 100 }));
- setCompleting(false);
- toast.success('Lesson marked complete!');
- };
+  const handleComplete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCompleting(true);
+    try {
+      await dispatch(completeLesson({ lessonId: lesson.id, score: 100 })).unwrap();
+      toast.success('Lesson marked complete!');
+    } catch (err: any) {
+      toast.error(err || 'Failed to complete lesson.');
+    } finally {
+      setCompleting(false);
+    }
+  };
 
  return (
  <FadeUp delay={0.1 + index * 0.06}>
@@ -429,7 +435,7 @@ function AILessonCard({ lesson, index, onOpen }: { lesson: AILesson; index: numb
  {scenarioIcon(simSource)}
  </div>
  <div>
- <h3 className={`text-base font-bold text-white leading-tight`}>{lesson.title}</h3>
+ <h3 className={`text-base font-bold text-primary leading-tight`}>{lesson.title}</h3>
  
  {/* 4 Required Badges */}
  <div className="flex flex-wrap gap-1.5 mt-2">
@@ -466,7 +472,7 @@ function AILessonCard({ lesson, index, onOpen }: { lesson: AILesson; index: numb
  {/* AI generated reasoning preview */}
  {lesson.generated_reason && (
  <div className="mt-3 bg-secondary border border-subtle rounded-xl p-3 text-xs text-secondary ">
- <span className="font-bold text-white">💡 Context:</span> {lesson.generated_reason}
+ <span className="font-bold text-primary">💡 Context:</span> {lesson.generated_reason}
  </div>
  )}
 
@@ -488,7 +494,7 @@ function AILessonCard({ lesson, index, onOpen }: { lesson: AILesson; index: numb
   </div>
 
  {/* Card Footer */}
- <div className="px-5 py-3 flex items-center justify-between bg-black/20">
+  <div className="px-5 py-3 flex items-center justify-between bg-secondary border-t border-subtle">
  <span className="flex items-center gap-1 text-sm text-brand-400 font-bold hover:text-brand-300 transition-colors">
  View Details <ChevronRight className="w-4 h-4 ml-0.5 animate-pulse" />
  </span>
@@ -523,7 +529,7 @@ export default function LessonsPage() {
  const router = useRouter();
  const dispatch = useAppDispatch();
  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
- const { lessons, allLessons, aiLessons, isLoading, isGenerating } = useAppSelector((state) => state.progress);
+ const { lessons, allLessons, aiLessons, isLoading, isGenerating, generateError } = useAppSelector((state) => state.progress);
  const [isMounted, setIsMounted] = useState(false);
  const [activeTab, setActiveTab] = useState<'ai' | 'library'>('ai');
  const [selectedLesson, setSelectedLesson] = useState<SelectedLessonState | null>(null);
@@ -558,13 +564,17 @@ export default function LessonsPage() {
 
  const activeAILessons = aiLessons.filter(l => !l.completed);
  const completedAILessons = aiLessons.filter(l => l.completed);
- const completionRate = aiLessons.length > 0
- ? Math.round((completedAILessons.length / aiLessons.length) * 100)
- : 0;
+  const completionRate = aiLessons.length > 0
+    ? Math.round((completedAILessons.length / aiLessons.length) * 100)
+    : 0;
 
- // Filter latest AI session-specific lesson
- const latestSessionSpecificLesson = activeAILessons.find(l => l.session_id);
- const otherActiveLessons = activeAILessons.filter(l => l.id !== latestSessionSpecificLesson?.id);
+  // Filter latest AI session-specific lesson
+  const latestSessionSpecificLesson = activeAILessons.find(l => l.session_id);
+  const otherActiveLessons = activeAILessons.filter(l => l.id !== latestSessionSpecificLesson?.id);
+  const allAILessonsCompleted = aiLessons.length > 0 && activeAILessons.length === 0;
+
+  const activeStaticLessons = lessons.filter(l => !completedStaticIds.includes(l.id));
+  const completedStaticLessons = lessons.filter(l => completedStaticIds.includes(l.id));
 
  const handleOpenStaticLesson = (lesson: any) => {
  const details = STATIC_LESSON_DETAILS[lesson.title] || {
@@ -623,28 +633,32 @@ export default function LessonsPage() {
     });
   };
 
- const handleCompleteFromModal = async () => {
- if (!selectedLesson) return;
- setCompleting(true);
- if (selectedLesson.isAI) {
- await dispatch(completeLesson({ lessonId: selectedLesson.id, score: 100 }));
- setSelectedLesson(prev => prev ? { ...prev, completed: true } : null);
- toast.success('AI Lesson completed successfully!');
- } else {
- try {
- const completedStatics = JSON.parse(localStorage.getItem('completed_static_lessons') || '[]');
- if (!completedStatics.includes(selectedLesson.id)) {
- completedStatics.push(selectedLesson.id);
- localStorage.setItem('completed_static_lessons', JSON.stringify(completedStatics));
- }
- setSelectedLesson(prev => prev ? { ...prev, completed: true } : null);
- toast.success('Curriculum module completed successfully!');
- } catch (err) {
- toast.error('Failed to complete lesson.');
- }
- }
- setCompleting(false);
- };
+  const handleCompleteFromModal = async () => {
+    if (!selectedLesson) return;
+    setCompleting(true);
+    if (selectedLesson.isAI) {
+      try {
+        await dispatch(completeLesson({ lessonId: selectedLesson.id, score: 100 })).unwrap();
+        setSelectedLesson(prev => prev ? { ...prev, completed: true } : null);
+        toast.success('AI Lesson completed successfully!');
+      } catch (err: any) {
+        toast.error(err || 'Failed to complete AI lesson.');
+      }
+    } else {
+      try {
+        const completedStatics = JSON.parse(localStorage.getItem('completed_static_lessons') || '[]');
+        if (!completedStatics.includes(selectedLesson.id)) {
+          completedStatics.push(selectedLesson.id);
+          localStorage.setItem('completed_static_lessons', JSON.stringify(completedStatics));
+        }
+        setSelectedLesson(prev => prev ? { ...prev, completed: true } : null);
+        toast.success('Curriculum module completed successfully!');
+      } catch (err) {
+        toast.error('Failed to complete lesson.');
+      }
+    }
+    setCompleting(false);
+  };
 
  return (
  <>
@@ -663,7 +677,7 @@ export default function LessonsPage() {
  <BookOpen className="w-5 h-5 text-brand-400" />
  </div>
  <div>
- <h1 className="text-2xl font-bold tracking-tight text-white">Training Modules</h1>
+ <h1 className="text-2xl font-bold tracking-tight text-primary">Training Modules</h1>
  <p className="text-sm text-muted mt-0.5">AI-personalized to your behavioral profile</p>
  </div>
  </div>
@@ -672,7 +686,7 @@ export default function LessonsPage() {
  {aiLessons.length > 0 && (
  <div className="flex items-center gap-4 text-sm">
  <div className="text-center">
- <p className="text-xl font-bold text-white">{aiLessons.length}</p>
+ <p className="text-xl font-bold text-primary">{aiLessons.length}</p>
  <p className="text-xs text-muted">Total Lessons</p>
  </div>
  <div className="w-px h-8 bg-tertiary" />
@@ -695,20 +709,16 @@ export default function LessonsPage() {
  <div className="flex items-center gap-1 bg-secondary p-1 rounded-xl w-fit border border-subtle">
  <button
  onClick={() => setActiveTab('ai')}
- className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
- activeTab === 'ai'
- ? 'bg-purple-500/20 text-primary border border-subtle'
- : 'text-muted hover:text-gray-200 hover:bg-secondary'
+ className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm transition-all duration-200 ${
+ activeTab === 'ai' ? 'tab-active' : 'tab-inactive'
  }`}
  >
  <Sparkles className="w-3.5 h-3.5" /> AI Lessons
  </button>
  <button
  onClick={() => setActiveTab('library')}
- className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
- activeTab === 'library'
- ? 'bg-brand-500/20 text-brand-400 border border-brand-500/30'
- : 'text-muted hover:text-gray-200 hover:bg-secondary'
+ className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm transition-all duration-200 ${
+ activeTab === 'library' ? 'tab-active' : 'tab-inactive'
  }`}
  >
  <BookOpen className="w-3.5 h-3.5" /> Lesson Library
@@ -732,10 +742,10 @@ export default function LessonsPage() {
  <div className={`${CARD} p-5 flex items-center justify-between gap-4 bg-secondary border border-subtle`}>
  <div className="flex items-center gap-3">
  <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center flex-shrink-0">
- <Sparkles className="w-5 h-5 text-white" />
+ <Sparkles className="w-5 h-5 text-primary" />
  </div>
  <div>
- <p className="font-bold text-white">Generate New AI Lesson</p>
+ <p className="font-bold text-primary">Generate New AI Lesson</p>
  <p className="text-xs text-primary mt-0.5">Based on your latest behavioral data and driver profile</p>
  </div>
  </div>
@@ -749,7 +759,7 @@ export default function LessonsPage() {
  }
  }}
  disabled={isGenerating}
- className="flex items-center gap-2 bg-primary hover:bg-purple-500 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors disabled:opacity-60 flex-shrink-0 shadow-purple-500/20"
+ className="btn-primary flex items-center gap-2 disabled:opacity-60 flex-shrink-0"
  >
  {isGenerating ? (
  <><RefreshCw className="w-4 h-4 animate-spin" /> Generating...</>
@@ -758,6 +768,18 @@ export default function LessonsPage() {
  )}
  </button>
  </div>
+ {generateError && (
+   <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-3">
+     <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+     <div>
+       <h4 className="text-sm font-bold text-red-400">Generation Failed</h4>
+       <p className="text-xs text-red-300 mt-1">{generateError}</p>
+       <p className="text-xs text-muted mt-2">
+         The system encountered an error while processing your behavioral data. Please try again, or explore the Lesson Library for standard curriculum modules.
+       </p>
+     </div>
+   </div>
+ )}
  </FadeUp>
 
                 {/* Behavior Improvement Path */}
@@ -776,14 +798,17 @@ export default function LessonsPage() {
                             {latestSessionSpecificLesson.generated_reason || 'Detected trigger-response anomalies'}
                           </p>
                         </div>
-                        <div className="flex justify-center md:rotate-0 rotate-90 md:col-span-1">
-                          <ChevronRight className="w-5 h-5 text-primary" />
+                        <div className="flex justify-center items-center md:rotate-0 rotate-90 md:col-span-1 opacity-60">
+                          <div className="flex items-center">
+                            <div className="w-6 h-[2px] bg-gradient-to-r from-transparent to-primary/40 rounded-full" />
+                            <ChevronRight className="w-4 h-4 text-primary/40 -ml-1 animate-pulse" />
+                          </div>
                         </div>
                         <div className="p-4 rounded-xl bg-secondary border border-subtle md:col-span-2">
                           <p className="text-[10px] font-bold uppercase tracking-wider text-primary mb-1 flex items-center gap-1">
                             <Target className="w-3 h-3" /> Recommended Lesson & Target Goal
                           </p>
-                          <p className="text-xs font-bold text-white mb-1">{latestSessionSpecificLesson.title}</p>
+                          <p className="text-xs font-bold text-primary mb-1">{latestSessionSpecificLesson.title}</p>
                           <p className="text-xs text-primary font-semibold">{latestSessionSpecificLesson.personalized_improvement_strategy}</p>
                         </div>
                       </div>
@@ -797,7 +822,7 @@ export default function LessonsPage() {
  <FadeUp delay={0.14}>
  <div className="flex items-center gap-2 mb-4">
  <Sparkles className="w-4 h-4 text-primary" />
- <h2 className="text-lg font-bold text-white">Generated From Your Last Session</h2>
+ <h2 className="text-lg font-bold text-primary">Generated From Your Last Session</h2>
  <span className="text-[10px] bg-red-500/10 text-red-400 border border-red-500/20 rounded-full px-2.5 py-0.5 font-bold uppercase tracking-wider animate-pulse">Correction Required</span>
  </div>
  </FadeUp>
@@ -813,7 +838,7 @@ export default function LessonsPage() {
  <FadeUp delay={0.15}>
  <div className="flex items-center gap-2 mb-4">
  <Star className="w-4 h-4 text-amber-400" />
- <h2 className="text-lg font-bold text-white">Your Personalized Plan</h2>
+ <h2 className="text-lg font-bold text-primary">Your Personalized Plan</h2>
  <span className="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full px-2 py-0.5 font-semibold">{otherActiveLessons.length} active</span>
  </div>
  </FadeUp>
@@ -831,7 +856,7 @@ export default function LessonsPage() {
  <FadeUp>
  <div className="flex items-center gap-2 mb-4">
  <CheckCircle2 className="w-4 h-4 text-brand-400" />
- <h2 className="text-lg font-bold text-white">Completed</h2>
+ <h2 className="text-lg font-bold text-primary">Completed</h2>
  <span className="text-xs bg-brand-500/10 text-brand-400 border border-brand-500/20 rounded-full px-2 py-0.5 font-semibold">{completedAILessons.length}</span>
  </div>
  </FadeUp>
@@ -843,22 +868,42 @@ export default function LessonsPage() {
  </div>
  )}
 
- {/* Empty state */}
- {aiLessons.length === 0 && !isGenerating && (
- <FadeUp delay={0.2}>
- <div className={`${CARD} p-10 text-center`}>
- <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center mx-auto mb-4 border border-subtle">
- <Brain className="w-7 h-7 text-primary" />
- </div>
- <h3 className="text-lg font-bold text-white mb-2">No AI lessons yet</h3>
- <p className="text-sm text-muted max-w-sm mx-auto mb-6">
- Click &quot;Generate&quot; above to get your first personalized AI lesson plan based on your behavioral data.
- </p>
- </div>
- </FadeUp>
- )}
- </div>
- )}
+  {/* All AI lessons completed state */}
+  {allAILessonsCompleted && (
+    <FadeUp delay={0.2}>
+      <div className="bg-secondary border border-subtle rounded-2xl p-8 text-center flex flex-col items-center max-w-xl mx-auto my-12">
+        <div className="w-16 h-16 bg-brand-500/10 border border-brand-500/20 rounded-full flex items-center justify-center mb-6">
+          <CheckCircle2 className="w-8 h-8 text-brand-500" />
+        </div>
+        <h3 className="text-xl font-bold text-primary mb-3">All Active Modules Completed</h3>
+        <p className="text-secondary mb-8 leading-relaxed max-w-sm">
+          You&apos;ve successfully resolved all detected behavioral risks. Continue taking simulation sessions to uncover new optimization areas.
+        </p>
+        <Link 
+          href="/simulation"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-on-primary font-bold transition-all duration-200 hover:-translate-y-0.5"
+          style={{ background: '#F4F4F5', color: '#09090B' }}
+        >
+          <PlayCircle className="w-5 h-5" /> Start New Session
+        </Link>
+      </div>
+    </FadeUp>
+  )}
+
+  {/* Empty state when NO lessons generated */}
+  {aiLessons.length === 0 && !isGenerating && (
+  <FadeUp delay={0.2}>
+  <div className="empty-state-card">
+  <div className="icon-wrapper">
+  <Brain className="icon" />
+  </div>
+  <h3>Your personalized curriculum awaits</h3>
+  <p>Click &quot;Generate&quot; above to create your first targeted AI lesson based on your behavioral data.</p>
+  </div>
+  </FadeUp>
+  )}
+  </div>
+  )}
 
  {/* ── LIBRARY TAB ─────────────────────────────────────────────────── */}
  {activeTab === 'library' && (
@@ -868,55 +913,87 @@ export default function LessonsPage() {
  <FadeUp delay={0.1}>
  <div className="flex items-center gap-2 mb-4">
  <Star className="w-4 h-4 text-amber-400" />
- <h2 className="text-lg font-bold text-white">Recommended for You</h2>
+ <h2 className="text-lg font-bold text-primary">Recommended for You</h2>
  </div>
  </FadeUp>
 
- {lessons.length === 0 ? (
- <FadeUp delay={0.15}>
- <p className="text-muted text-sm bg-secondary border border-subtle rounded-2xl p-6 ">
- No specific recommendations at this time. Explore all lessons below.
- </p>
- </FadeUp>
- ) : (
- <div className="grid gap-5 md:grid-cols-2">
- {lessons.map((lesson, idx) => {
- const isCompleted = completedStaticIds.includes(lesson.id);
- return (
- <FadeUp key={lesson.id} delay={0.15 + idx * 0.05}>
- <div 
- onClick={() => handleOpenStaticLesson(lesson)}
- className={`${CARD} p-6 flex flex-col justify-between h-full group cursor-pointer border-brand-500/20 bg-brand-500/5 hover:-translate-y-0.5 hover: hover:`}
- >
- <div>
- <div className="flex items-start justify-between gap-3 mb-2">
- <h4 className="text-base font-bold text-white group-hover:text-brand-400 transition-colors leading-snug">{lesson.title}</h4>
- <div className="flex gap-1.5 shrink-0">
- {isCompleted && (
- <span className="text-[10px] uppercase font-bold bg-brand-500/10 text-brand-400 px-2 py-1 rounded-md border border-brand-500/20 flex items-center gap-1">
- <CheckCircle2 className="w-2.5 h-2.5" /> Done
- </span>
- )}
- <span className="text-[10px] uppercase font-bold bg-brand-500/10 text-brand-400 px-2 py-1 rounded-md border border-brand-500/20">{lesson.difficulty}</span>
- </div>
- </div>
- <p className="text-sm text-muted leading-relaxed mb-4">{lesson.description}</p>
- </div>
- <div className="flex items-center text-sm font-semibold text-brand-400 group-hover:text-brand-300 transition-colors">
- <PlayCircle className="w-4 h-4 mr-1.5" /> Start Lesson
- </div>
- </div>
- </FadeUp>
- );
- })}
- </div>
- )}
- </div>
+  {activeStaticLessons.length === 0 ? (
+  <FadeUp delay={0.15}>
+  <div className="empty-state-card !min-h-[120px] !p-6">
+  <p>All recommended lessons have been completed.</p>
+  </div>
+  </FadeUp>
+  ) : (
+  <div className="grid gap-5 md:grid-cols-2">
+  {activeStaticLessons.map((lesson, idx) => {
+  return (
+  <FadeUp key={lesson.id} delay={0.15 + idx * 0.05}>
+  <div 
+  onClick={() => handleOpenStaticLesson(lesson)}
+  className={`${CARD} p-6 flex flex-col justify-between h-full group cursor-pointer border-brand-500/20 bg-brand-500/5 hover:-translate-y-0.5`}
+  >
+  <div>
+  <div className="flex items-start justify-between gap-3 mb-2">
+  <h4 className="text-base font-bold text-primary group-hover:text-brand-400 transition-colors leading-snug">{lesson.title}</h4>
+  <div className="flex gap-1.5 shrink-0">
+  <span className="text-[10px] uppercase font-bold bg-brand-500/10 text-brand-400 px-2 py-1 rounded-md border border-brand-500/20">{lesson.difficulty}</span>
+  </div>
+  </div>
+  <p className="text-sm text-muted leading-relaxed mb-4">{lesson.description}</p>
+  </div>
+  <div className="flex items-center text-sm font-semibold text-brand-400 group-hover:text-brand-300 transition-colors">
+  <PlayCircle className="w-4 h-4 mr-1.5" /> Start Lesson
+  </div>
+  </div>
+  </FadeUp>
+  );
+  })}
+  </div>
+  )}
+  </div>
+
+  {/* Completed Static Lessons */}
+  {completedStaticLessons.length > 0 && (
+  <div>
+  <FadeUp>
+  <div className="flex items-center gap-2 mb-4 mt-8">
+  <CheckCircle2 className="w-4 h-4 text-brand-400" />
+  <h2 className="text-lg font-bold text-primary">Completed Recommendations</h2>
+  </div>
+  </FadeUp>
+  <div className="grid gap-5 md:grid-cols-2">
+  {completedStaticLessons.map((lesson, idx) => (
+  <FadeUp key={lesson.id} delay={0.15 + idx * 0.05}>
+  <div 
+  onClick={() => handleOpenStaticLesson(lesson)}
+  className={`${CARD} opacity-75 p-6 flex flex-col justify-between h-full group cursor-pointer border-subtle bg-secondary hover:-translate-y-0.5`}
+  >
+  <div>
+  <div className="flex items-start justify-between gap-3 mb-2">
+  <h4 className="text-base font-bold text-primary transition-colors leading-snug">{lesson.title}</h4>
+  <div className="flex gap-1.5 shrink-0">
+  <span className="text-[10px] uppercase font-bold bg-brand-500/10 text-brand-400 px-2 py-1 rounded-md border border-brand-500/20 flex items-center gap-1">
+  <CheckCircle2 className="w-2.5 h-2.5" /> Done
+  </span>
+  <span className="text-[10px] uppercase font-bold bg-secondary text-muted px-2 py-1 rounded-md border border-subtle">{lesson.difficulty}</span>
+  </div>
+  </div>
+  <p className="text-sm text-muted leading-relaxed mb-4">{lesson.description}</p>
+  </div>
+  <div className="flex items-center text-sm font-semibold text-brand-400 group-hover:text-brand-300 transition-colors">
+  <Award className="w-4 h-4 mr-1.5" /> Review Lesson
+  </div>
+  </div>
+  </FadeUp>
+  ))}
+  </div>
+  </div>
+  )}
 
  {/* All lessons */}
  <div>
  <FadeUp delay={0.2}>
- <h2 className="text-lg font-bold text-white mb-4">Browse All Modules</h2>
+ <h2 className="text-lg font-bold text-primary mb-4">Browse All Modules</h2>
  </FadeUp>
  <div className="grid gap-5 md:grid-cols-2">
  {allLessons.map((lesson, idx) => {
@@ -929,7 +1006,7 @@ export default function LessonsPage() {
  >
  <div>
  <div className="flex items-start justify-between gap-3 mb-2">
- <h4 className="text-base font-bold text-white group-hover:text-brand-400 transition-colors leading-snug">{lesson.title}</h4>
+ <h4 className="text-base font-bold text-primary group-hover:text-brand-400 transition-colors leading-snug">{lesson.title}</h4>
  <div className="flex gap-1.5 shrink-0">
  {isCompleted && (
  <span className="text-[10px] uppercase font-bold bg-brand-500/10 text-brand-400 px-2 py-1 rounded-md border border-brand-500/20 flex items-center gap-1">

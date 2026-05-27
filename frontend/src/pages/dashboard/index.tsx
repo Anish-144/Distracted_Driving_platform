@@ -101,34 +101,7 @@ export default function DashboardPage() {
     dispatch(fetchProgressData()).unwrap().catch(() => {});
   }, [isAuthenticated, router, dispatch]);
 
-  // ── localStorage cache ───────────────────────────────────────────────────
-  useEffect(() => {
-    try {
-      const payloadStr = localStorage.getItem('sd_dashboard_last_session');
-      const b = localStorage.getItem('best_user_percentile');
-      if (!payloadStr) return;
-      const payload = JSON.parse(payloadStr);
-      if (
-        payload?.v === 1 && payload.percentile !== undefined &&
-        payload.delta && typeof payload.delta.val === 'number' &&
-        typeof payload.delta.status === 'string'
-      ) {
-        const formattedTime = payload.unix_timestamp
-          ? new Date(payload.unix_timestamp).toLocaleString(undefined, {
-              hour: 'numeric', minute: '2-digit', month: 'short', day: 'numeric', hour12: true,
-            })
-          : null;
-        setLocalSessionData({
-          percentile: payload.percentile,
-          best: b || payload.percentile.toString(),
-          delta: payload.delta,
-          insights: Array.isArray(payload.insights)
-            ? payload.insights.filter((i: unknown) => typeof i === 'string') : null,
-          timestamp: formattedTime,
-        });
-      } else { localStorage.removeItem('sd_dashboard_last_session'); }
-    } catch { localStorage.removeItem('sd_dashboard_last_session'); }
-  }, []);
+  // ── No localStorage cache used (backend authoritative percentile now used) ──
 
   // ── Auth guard ───────────────────────────────────────────────────────────
   if (!isMounted) return null;
@@ -198,7 +171,7 @@ export default function DashboardPage() {
                 Behavioral Intelligence Platform
               </p>
               <h1 className="text-xl font-bold text-primary tracking-tight">
-                Welcome back, <span className="text-brand-600 dark:text-brand-400">{firstName}</span>
+                Welcome back, <span className="text-accent">{firstName}</span>
               </h1>
               <p className="text-sm text-muted mt-0.5">
                 {profileKnown
@@ -266,7 +239,7 @@ export default function DashboardPage() {
                       className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
                       style={{ background: 'rgba(5,150,105,0.1)', border: '1px solid rgba(5,150,105,0.2)' }}
                     >
-                      <Car className="w-4.5 h-4.5 text-brand-600 dark:text-brand-400" />
+                      <Car className="w-4.5 h-4.5 text-accent" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
@@ -324,34 +297,23 @@ export default function DashboardPage() {
                   }
                 />
 
-                {localSessionData.percentile !== null ? (
+                {stats?.percentile !== undefined ? (
                   <div className="space-y-4">
                     {/* Metric row */}
                     <div className="grid grid-cols-2 gap-3">
                       <div className="p-3 rounded-lg bg-secondary border border-subtle">
-                        <p className="label-caps mb-1.5">Global Ranking</p>
+                        <p className="label-caps mb-1.5">Population Rank</p>
                         <div className="flex items-baseline gap-1.5">
                           <span className="text-2xl font-bold mono-data text-primary">
-                            {localSessionData.percentile}%
+                            {stats.percentile}%
                           </span>
-                          {localSessionData.delta && localSessionData.delta.status !== 'baseline' && (
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                              localSessionData.delta.status === 'improvement'
-                                ? 'bg-secondary text-primary border border-subtle'
-                                : localSessionData.delta.status === 'decline'
-                                ? 'bg-secondary text-primary border border-subtle'
-                                : 'bg-secondary text-muted'
-                            }`}>
-                              {localSessionData.delta.val > 0 ? '+' : ''}{localSessionData.delta.val}%
-                            </span>
-                          )}
                         </div>
-                        <p className="text-[10px] text-muted mt-1">percentile</p>
+                        <p className="text-[10px] text-muted mt-1">global percentile</p>
                       </div>
                       <div className="p-3 rounded-lg bg-secondary border border-subtle">
-                        <p className="label-caps mb-1.5">Personal Best</p>
-                        <p className="text-2xl font-bold mono-data text-primary">{localSessionData.best}%</p>
-                        <p className="text-[10px] text-muted mt-1">all-time high</p>
+                        <p className="label-caps mb-1.5">Personal Avg</p>
+                        <p className="text-2xl font-bold mono-data text-primary">{stats.avg_score}%</p>
+                        <p className="text-[10px] text-muted mt-1">safety score</p>
                       </div>
                     </div>
 
@@ -410,7 +372,7 @@ export default function DashboardPage() {
                     className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                     style={{ background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.2)' }}
                   >
-                    <Brain className="w-4.5 h-4.5 text-violet-500 dark:text-violet-400" />
+                    <Brain className="w-4.5 h-4.5 text-accent" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-bold text-primary capitalize truncate">
@@ -459,7 +421,7 @@ export default function DashboardPage() {
               <div className="bg-primary rounded-xl border border-card p-5">
                 <div className="flex items-center justify-between mb-3">
                   <SectionLabel>Recommended Lessons</SectionLabel>
-                  <Link href="/lessons" className="text-[10px] font-semibold text-brand-600 dark:text-brand-400 hover:underline">
+                  <Link href="/lessons" className="text-[10px] font-semibold text-accent hover:underline">
                     View all
                   </Link>
                 </div>
@@ -526,7 +488,7 @@ export default function DashboardPage() {
                         }}
                       >
                         <p className="font-semibold text-primary capitalize">{m.scenario.replace('_', ' ')}</p>
-                        <p className={`mt-0.5 font-medium ${(m.response || '').includes('Unsafe') ? 'text-red-500 dark:text-red-400' : 'text-amber-500 dark:text-amber-400'}`}>
+                        <p className={`mt-0.5 font-medium ${(m.response || '').includes('Unsafe') ? 'text-destructive' : 'text-warning'}`}>
                           {m.response}
                         </p>
                       </div>

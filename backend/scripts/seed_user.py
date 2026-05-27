@@ -5,6 +5,7 @@ import os
 # Add the parent directory to sys.path so we can import 'app'
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# pyrefly: ignore [missing-import]
 from sqlalchemy import select
 from app.database import engine, AsyncSessionLocal, init_db
 from app.models.user import User

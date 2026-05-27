@@ -240,6 +240,22 @@ export async function fetchLatestCognitiveReport(): Promise<CognitiveReport> {
   return res.data;
 }
 
+/**
+ * NEW: Generate a fresh cognitive report for the given session.
+ */
+export async function generateCognitiveReport(sessionId: string): Promise<CognitiveReport> {
+  const res = await client.post<CognitiveReport>(`/cognitive-reports/generate/${sessionId}`);
+  return res.data;
+}
+
+/**
+ * NEW: Get the cognitive report specifically generated for a given session.
+ */
+export async function fetchCognitiveReportBySession(sessionId: string): Promise<CognitiveReport> {
+  const res = await client.get<CognitiveReport>(`/cognitive-reports/session/${sessionId}`);
+  return res.data;
+}
+
 // ── Audio Utilities ───────────────────────────────────────────────────────────
 
 /**

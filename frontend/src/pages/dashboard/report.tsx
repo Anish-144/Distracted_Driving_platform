@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useAppSelector } from '@/store';
-import { fetchLatestCognitiveReport, CognitiveReport } from '@/api/ai';
+import { fetchLatestCognitiveReport, fetchCognitiveReportBySession, CognitiveReport } from '@/api/ai';
 import AppShell from '@/components/layout/AppShell';
 import { FadeUp } from '@/components/motion/ScrollReveal';
 import {
@@ -26,19 +26,24 @@ export default function CognitiveReportPage() {
  const [error, setError] = useState<string | null>(null);
 
  useEffect(() => {
- if (!isAuthenticated) {
- router.replace('/auth/login');
- return;
- }
- 
- fetchLatestCognitiveReport()
- .then(setReport)
- .catch(err => {
- const msg = err?.response?.data?.detail || "Failed to load cognitive report.";
- setError(msg);
- })
- .finally(() => setIsLoading(false));
- }, [isAuthenticated, router]);
+    if (!isAuthenticated) {
+      router.replace('/auth/login');
+      return;
+    }
+    
+    const sessionId = router.query.sessionId as string | undefined;
+    const fetchReport = sessionId 
+      ? fetchCognitiveReportBySession(sessionId)
+      : fetchLatestCognitiveReport();
+
+    fetchReport
+      .then(setReport)
+      .catch(err => {
+        const msg = err?.response?.data?.detail || "Failed to load cognitive report.";
+        setError(msg);
+      })
+      .finally(() => setIsLoading(false));
+  }, [isAuthenticated, router, router.query.sessionId]);
 
  if (isLoading || !isAuthenticated || !user) {
  return (
@@ -52,17 +57,17 @@ export default function CognitiveReportPage() {
  if (error || !report) {
  return (
  <AppShell maxWidth="wide">
- <div className="min-h-[60vh] flex flex-col items-center justify-center text-center max-w-md mx-auto">
- <div className="w-16 h-16 rounded-full bg-secondary border border-subtle flex items-center justify-center mb-6">
- <ShieldAlert className="w-8 h-8 text-muted" />
+ <div className="empty-state-card mt-12 mx-auto max-w-lg">
+ <div className="icon-wrapper">
+ <ShieldAlert className="icon" />
  </div>
- <h2 className="text-xl font-bold text-primary mb-2">No Report Available</h2>
- <p className="text-muted mb-8 leading-relaxed">
+ <h3>No Report Available</h3>
+ <p>
  {error || "You need to complete a full simulation session to generate a cognitive behavioral report."}
  </p>
  <Link
  href="/simulation"
- className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-primary font-semibold transition-all shadow-[0_0_20px_rgba(5,150,105,0.3)]"
+ className="btn-primary"
  >
  Start Simulation
  </Link>
@@ -106,9 +111,13 @@ export default function CognitiveReportPage() {
  {/* ── Header ────────────────────────────────────────────────────── */}
  <FadeUp className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
  <div>
- <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm font-medium text-muted hover:text-secondary transition-colors mb-4">
- <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+ <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm font-medium mb-4">
+ <Link href="/dashboard" className="text-muted hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 rounded">
+ Dashboard
  </Link>
+ <span className="text-tertiary" aria-hidden="true">/</span>
+ <span className="text-primary font-semibold" aria-current="page">Report</span>
+ </nav>
  <div className="flex items-center gap-3 mb-2">
  <div className="w-8 h-8 rounded-lg bg-brand-500/10 border border-brand-500/20 flex items-center justify-center">
  <Fingerprint className="w-4 h-4 text-brand-400" />
@@ -325,9 +334,9 @@ export default function CognitiveReportPage() {
  <div className="mt-6 pt-5 border-t border-subtle">
  <p className={LABEL + ' mb-3'}>Recommended Path</p>
  {report.recommended_simulations.map((sim, i) => (
- <div key={i} className="flex items-center justify-between p-3 bg-secondary rounded-xl hover:bg-tertiary cursor-pointer transition-colors group border border-transparent hover:border-subtle">
+ <div key={i} className="flex items-center justify-between p-3 bg-secondary rounded-xl border border-transparent">
  <div>
- <p className="text-sm font-bold text-primary group-hover:text-brand-400 transition-colors">{sim.type}</p>
+ <p className="text-sm font-bold text-primary">{sim.type}</p>
  <p className="text-[10px] text-muted uppercase tracking-wider mt-0.5">Targets: {sim.targets_weakness.replace('_', ' ')}</p>
  </div>
  <span className="text-[10px] font-mono text-muted">{sim.difficulty}</span>

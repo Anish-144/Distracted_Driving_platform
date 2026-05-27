@@ -989,7 +989,7 @@ function SocialPressureScenario({ scenarioId, title, instruction, durationMs, on
  animate={{ opacity: 1, y: 0 }}
  className="flex items-start gap-2"
  >
- <div className="w-7 h-7 rounded-full bg-tertiary flex items-center justify-center flex-shrink-0 text-xs font-bold text-white">
+ <div className="w-7 h-7 rounded-full bg-tertiary flex items-center justify-center flex-shrink-0 text-xs font-bold text-primary">
  P
  </div>
  <div className="rounded-2xl rounded-tl-none px-3 py-2 text-sm max-w-xs"
@@ -1015,7 +1015,7 @@ function SocialPressureScenario({ scenarioId, title, instruction, durationMs, on
  <div className="flex gap-2">
  <motion.button
  onClick={() => handleResponse(true)}
- className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white border border-violet-500/40"
+ className="flex-1 py-2.5 rounded-xl text-xs font-bold text-primary border border-violet-500/40"
  style={{ background: 'rgba(109,40,217,0.2)' }}
  whileTap={{ scale: 0.97 }}
  >
@@ -1128,12 +1128,12 @@ function TradeoffChoiceScenario({ scenarioId, title, instruction, durationMs, on
  >
  <div className="flex items-start gap-3">
  <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0 ${
- chosen === opt.val ? 'bg-violet-600 text-white' : 'bg-white/8 text-muted'
+ chosen === opt.val ? 'bg-violet-600 text-primary' : 'bg-tertiary text-muted'
  }`}>
  {chosen === opt.val ? <CheckCircle2 className="w-4 h-4" /> : opt.val}
  </div>
  <div>
- <p className={`text-sm font-bold mb-1 ${chosen === opt.val ? 'text-white' : 'text-secondary'}`}>{opt.label}</p>
+ <p className={`text-sm font-bold mb-1 ${chosen === opt.val ? 'text-primary' : 'text-secondary'}`}>{opt.label}</p>
  <p className="text-xs text-muted leading-relaxed">{opt.desc}</p>
  </div>
  </div>
@@ -1250,7 +1250,7 @@ function CalibrationPhase({
  <div className="flex gap-1">
  {scenarios.map((_, i) => (
  <div key={i} className={`h-1 flex-1 rounded-full transition-all duration-500 ${
- i < currentIdx ? 'bg-cyan-500' : i === currentIdx ? 'bg-cyan-400/60' : 'bg-white/8'
+ i < currentIdx ? 'bg-cyan-500' : i === currentIdx ? 'bg-cyan-400/60' : 'bg-tertiary'
  }`} />
  ))}
  </div>
@@ -1303,7 +1303,7 @@ function ResultPhase({
  {/* Icon */}
  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6"
  style={{ background: `rgba(${display.accent}, 0.1)`, border: `1px solid rgba(${display.accent}, 0.2)` }}>
- <ProfileIcon className="w-8 h-8 text-white" />
+ <ProfileIcon className="w-8 h-8 text-primary" />
  </div>
 
  <span className="text-xs font-black uppercase tracking-[0.2em] text-muted mb-2 block">
@@ -1437,9 +1437,9 @@ function ProcessingScreen({ stage }: { stage: string }) {
  }`}
  >
  <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${
- i < activeStage ? 'bg-emerald-500' : i === activeStage ? 'bg-violet-500 animate-pulse' : 'bg-white/8'
+ i < activeStage ? 'bg-emerald-500' : i === activeStage ? 'bg-violet-500 animate-pulse' : 'bg-tertiary'
  }`}>
- {i < activeStage && <CheckCircle2 className="w-3 h-3 text-white" />}
+ {i < activeStage && <CheckCircle2 className="w-3 h-3 text-primary" />}
  </div>
  {s}
  </motion.div>
@@ -1570,7 +1570,7 @@ export default function OnboardingPage() {
  className="flex items-center gap-3 mb-6"
  >
  <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-secondary border border-subtle">
- <Brain className="w-4 h-4 text-white" />
+ <Brain className="w-4 h-4 text-primary" />
  </div>
  <div>
  <p className="text-xs font-black uppercase tracking-widest text-muted">SafeDrive AI</p>

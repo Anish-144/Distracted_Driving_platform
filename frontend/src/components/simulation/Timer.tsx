@@ -37,7 +37,7 @@ export default function Timer({ duration, onExpire }: TimerProps) {
   return (
     <div className="w-full mt-4 px-4">
       <div className="flex items-center justify-between mb-2">
-        <div className={`flex items-center gap-1.5 text-sm font-medium ${isUrgent ? 'text-red-400' : 'text-gray-400'}`}>
+        <div className={`flex items-center gap-1.5 text-sm font-medium ${isUrgent ? 'text-red-400' : 'text-muted'}`}>
           <Clock className={`w-4 h-4 ${isUrgent ? 'animate-pulse' : ''}`} />
           <span>{isUrgent ? '⚡ ' : ''}React now!</span>
         </div>

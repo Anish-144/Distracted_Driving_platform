@@ -118,7 +118,7 @@ export default function AIDialogue() {
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="flex items-center gap-2 text-xs text-gray-400 mb-2 px-1"
+            className="flex items-center gap-2 text-xs text-muted mb-2 px-1"
           >
             <Loader2 className="w-3 h-3 animate-spin" />
             <span>AI coach analyzing…</span>
@@ -166,7 +166,7 @@ export default function AIDialogue() {
                 {/* Mute toggle */}
                 <button
                   onClick={() => setIsMuted((m) => !m)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-muted hover:text-secondary transition-colors"
                   title={isMuted ? 'Unmute voice' : 'Mute voice'}
                 >
                   {isMuted

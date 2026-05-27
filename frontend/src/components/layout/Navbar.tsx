@@ -102,13 +102,13 @@ export default function Navbar() {
           >
             {/* Avatar */}
             <motion.div
-              className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white relative flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg, #059669, #0891b2)' }}
+              className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-overlay relative flex-shrink-0"
+              style={{ background: 'var(--color-primary)' }}
             >
               {/* Pulsing ring */}
               <motion.div
                 className="absolute inset-0 rounded-full"
-                style={{ border: '2px solid rgba(5,150,105,0.4)' }}
+                style={{ border: '2px solid var(--color-primary-container)' }}
                 animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0, 0.5] }}
                 transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
               />
@@ -152,14 +152,14 @@ export default function Navbar() {
                   {/* Actions */}
                   <div className="py-1.5">
                     <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-secondary
-                                       hover:bg-secondary hover:text-brand-600 dark:hover:text-brand-400 transition-colors duration-150 group">
-                      <User className="w-4 h-4 text-muted group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors flex-shrink-0" />
+                                       hover:bg-secondary hover:text-accent transition-colors duration-150 group">
+                      <User className="w-4 h-4 text-muted group-hover:text-accent transition-colors flex-shrink-0" />
                       Profile Settings
                     </button>
                     <button
                       id="logout-btn"
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 dark:text-red-400
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-destructive
                                  hover:bg-red-500/10 transition-colors duration-150 group"
                     >
                       <LogOut className="w-4 h-4 flex-shrink-0" />

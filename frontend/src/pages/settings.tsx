@@ -56,7 +56,7 @@ export default function SettingsPage() {
  <div className={`${CARD} overflow-hidden`}>
  <div className="px-6 py-5 border-b border-subtle flex items-center gap-3 bg-secondary">
  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
- <User className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+ <User className="w-4 h-4 text-success" />
  </div>
  <h2 className="text-base font-bold text-primary tracking-tight">Account Information</h2>
  </div>
@@ -86,7 +86,7 @@ export default function SettingsPage() {
  <div className={`${CARD} overflow-hidden`}>
  <div className="px-6 py-5 border-b border-subtle flex items-center gap-3 bg-secondary">
  <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
- <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+ <Shield className="w-4 h-4 text-accent" />
  </div>
  <h2 className="text-base font-bold text-primary tracking-tight">Privacy & Safety</h2>
  </div>
@@ -104,7 +104,7 @@ export default function SettingsPage() {
  <div className={`${CARD} overflow-hidden`}>
  <div className="px-6 py-5 border-b border-subtle flex items-center gap-3 bg-secondary">
  <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
- <Bell className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+ <Bell className="w-4 h-4 text-warning" />
  </div>
  <h2 className="text-base font-bold text-primary tracking-tight">Notifications</h2>
  </div>

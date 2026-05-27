@@ -10,7 +10,7 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="relative flex items-center justify-center w-10 h-10 rounded-full bg-input border border-input transition-colors duration-300 hover:bg-white/10 dark:hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-brand-500"
+      className="relative flex items-center justify-center w-10 h-10 rounded-full bg-input border border-input transition-colors duration-300 hover:bg-tertiary focus:outline-none focus:ring-2 focus:ring-brand-500"
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
     >
       <motion.div

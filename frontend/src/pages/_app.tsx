@@ -31,7 +31,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
             </p>
             <button 
               onClick={() => window.location.reload()}
-              className="bg-brand-600 hover:bg-brand-700 text-white font-medium px-6 py-2.5 rounded-md w-full transition-colors"
+              className="btn-primary w-full"
             >
               Refresh Page
             </button>
