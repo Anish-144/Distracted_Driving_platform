@@ -71,12 +71,12 @@ def upgrade() -> None:
         sa.Column('raw_telemetry', sa.Text(), nullable=True),
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()')),
     )
-    op.create_index('ix_calibration_events_user_id', 'calibration_events', ['user_id'])
+
 
 
 def downgrade() -> None:
     # Drop calibration_events table
-    op.drop_index('ix_calibration_events_user_id', table_name='calibration_events')
+
     op.drop_table('calibration_events')
 
     # Remove new columns from personality_profiles
