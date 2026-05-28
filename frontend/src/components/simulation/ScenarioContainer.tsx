@@ -20,6 +20,7 @@ import VoiceInput from '@/components/VoiceInput';
 import { CheckCircle, XCircle, Car } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import CoachingAudioCard from '@/components/voice/CoachingAudioCard';
 
 const SCENARIO_TYPES = [
   { type: 'incoming_call', urgency: 'high' },
@@ -322,6 +323,20 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
             </div>
           </div>
           <p className="text-muted text-sm mb-6">You completed {TOTAL_EVENTS} distraction scenarios. {finalScore >= 70 ? ' Great safe driving instincts!' : ' Keep practicing to improve!'}</p>
+          
+          {/* Post-session voice coaching narration */}
+          <div className="mb-6 text-left">
+            <CoachingAudioCard
+              mode="post_session"
+              autoFetch={true}
+              autoplay={true}
+              postSessionPayload={{
+                session_id: sessionId,
+                session_score: finalScore,
+                with_audio: true,
+              }}
+            />
+          </div>
           
           <div className="flex flex-col gap-2.5 mb-6">
             <button onClick={async () => {

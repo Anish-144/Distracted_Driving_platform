@@ -1,4 +1,4 @@
-import Head from 'next/head';
+﻿import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -14,6 +14,7 @@ import {
  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer,
  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ReferenceLine
 } from 'recharts';
+import CoachingAudioCard from '@/components/voice/CoachingAudioCard';
 
 const CARD = 'card overflow-hidden relative';
 const LABEL = 'text-[11px] font-bold uppercase tracking-[0.15em] text-muted';
@@ -153,7 +154,22 @@ export default function CognitiveReportPage() {
  {report.executive_summary}
  </p>
  
- <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-6 border-t border-subtle">
+ 
+  {/* Voice narration card — tap to hear AI coach narrate the executive summary */}
+  <div className="mt-5">
+   <CoachingAudioCard
+    mode="report"
+    autoFetch={false}
+    reportPayload={{
+     driver_type: report.session_context.driver_profile,
+     personality_label: report.session_context.personality_label,
+     safe_decision_rate: report.session_context.safe_decision_rate,
+     executive_summary: report.executive_summary,
+     with_audio: true,
+    }}
+   />
+  </div>
+  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-6 border-t border-subtle">
  <div>
  <p className={LABEL}>Session Score</p>
  <p className="text-2xl font-bold text-primary">{Math.round(report.session_context.score)}%</p>

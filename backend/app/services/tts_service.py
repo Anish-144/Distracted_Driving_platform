@@ -141,6 +141,78 @@ class TTSService:
     def is_available(self) -> bool:
         return bool(settings.ELEVENLABS_API_KEY)
 
+    async def synthesize_with_model(
+        self,
+        text: str,
+        agent_type: str = "instructor",
+        model_id: str = "eleven_multilingual_v2",
+    ) -> Optional[bytes]:
+        """
+        Like synthesize(), but allows overriding the ElevenLabs model.
+        Used by voice_orchestrator.py for long-form coaching narration
+        where eleven_multilingual_v2 quality is preferred over flash speed.
+        Has its own cache partition (model_id is included in the key).
+        """
+        if not settings.ELEVENLABS_API_KEY:
+            logger.debug("ElevenLabs not configured — skipping TTS")
+            return None
+
+        key = _cache_key(f"{model_id}:{text}", agent_type)
+        if key in _audio_cache:
+            logger.debug("TTS cache hit (narration model): %s", key)
+            return _audio_cache[key]
+
+        profile = VOICE_PROFILES.get(agent_type, VOICE_PROFILES["instructor"])
+        voice_id = profile["voice_id"]
+        url = f"{self.ELEVENLABS_API_BASE}/{voice_id}"
+
+        payload = {
+            "text": text,
+            "model_id": model_id,
+            "voice_settings": {
+                "stability": profile["stability"],
+                "similarity_boost": profile["similarity_boost"],
+                "style": profile["style"],
+                "use_speaker_boost": profile["use_speaker_boost"],
+            },
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:  # longer timeout for multilingual
+                response = await client.post(
+                    url,
+                    json=payload,
+                    headers={
+                        "xi-api-key": settings.ELEVENLABS_API_KEY,
+                        "Accept": "audio/mpeg",
+                        "Content-Type": "application/json",
+                    },
+                )
+                response.raise_for_status()
+                audio_bytes = response.content
+
+            if len(_audio_cache) >= _MAX_CACHE_SIZE:
+                oldest_key = next(iter(_audio_cache))
+                del _audio_cache[oldest_key]
+            _audio_cache[key] = audio_bytes
+
+            logger.info(
+                "TTS[%s/%s] synthesized %d bytes for narration: %s",
+                agent_type, model_id, len(audio_bytes), text[:50],
+            )
+            return audio_bytes
+
+        except httpx.HTTPStatusError as e:
+            logger.error(
+                "ElevenLabs narration HTTP error %d: %s",
+                e.response.status_code, e.response.text[:200],
+            )
+            return None
+        except Exception as e:
+            logger.error("ElevenLabs narration TTS error: %s", e)
+            return None
+
 
 # ── Singleton ─────────────────────────────────────────────────────────────────
 tts_service = TTSService()
+

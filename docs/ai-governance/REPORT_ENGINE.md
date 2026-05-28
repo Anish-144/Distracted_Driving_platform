@@ -28,4 +28,5 @@ Background tasks in FastAPI run in a separate execution context.
 
 - The report must synthesize the user's claimed personality (e.g., "Highly cautious") with their actual session behavior (e.g., "Yielded to social pressure 3 times").
 - The output format is structured JSON containing narrative sections (`executive_summary`, `emotional_trigger_analysis`, `risk_projection`).
+- **Prompt Formatting**: When embedding JSON structures within Python prompts intended for `str.format()`, you MUST double-escape all literal curly braces (e.g., `{{` and `}}`) to prevent `KeyError` exceptions during string interpolation.
 - Must handle missing data gracefully (e.g., if the user skipped onboarding).

@@ -1,4 +1,4 @@
-import Head from 'next/head';
+﻿import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -8,15 +8,16 @@ import { createSession } from '@/api/sessions';
 import AppShell from '@/components/layout/AppShell';
 import ScenarioContainer from '@/components/simulation/ScenarioContainer';
 import ScoreDisplay from '@/components/simulation/ScoreDisplay';
+import SimulationVoiceOverlay from '@/components/voice/SimulationVoiceOverlay';
 import { motion } from 'framer-motion';
 import { FadeUp } from '@/components/motion/ScrollReveal';
 import { ArrowLeft, Info, PlayCircle, Loader2, Shield, Zap } from 'lucide-react';
 import Link from 'next/link';
 
 const scenarios = [
- { icon: '📱', name: 'Incoming Phone Call', desc: 'Your phone rings. Do you answer, decline, or ignore it?', difficulty: 'Medium', color: '#f59e0b' },
- { icon: '💬', name: 'WhatsApp Notification', desc: 'A buzzing message notification with preview text appears.', difficulty: 'Easy', color: '#10b981' },
- { icon: '🗺️', name: 'GPS Rerouting Alert', desc: 'Your GPS needs attention — new route calculated, turn in 200m.', difficulty: 'Hard', color: '#ef4444' },
+ { icon: 'ðŸ“±', name: 'Incoming Phone Call', desc: 'Your phone rings. Do you answer, decline, or ignore it?', difficulty: 'Medium', color: '#f59e0b' },
+ { icon: 'ðŸ’¬', name: 'WhatsApp Notification', desc: 'A buzzing message notification with preview text appears.', difficulty: 'Easy', color: '#10b981' },
+ { icon: 'ðŸ—ºï¸', name: 'GPS Rerouting Alert', desc: 'Your GPS needs attention â€” new route calculated, turn in 200m.', difficulty: 'Hard', color: '#ef4444' },
 ];
 
 const stagger = {
@@ -49,7 +50,7 @@ export default function SimulationPage() {
  try {
  const session = await createSession();
  dispatch(sessionStarted({ sessionId: session.id, score: session.score }));
- toast.success('Session started! Get ready for distractions... 🚗');
+ toast.success('Session started! Get ready for distractions... ðŸš—');
  } catch { toast.error('Failed to start session. Please try again.'); }
  finally { setIsStarting(false); }
  };
@@ -60,12 +61,14 @@ export default function SimulationPage() {
  return (
  <>
  <Head>
- <title>Driving Simulation — SafeDrive AI</title>
+ <title>Driving Simulation â€” SafeDrive AI</title>
  <meta name="description" content="Practice responding to driving distractions in a safe training environment." />
  </Head>
 
  <AppShell>
- {/* Header */}
+  {/* Floating voice indicator */}
+  <SimulationVoiceOverlay />
+  {/* Header */}
  <div className="flex items-center justify-between mb-8">
  <div className="flex items-center gap-4">
  <Link href="/dashboard"
@@ -102,7 +105,7 @@ export default function SimulationPage() {
  animate={{ opacity: [0.1, 0.4, 0.1] }}
  transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
  >
- 🚗
+ ðŸš—
  </motion.div>
 
  <div className="relative z-10">
