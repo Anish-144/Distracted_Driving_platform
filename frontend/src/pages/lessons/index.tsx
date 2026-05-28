@@ -4,14 +4,14 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAppSelector, useAppDispatch } from '@/store';
-import { fetchProgressData, generateNewAILesson, completeLesson } from '@/store/progressSlice';
+import { fetchProgressData, generateNewAILesson, completeLesson, retakeLesson } from '@/store/progressSlice';
 import AppShell from '@/components/layout/AppShell';
 import { FadeUp } from '@/components/motion/ScrollReveal';
 import {
  BookOpen, ChevronRight, PlayCircle, Star, Sparkles,
  Brain, Target, Zap, CheckCircle2, RefreshCw, Clock,
  TrendingUp, Shield, AlertTriangle, ChevronDown, ChevronUp,
- Award, BarChart3, X
+ Award, BarChart3, X, RotateCcw
 } from 'lucide-react';
 import { AILesson } from '@/api/lessons';
 
@@ -176,11 +176,12 @@ interface SelectedLessonState {
 interface LessonDetailModalProps {
  lesson: SelectedLessonState | null;
  onClose: () => void;
- onComplete: () => Promise<void>;
- completing: boolean;
+  onComplete: () => Promise<void>;
+  onRetake: () => Promise<void>;
+  completing: boolean;
 }
 
-function LessonDetailModal({ lesson, onClose, onComplete, completing }: LessonDetailModalProps) {
+function LessonDetailModal({ lesson, onClose, onComplete, onRetake, completing }: LessonDetailModalProps) {
  if (!lesson) return null;
 
   return (
@@ -337,9 +338,18 @@ function LessonDetailModal({ lesson, onClose, onComplete, completing }: LessonDe
           </div>
           <div className="flex items-center gap-3">
             {lesson.completed ? (
-              <span className="flex items-center gap-1.5 text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-4 py-2 rounded-xl border border-emerald-500/20">
-                <CheckCircle2 className="w-4 h-4" /> Dossier Completed
-              </span>
+              <button
+                onClick={onRetake}
+                disabled={completing}
+                className="btn-secondary flex items-center gap-2 disabled:opacity-50"
+              >
+                {completing ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <RotateCcw className="w-4 h-4" />
+                )}
+                {completing ? 'Logging...' : 'Log Review'}
+              </button>
             ) : (
               <button
                 onClick={onComplete}
@@ -412,7 +422,7 @@ function AILessonCard({ lesson, index, onOpen }: { lesson: AILesson; index: numb
     e.stopPropagation();
     setCompleting(true);
     try {
-      await dispatch(completeLesson({ lessonId: lesson.id, score: 100 })).unwrap();
+      await dispatch(completeLesson(lesson.id)).unwrap();
       toast.success('Lesson marked complete!');
     } catch (err: any) {
       toast.error(err || 'Failed to complete lesson.');
@@ -496,7 +506,7 @@ function AILessonCard({ lesson, index, onOpen }: { lesson: AILesson; index: numb
  {/* Card Footer */}
   <div className="px-5 py-3 flex items-center justify-between bg-secondary border-t border-subtle">
  <span className="flex items-center gap-1 text-sm text-brand-400 font-bold hover:text-brand-300 transition-colors">
- View Details <ChevronRight className="w-4 h-4 ml-0.5 animate-pulse" />
+ View Details <ChevronRight className="w-4 h-4 ml-0.5" />
  </span>
  {!lesson.completed ? (
  <button
@@ -511,12 +521,12 @@ function AILessonCard({ lesson, index, onOpen }: { lesson: AILesson; index: numb
  )}
  {completing ? 'Saving...' : 'Mark Complete'}
  </button>
- ) : (
- <div className="flex items-center gap-1.5 text-sm font-semibold text-brand-400">
- <Award className="w-4 h-4 text-brand-500" />
- {lesson.completion_score != null ? `${lesson.completion_score}% score` : 'Completed'}
- </div>
- )}
+  ) : (
+  <div className="flex items-center gap-1.5 text-sm font-semibold text-brand-400 group-hover:text-brand-300 transition-colors">
+  <RotateCcw className="w-4 h-4" />
+  Retake Lesson
+  </div>
+  )}
  </div>
  </div>
  </FadeUp>
@@ -638,7 +648,7 @@ export default function LessonsPage() {
     setCompleting(true);
     if (selectedLesson.isAI) {
       try {
-        await dispatch(completeLesson({ lessonId: selectedLesson.id, score: 100 })).unwrap();
+        await dispatch(completeLesson(selectedLesson.id)).unwrap();
         setSelectedLesson(prev => prev ? { ...prev, completed: true } : null);
         toast.success('AI Lesson completed successfully!');
       } catch (err: any) {
@@ -656,6 +666,24 @@ export default function LessonsPage() {
       } catch (err) {
         toast.error('Failed to complete lesson.');
       }
+    }
+    setCompleting(false);
+  };
+
+  const handleRetakeFromModal = async () => {
+    if (!selectedLesson) return;
+    setCompleting(true);
+    if (selectedLesson.isAI) {
+      try {
+        await dispatch(retakeLesson(selectedLesson.id)).unwrap();
+        toast.success('Review logged successfully!');
+        setSelectedLesson(null);
+      } catch (err: any) {
+        toast.error(err || 'Failed to log review.');
+      }
+    } else {
+      toast.success('Curriculum module review logged!');
+      setSelectedLesson(null);
     }
     setCompleting(false);
   };
@@ -801,7 +829,7 @@ export default function LessonsPage() {
                         <div className="flex justify-center items-center md:rotate-0 rotate-90 md:col-span-1 opacity-60">
                           <div className="flex items-center">
                             <div className="w-6 h-[2px] bg-gradient-to-r from-transparent to-primary/40 rounded-full" />
-                            <ChevronRight className="w-4 h-4 text-primary/40 -ml-1 animate-pulse" />
+                            <ChevronRight className="w-4 h-4 text-primary/40 -ml-1" />
                           </div>
                         </div>
                         <div className="p-4 rounded-xl bg-secondary border border-subtle md:col-span-2">
@@ -823,7 +851,7 @@ export default function LessonsPage() {
  <div className="flex items-center gap-2 mb-4">
  <Sparkles className="w-4 h-4 text-primary" />
  <h2 className="text-lg font-bold text-primary">Generated From Your Last Session</h2>
- <span className="text-[10px] bg-red-500/10 text-red-400 border border-red-500/20 rounded-full px-2.5 py-0.5 font-bold uppercase tracking-wider animate-pulse">Correction Required</span>
+ <span className="text-[10px] bg-red-500/10 text-red-400 border border-red-500/20 rounded-full px-2.5 py-0.5 font-bold uppercase tracking-wider">Correction Required</span>
  </div>
  </FadeUp>
  <div className="max-w-2xl">
@@ -1035,9 +1063,10 @@ export default function LessonsPage() {
  {/* Immersive Lesson Detail Modal */}
  <LessonDetailModal 
  lesson={selectedLesson}
- onClose={() => setSelectedLesson(null)}
- onComplete={handleCompleteFromModal}
- completing={completing}
+        onClose={() => setSelectedLesson(null)}
+        onComplete={handleCompleteFromModal}
+        onRetake={handleRetakeFromModal}
+        completing={completing}
  />
  </AppShell>
  </>

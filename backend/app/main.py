@@ -11,7 +11,7 @@ import logging
 from app.config import settings
 from app.database import init_db
 from app.routes import auth, user, sessions, events, lessons, progress, ai
-from app.routes import onboarding, scenarios, cognitive_reports  # new: personality + AI scenario routes
+from app.routes import onboarding, scenarios, cognitive_reports, settings as settings_router  # new: personality + AI scenario routes
 # Ensure all models are imported so Base.metadata.create_all picks them up
 from app.models import user as _user_model  # noqa: F401
 from app.models import lesson as _lesson_model  # noqa: F401
@@ -187,6 +187,7 @@ app.include_router(ai.router)
 app.include_router(onboarding.router)
 app.include_router(scenarios.router)
 app.include_router(cognitive_reports.router)
+app.include_router(settings_router.router, prefix="/api/settings", tags=["Settings"])
 
 
 # ─── Health Check ─────────────────────────────────────────────────────────────

@@ -4,6 +4,7 @@ import authReducer from './authSlice';
 import sessionReducer from './sessionSlice';
 import progressReducer from './progressSlice';
 import aiReducer from './aiSlice';
+import settingsReducer from './settingsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -11,6 +12,7 @@ export const store = configureStore({
     session: sessionReducer,
     progress: progressReducer,
     ai: aiReducer,
+    settings: settingsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

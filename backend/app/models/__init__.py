@@ -1,6 +1,7 @@
 """Models package — import all models here so Base.metadata knows about them."""
 
 from app.models.user import User  # noqa: F401
+from app.models.user_settings import UserSettings  # noqa: F401
 from app.models.session import Session  # noqa: F401
 from app.models.event import Event  # noqa: F401
 from app.models.behavioral_log import BehavioralLog  # noqa: F401
@@ -12,7 +13,7 @@ from app.models.cognitive_report import CognitiveReport  # noqa: F401
 from app.models.calibration_event import CalibrationEvent  # noqa: F401
 
 __all__ = [
-    "User", "Session", "Event", "BehavioralLog", "Scenario", "Lesson",
+    "User", "UserSettings", "Session", "Event", "BehavioralLog", "Scenario", "Lesson",
     "PersonalityProfile", "GeneratedScenario", "CognitiveReport", "CalibrationEvent"
 ]
 

@@ -59,7 +59,7 @@ class AILessonResponse(BaseModel):
     distraction_tolerance_target: float
     ai_provider: str
     completed: bool
-    completion_score: Optional[float]
+    review_count: int
     completed_at: Optional[str]
     created_at: str
     session_id: Optional[str] = None
@@ -71,7 +71,7 @@ class AILessonResponse(BaseModel):
 
 
 class CompleteLessonRequest(BaseModel):
-    completion_score: float = 100.0
+    pass
 
 
 def _serialize_ai_lesson(lesson: UserLesson) -> AILessonResponse:
@@ -139,7 +139,7 @@ def _serialize_ai_lesson(lesson: UserLesson) -> AILessonResponse:
         distraction_tolerance_target=lesson.distraction_tolerance_target,
         ai_provider=lesson.ai_provider,
         completed=lesson.completed,
-        completion_score=lesson.completion_score,
+        review_count=lesson.review_count,
         completed_at=lesson.completed_at.isoformat() if lesson.completed_at else None,
         created_at=lesson.created_at.isoformat(),
         session_id=lesson.session_id,
@@ -353,7 +353,27 @@ async def complete_ai_lesson(
         db=db,
         lesson_id=lesson_id,
         user_id=current_user.id,
-        completion_score=body.completion_score,
+    )
+    if lesson is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Lesson not found or does not belong to this user",
+        )
+    await db.commit()
+    return _serialize_ai_lesson(lesson)
+
+
+@router.post("/ai/{lesson_id}/retake", response_model=AILessonResponse)
+async def retake_ai_lesson(
+    lesson_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Mark a completed lesson as reviewed/retaken."""
+    lesson = await lesson_generation_service.mark_retaken(
+        db=db,
+        lesson_id=lesson_id,
+        user_id=current_user.id,
     )
     if lesson is None:
         raise HTTPException(

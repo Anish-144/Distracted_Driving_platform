@@ -740,3 +740,69 @@ pm run build with zero regressions or hydration errors. Validated smooth layout 
 3. **Component Splitting for Static Lessons**: Separated the static lessons loop into ctiveStaticLessons and completedStaticLessons within lessons/index.tsx. Completed static lessons now move to a dedicated "Completed Recommendations" section with subdued visual styling (opacity, muted borders), mirroring the AI lesson history behavior.
 4. **Calm Empty States**: Implemented an explicit "All Active Modules Completed" empty state that confirms all risks are resolved and encourages starting a new simulation session to uncover further optimization areas.
 
+ 
+ 
+## May 28, 2026 - Lesson State Consistency & Action Semantics Phase
+
+**Issues Addressed**:
+1. **Fake Scoring Mechanics**: Removed the semantically incorrect `completion_score` from the database and UI, since lessons are behavioral interventions, not tests.
+2. **Action Semantics**: Completed lessons previously exposed a passive `Dossier Completed` badge or a gamified score. Replaced this with a `Retake Lesson` flow to allow genuine behavioral review.
+3. **Database Consistency**: Replaced `completion_score` with `review_count` via Alembic migration.
+
+**Fixes Implemented**:
+1. **Schema Updates**: Dropped `completion_score` and added `review_count` (default 0) to track how many times a lesson was retaken/reviewed.
+2. **Backend API**: Added `POST /ai/{lesson_id}/retake` endpoint in FastAPI to increment `review_count` without creating duplicate lessons.
+3. **Frontend Refactor**: Updated `AILessonCard` to show a clear `Retake Lesson` CTA instead of a score. Updated `LessonDetailModal` to feature a `Log Review` button for completed lessons that hits the new retake endpoint.
+4. **Build Validation**: Successfully completed a fresh Next.js production build with no type errors.
+
+
+## May 28, 2026 - False Affordance & Visual Noise Cleanup Phase
+
+**Issues Addressed**:
+1. **False Affordance Indicators**: A small purple dot appeared next to the `Psychological Profile` tab in the Research dashboard, falsely implying an unread notification or new insight where none existed.
+2. **Visual Noise**: Various components across the platform used `animate-pulse` on decorative elements (e.g., chevron icons in lesson cards, static status badges), drawing unnecessary attention and acting as fake live-status signals.
+
+**Fixes Implemented**:
+1. **Removed Fake Dot**: Stripped the `hasPsychData` purple dot indicator from the Psychological Profile tab in `research.tsx`.
+2. **Cleaned Animations**: Removed `animate-pulse` from the `ChevronRight` icon in the AI lesson card footer and from the `Correction Required` badge, ensuring that only actual system states (loading, errors, unread messages) utilize pulsing attention markers.
+3. **Semantic Validation**: Verified that remaining dots and pulses in the application are strictly tied to real behavioral meaning (e.g., loading skeletons, unread messages from Priya during onboarding, urgent timer warnings during simulations).
+
+
+## May 28, 2026 - Account Menu Interaction Consistency Phase
+
+**Issues Addressed**:
+1. **Dead UI in Account Menu**: The `Profile Settings` button in the navbar account dropdown was visually styled as interactive but lacked an `onClick` handler, resulting in a dead-end UI.
+2. **Missing Interaction Feedback**: Key dropdown elements lacked standard keyboard focus rings and active-press feedback, compromising accessibility and interaction consistency.
+
+**Fixes Implemented**:
+1. **Connected Profile Settings**: Replaced the inert `<button>` with a Next.js `<Link href="/settings">`, ensuring it routes correctly to the Settings page without a full page reload, while correctly closing the dropdown menu on click.
+2. **Interaction Hardening**: Audited all account menu actions (Sign Out, Avatar click, backdrop). Added `focus:outline-none`, `focus:ring-2`, `focus:bg-secondary`, and `active:scale-[0.98]` utility classes to the Avatar toggle and dropdown items to provide immediate, tactile feedback for both mouse and keyboard interactions.
+3. **Dead UI Audit**: Verified that other clickable cards (e.g., Quick Actions, Recommended Lessons in the dashboard) are properly wrapped in Next.js `<Link>` components or possess functioning `onClick` handlers. No placeholder navigation elements or dead buttons remain.
+
+
+## May 28, 2026 - Settings Experience Expansion & Account Management Phase
+
+**Issues Addressed**:
+1. **Underpowered Settings Page**: The existing settings page contained placeholder components (`available in future update`) and lacked real account management capability, making the platform feel incomplete.
+
+**Fixes Implemented**:
+1. **Expanded Account Forms**: Transformed the static Account Information into a responsive form supporting Full Name, Email, Phone Number, and Emergency Contact.
+2. **Added Security Management**: Introduced a Change Password form complete with current/new password fields and synchronized mock validation logic.
+3. **Functional Notification Toggles**: Replaced placeholders with an interactive set of custom toggle components allowing fine-grained control over Lesson Reminders, Weekly Progress, and Coaching Alerts.
+4. **Training Preferences**: Added controls specifically aligned with the platform's behavioral focus (Simulation Difficulty, Coaching Intensity, Audio Guidance).
+5. **Data Privacy**: Expanded the Privacy section to include data retention disclosures and an `Export My Data` action.
+6. **Danger Zone & Account Actions**: Implemented secure `Reset Progress` and `Delete Account` modal dialogs styled with a restrained, non-aggressive danger aesthetic, featuring backdrop blurs and confirmation gates.
+7. **Accessibility & Validation**: Built semantic `<form>` blocks, added keyboard focus rings (`focus:ring-brand-500`) to toggles and inputs, and maintained the platform's premium, human-centric design language.
+
+
+## May 28, 2026 - Settings Persistence Architecture Phase
+
+**Issues Addressed**:
+1. **Lack of Settings Persistence**: The UI toggles for notification and training preferences were correctly built but only existed in local React state, leading to complete reversion on page refresh or relogin.
+
+**Architectural Additions**:
+1. **Database Schema Expansion**: Generated an Alembic migration adding the `user_settings` table with a strict 1-to-1 relationship to the `users` table. It features safe database-level defaults for boolean notifications and Enum-like text fields for training difficulty.
+2. **Backend API layer**: Created `/api/settings` routes for `GET` and `PATCH`. Implemented lazy instantiation so querying an account without pre-existing settings safely creates the default row.
+3. **Redux State Management**: Deployed `settingsSlice.ts` utilizing Redux Toolkit `createAsyncThunk`. We dispatch an `optimisticUpdate` synchronously upon toggle, providing instantaneous 0ms visual feedback to the user.
+4. **Frontend API & Rollback Integration**: Wired the `settings.tsx` component to Redux. Any toggle or dropdown choice fires the optimistic update, waits for the background PATCH, and catches network failures to rollback the toggle state seamlessly with a toast error notification.
+

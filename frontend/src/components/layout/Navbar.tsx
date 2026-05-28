@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useAppSelector, useAppDispatch } from '@/store';
@@ -94,7 +95,7 @@ export default function Navbar() {
           <motion.button
             id="user-menu-btn"
             onClick={() => setShowDropdown(!showDropdown)}
-            className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-secondary
+            className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-secondary focus:bg-secondary focus:outline-none focus:ring-2 focus:ring-brand-500/50
                        transition-colors duration-200 border border-transparent hover:border-subtle"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -151,16 +152,22 @@ export default function Navbar() {
 
                   {/* Actions */}
                   <div className="py-1.5">
-                    <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-secondary
-                                       hover:bg-secondary hover:text-accent transition-colors duration-150 group">
+                    <Link 
+                      href="/settings"
+                      onClick={() => setShowDropdown(false)}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-secondary
+                                 hover:bg-secondary hover:text-accent focus:bg-secondary focus:outline-none 
+                                 active:scale-[0.98] transition-all duration-150 group"
+                    >
                       <User className="w-4 h-4 text-muted group-hover:text-accent transition-colors flex-shrink-0" />
                       Profile Settings
-                    </button>
+                    </Link>
                     <button
                       id="logout-btn"
                       onClick={handleLogout}
                       className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-destructive
-                                 hover:bg-red-500/10 transition-colors duration-150 group"
+                                 hover:bg-red-500/10 focus:bg-red-500/10 focus:outline-none 
+                                 active:scale-[0.98] transition-all duration-150 group"
                     >
                       <LogOut className="w-4 h-4 flex-shrink-0" />
                       Sign Out

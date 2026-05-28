@@ -222,9 +222,6 @@ export default function ResearchDashboard() {
  >
  <Brain className="w-4 h-4" />
  Psychological Profile
- {hasPsychData && (
- <span className="w-2 h-2 rounded-full bg-violet-500 flex-shrink-0" />
- )}
  </button>
  </div>
  </FadeUp>

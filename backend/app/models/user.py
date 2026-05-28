@@ -45,6 +45,7 @@ class User(Base):
 
     # Relationships
     sessions: Mapped[list["Session"]] = relationship("Session", back_populates="user", lazy="select")
+    settings: Mapped["UserSettings"] = relationship("UserSettings", back_populates="user", uselist=False, lazy="joined")
 
     def __repr__(self) -> str:
         return f"<User id={self.id} email={self.email} profile={self.profile_type}>"

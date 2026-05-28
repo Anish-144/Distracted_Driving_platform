@@ -73,9 +73,12 @@ export const generateAILessonFromSession = async (sessionId: string): Promise<AI
   return data;
 };
 
-export const completeAILesson = async (lessonId: string, completionScore: number = 100): Promise<AILesson> => {
-  const { data } = await apiClient.post<AILesson>(`/lessons/ai/${lessonId}/complete`, {
-    completion_score: completionScore,
-  });
+export const completeAILesson = async (lessonId: string): Promise<AILesson> => {
+  const { data } = await apiClient.post<AILesson>(`/lessons/ai/${lessonId}/complete`, {});
+  return data;
+};
+
+export const retakeAILesson = async (lessonId: string): Promise<AILesson> => {
+  const { data } = await apiClient.post<AILesson>(`/lessons/ai/${lessonId}/retake`, {});
   return data;
 };

@@ -9,7 +9,7 @@ completion state.
 import uuid
 from datetime import datetime
 from sqlalchemy import (
-    String, Text, Boolean, Float, DateTime,
+    String, Text, Boolean, Float, DateTime, Integer,
     ForeignKey, func
 )
 from sqlalchemy.orm import Mapped, mapped_column
@@ -110,9 +110,9 @@ class UserLesson(Base):
 
     # ── Completion Tracking ───────────────────────────────────────────────────
     completed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    completion_score: Mapped[float] = mapped_column(
-        Float, nullable=True,
-        comment="Score achieved when completing the lesson (0-100)"
+    review_count: Mapped[int] = mapped_column(
+        nullable=False, default=0, server_default="0",
+        comment="Number of times this lesson was reviewed/retaken"
     )
     completed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True

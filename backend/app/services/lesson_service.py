@@ -363,9 +363,8 @@ class LessonGenerationService:
         db: AsyncSession,
         lesson_id: str,
         user_id: str,
-        completion_score: float = 100.0,
     ) -> UserLesson | None:
-        """Mark a lesson as completed with an optional score."""
+        """Mark a lesson as completed."""
         from datetime import datetime, timezone
         result = await db.execute(
             select(UserLesson).where(
@@ -377,7 +376,31 @@ class LessonGenerationService:
         if lesson is None:
             return None
         lesson.completed = True
-        lesson.completion_score = completion_score
+        lesson.review_count = 1
+        lesson.completed_at = datetime.now(timezone.utc)
+        db.add(lesson)
+        await db.flush()
+        await db.refresh(lesson)
+        return lesson
+
+    async def mark_retaken(
+        self,
+        db: AsyncSession,
+        lesson_id: str,
+        user_id: str,
+    ) -> UserLesson | None:
+        """Mark a completed lesson as reviewed/retaken."""
+        from datetime import datetime, timezone
+        result = await db.execute(
+            select(UserLesson).where(
+                UserLesson.id == lesson_id,
+                UserLesson.user_id == user_id,
+            )
+        )
+        lesson = result.scalar_one_or_none()
+        if lesson is None or not lesson.completed:
+            return None
+        lesson.review_count += 1
         lesson.completed_at = datetime.now(timezone.utc)
         db.add(lesson)
         await db.flush()

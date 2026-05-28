@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { getMyProgress, ProgressStats } from '@/api/progress';
-import { getRecommendedLessons, getAllLessons, Lesson, getAIRecommendedLessons, AILesson, generateAILesson, completeAILesson, generateAILessonFromSession } from '@/api/lessons';
+import { getRecommendedLessons, getAllLessons, Lesson, getAIRecommendedLessons, AILesson, generateAILesson, completeAILesson, generateAILessonFromSession, retakeAILesson } from '@/api/lessons';
 import { generateCognitiveReport } from '@/api/ai';
 
 interface ProgressState {
@@ -56,12 +56,24 @@ export const generateNewAILesson = createAsyncThunk(
 
 export const completeLesson = createAsyncThunk(
   'progress/completeLesson',
-  async ({ lessonId, score }: { lessonId: string; score?: number }, { rejectWithValue }) => {
+  async (lessonId: string, { rejectWithValue }) => {
     try {
-      const updated = await completeAILesson(lessonId, score ?? 100);
+      const updated = await completeAILesson(lessonId);
       return updated;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.detail || 'Failed to complete lesson');
+    }
+  }
+);
+
+export const retakeLesson = createAsyncThunk(
+  'progress/retakeLesson',
+  async (lessonId: string, { rejectWithValue }) => {
+    try {
+      const updated = await retakeAILesson(lessonId);
+      return updated;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.detail || 'Failed to retake lesson');
     }
   }
 );
@@ -174,6 +186,12 @@ const progressSlice = createSlice({
         if (state.stats) {
           state.stats.timeline = state.stats.timeline || [];
           state.stats.total_sessions = (state.stats.total_sessions || 0) + 1;
+        }
+      })
+      .addCase(retakeLesson.fulfilled, (state, action) => {
+        const idx = state.aiLessons.findIndex(l => l.id === action.payload.id);
+        if (idx !== -1) {
+          state.aiLessons[idx] = action.payload;
         }
       });
   },
