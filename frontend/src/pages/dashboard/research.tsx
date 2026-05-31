@@ -22,6 +22,7 @@ interface ObservabilityMetrics {
  cognitive_overload_failure_pct: number;
  avg_hesitation_recovery_sec: number;
  intervention_fatigue_index: number;
+ data_source_summary?: string | null;
 }
 
 interface PsychologicalMetrics {
@@ -231,6 +232,15 @@ export default function ResearchDashboard() {
  <>
  {hasObservabilityData ? (
  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+
+ {metrics?.data_source_summary && (
+ <div className="md:col-span-2 flex items-center gap-2 px-4 py-2.5 rounded-xl border" style={{ background: 'rgba(5,150,105,0.06)', borderColor: 'rgba(5,150,105,0.2)' }}>
+ <Info className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#34d399' }} />
+ <span className="text-[11px] font-medium" style={{ color: '#6ee7b7' }}>
+ <span className="font-bold" style={{ color: '#34d399' }}>Data Source:</span> {metrics.data_source_summary}
+ </span>
+ </div>
+ )}
 
  <FadeUp delay={0.1}>
  <TelemetryCard

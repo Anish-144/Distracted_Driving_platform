@@ -442,7 +442,9 @@ function AILessonCard({ lesson, index, onOpen }: { lesson: AILesson; index: numb
  <div className="flex items-start justify-between gap-3 mb-3">
  <div className="flex items-center gap-3 min-w-0">
  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 bg-secondary border border-subtle text-2xl`}>
- {scenarioIcon(simSource)}
+ <span style={{ fontFamily: '"Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"' }}>
+   {scenarioIcon(simSource)}
+ </span>
  </div>
  <div>
  <h3 className={`text-base font-bold text-primary leading-tight`}>{lesson.title}</h3>

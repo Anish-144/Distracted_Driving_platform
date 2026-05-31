@@ -35,6 +35,8 @@ _FALLBACK_LESSONS = {
         "behavioral_diagnosis": "You react to distractions too quickly — your decisions are reflexes, not conscious choices. Sub-2-second responses to phone notifications indicate that your cognitive filter is bypassed, creating a direct stimulus-response loop that bypasses rational decision-making entirely.",
         "psychological_interpretation": "Impulsive responding is driven by the brain's reward pathway: notifications trigger dopamine anticipation, overriding the prefrontal cortex's braking mechanism. The faster the reflex, the deeper the habitual pathway. Each unchecked impulsive reaction reinforces the neural circuit.",
         "real_world_risk_impact": "Impulsive phone interactions while driving increase crash risk by 4.1x compared to sober driving (NHTSA, 2023). The first 2 seconds after a distraction appears is the highest-risk window — when your instinct fires before your judgment activates.",
+        "session_trigger": "Generated because your session log shows sub-2-second reactions to incoming call scenarios — a reflex-driven response bypassing conscious decision-making.",
+        "measurable_goal": "Reduce sub-2-second unsafe interactions by 60% over 4 sessions. Target: < 1 impulsive reaction per session, sustained for 2 consecutive sessions.",
         "cognitive_coaching_narrative": "Your instinct is to respond immediately — that reflex is the problem, not your intention. The solution is not willpower; it's a deliberate 3-second mental pause inserted between stimulus and response. Count silently: one, two, three. By then, the urgency feeling dissipates. Over repeated practice, this pause becomes automatic and permanently replaces the impulsive reflex.",
         "scenario_replay_analysis": "In your recent session, when the phone notification appeared, your response latency was under 2 seconds — suggesting the decision was made before conscious evaluation. The cognitive failure occurred between notification onset and your first muscle movement. You reacted before you decided.",
         "behavioral_exercises": ["Count to 3 silently before making any response to in-car alerts", "Practice the 'commit-to-ignore' rule: decide before the session starts that all notifications will be ignored", "Log every moment you feel the urge to react but successfully suppress it"],
@@ -59,6 +61,8 @@ _FALLBACK_LESSONS = {
         "attention_reinforcement_tasks": ["Complete 3 consecutive sessions with zero voluntary distraction interactions", "Practice multi-distraction filtering mode — maintain safe decision rate above 85%", "Run ambient noise simulation to build focus resilience against background distraction"],
         "future_risk_projection": "Persistent attentional fragmentation patterns correlate with significantly elevated intersection hazard risk. Without intervention, cognitive capture episodes will increase in frequency as notification density increases in real driving environments.",
         "personalized_improvement_strategy": "Target 85% safe decision rate consistently across 5 sessions. Begin with single-distraction scenarios, progress to dual-distraction, then high-density environments. Treat focus as a skill, not a personality trait — it is trainable with deliberate repetition.",
+        "session_trigger": "Generated after detecting rapid attention shift (< 500ms) to notification overlays during your latest simulation — attentional capture preceded conscious evaluation.",
+        "measurable_goal": "Achieve 85% safe decision rate across 5 consecutive sessions. Reduce voluntary distraction interactions to zero per session within 3 sessions.",
         "difficulty": "Beginner",
         "reaction_time_target": 3.0,
         "distraction_tolerance_target": 0.85,
@@ -76,6 +80,8 @@ _FALLBACK_LESSONS = {
         "attention_reinforcement_tasks": ["Complete timed decision mode with a 3-second forced decision window", "Run high-stakes scenario mode to build rapid commitment under pressure", "Practice confidence training sequences with increasing urgency cues"],
         "future_risk_projection": "Chronic hesitation under distraction creates a dangerous hybrid state: eyes on the distraction, mind on the decision, neither fully on the road. Without training, hesitation latency tends to increase as perceived stakes increase, creating worst-case performance in highest-risk scenarios.",
         "personalized_improvement_strategy": "Reduce average response time from 6s+ to under 4s within 3 sessions. Use timed decision mode as primary training tool. Progress to confidence-building module once sub-4s responses are consistent for two consecutive sessions.",
+        "session_trigger": "Generated because your latest session shows decision latency exceeding 5 seconds on multiple events — prolonged uncertainty under distraction pressure was the primary failure pattern.",
+        "measurable_goal": "Reduce average decision latency below 3.5 seconds within 3 sessions. Achieve zero >5-second hesitations per session for 2 consecutive sessions.",
         "difficulty": "Intermediate",
         "reaction_time_target": 3.5,
         "distraction_tolerance_target": 0.80,
@@ -93,6 +99,8 @@ _FALLBACK_LESSONS = {
         "attention_reinforcement_tasks": ["Complete standard randomized mode for 3 consecutive sessions tracking consistency score", "Run consistency challenge mode with mixed difficulty sequences", "Compare your best session to your worst: identify the one behavioral difference"],
         "future_risk_projection": "Without a consistent decision framework, performance will remain situationally variable. Fatigue, stress, and emotional arousal will continue to create unpredictable safe-rate drops in real driving environments, increasing incident probability under non-ideal conditions.",
         "personalized_improvement_strategy": "Reduce session score variance to ±10 points within 6 sessions. Establish a consistent pre-drive ritual as your behavioral anchor. Progress to Advanced Consistency module when variance drops below 15 points for 3 consecutive sessions.",
+        "session_trigger": "Generated because cross-session analysis shows your safe decision rate varies by more than 25 percentage points — context-dependent performance without a stable behavioral anchor.",
+        "measurable_goal": "Reduce score variance to ±10 points within 6 sessions. Maintain safe rate above 75% in all sessions for 3 consecutive sessions.",
         "difficulty": "Advanced",
         "reaction_time_target": 2.8,
         "distraction_tolerance_target": 0.82,
@@ -110,6 +118,8 @@ _FALLBACK_LESSONS = {
         "attention_reinforcement_tasks": ["Complete expert pressure mode targeting 95%+ safe decision rate", "Run multi-passenger simulation to test social distraction resilience", "Complete 5 consecutive sessions in advanced mode without dropping below 90%"],
         "future_risk_projection": "Without advanced resilience training, expert-level performance will degrade under real-world compound conditions. The gap between simulation performance and real driving performance widens with complexity — advanced training closes this generalization deficit.",
         "personalized_improvement_strategy": "Maintain 95%+ safe decision rate under advanced difficulty within 4 sessions. Target compound distraction mastery. Progress to Expert Resilience certification track when sustained performance exceeds 95% for 3 consecutive advanced sessions.",
+        "session_trigger": "Generated because your baseline performance is strong but marginal degradation under compound-distraction scenarios indicates an expert gap that advanced training must close.",
+        "measurable_goal": "Sustain 95%+ safe decision rate under advanced mode for 3 consecutive sessions. Zero performance degradation under social pressure or multi-distraction scenarios.",
         "difficulty": "Advanced",
         "reaction_time_target": 2.0,
         "distraction_tolerance_target": 0.95,
@@ -127,6 +137,8 @@ _FALLBACK_LESSONS = {
         "attention_reinforcement_tasks": ["Complete standard beginner mode for all 3 baseline sessions", "Run guided tutorial mode to understand the scoring and feedback system", "Track your safe decision rate across the first 3 sessions to see your baseline"],
         "future_risk_projection": "Strong early training foundations significantly reduce real-world distraction risk. Drivers who establish consistent ignore-first reflexes in training show 67% fewer distraction-related incidents in real driving environments compared to untrained peers.",
         "personalized_improvement_strategy": "Complete 3 sessions to unlock a personalized driver profile and adaptive lesson plan. Focus on the 'ignore-first' principle without exception. After 3 sessions, the AI will generate a customized intervention plan based on your specific behavioral patterns.",
+        "session_trigger": "Generated to establish your behavioral baseline — this is your foundation lesson before profile classification. Behavioral data from your first 3 sessions will determine your driver type and intervention strategy.",
+        "measurable_goal": "Complete 3 simulation sessions. Achieve at least 65% safe decision rate in session 3. Unlock your personalized behavioral profile and adaptive curriculum.",
         "difficulty": "Beginner",
         "reaction_time_target": 3.0,
         "distraction_tolerance_target": 0.70,
@@ -141,43 +153,49 @@ LESSON_PROMPT = """\
 You are an elite behavioral driving safety coach and psychological learning architect.
 Your task is to generate a highly customized, non-repetitive, contextually rich, and session-aware "Behavioral Intervention Module".
 
-CRITICAL REQUIREMENT:
+CRITICAL REQUIREMENTS:
 - NEVER generate a generic title. The title MUST be deeply specific to the combination of their driver profile, latest session mistakes, and dominant fail scenario.
-- Avoid boring headers. Make the lesson title dynamic, professional, and psychology-centric.
+- Reference the DOMINANT FAIL SCENARIO ({dominant_fail_scenario}) explicitly in behavioral_diagnosis and scenario_replay_analysis.
+- Reference actual mistake patterns from LATEST SESSION MISTAKES in session_trigger and scenario_replay_analysis.
 - Provide deep psychological evaluation and cognitive framing, not generic tips like "Ignore distractions."
+- The session_trigger must explain WHY this specific lesson was generated based on the actual session data.
+- The measurable_goal must be a SPECIFIC, QUANTIFIED improvement target tied to the user's current metrics.
 
 DATA LOG FOR GENERATION:
 DRIVER PROFILE: {driver_type}
-TOTAL SESSIONS: {total_events} decisions recorded
-SAFE DECISION RATE: {safe_ratio_pct}%
+TOTAL EVENTS RECORDED: {total_events} decisions
+SAFE DECISION RATE: {safe_ratio_pct}% (target: >85%)
 AVG REACTION TIME: {avg_reaction_time}s
 CONSECUTIVE MISTAKES IN LAST SESSION: {consecutive_mistakes}
 DOMINANT FAIL SCENARIO: {dominant_fail_scenario}
-PRESSURE YIELD RATE: {pressure_yield_pct}% (yielded to pressure {pressure_yield} times, resisted {pressure_resist} times)
+PRESSURE YIELD RATE: {pressure_yield_pct}% (yielded {pressure_yield}x, resisted {pressure_resist}x)
 BEHAVIORAL SUMMARY: {behavior_summary}
 
-LATEST SESSION MISTAKES: {latest_mistakes_str}
+LATEST SESSION MISTAKES (reference these specifically):
+{latest_mistakes_str}
 
 Generate a structured personalized lesson plan. Return ONLY valid JSON, no markdown, no explanation.
 
 {{
   "title": "Deeply customized dynamic lesson title specific to their mistakes & profile (max 10 words)",
   "lesson_category": "Cognitive Control | Attention Regulation | Emotional Regulation | Defensive Decision | Recovery & Adaptation",
-  "behavioral_diagnosis": "Explain the detected weakness (2-3 sentences).",
-  "psychological_interpretation": "Why the behavior occurred cognitively/emotionally (2-3 sentences).",
-  "real_world_risk_impact": "How this affects real driving behavior with statistics (2 sentences).",
-  "cognitive_coaching_narrative": "Human-like adaptive coaching replacing basic advice. Speak directly to the user as a behavioral analyst (3-4 sentences).",
-  "scenario_replay_analysis": "Break down an important moment from the simulation and explain where the cognitive failure happened (3-4 sentences).",
-  "behavioral_exercises": ["Unique interactive improvement drill 1", "Drill 2"],
-  "mental_conditioning_techniques": ["Conditioning technique 1", "Technique 2"],
-  "attention_reinforcement_tasks": ["Practical training suggestion 1", "Suggestion 2"],
-  "future_risk_projection": "What happens if this behavior continues uncorrected (2 sentences).",
-  "personalized_improvement_strategy": "Adaptive intervention roadmap for their next sessions.",
+  "behavioral_diagnosis": "Explain the detected weakness, explicitly referencing the dominant fail scenario and mistake patterns above (2-3 sentences).",
+  "psychological_interpretation": "Why the behavior occurred cognitively/emotionally — the psychological mechanism behind the specific mistakes listed (2-3 sentences).",
+  "real_world_risk_impact": "How this specific pattern affects real driving behavior with statistics (2 sentences).",
+  "cognitive_coaching_narrative": "Human-like adaptive coaching. Speak directly to the user referencing their specific reaction time and mistake patterns (3-4 sentences).",
+  "scenario_replay_analysis": "Reconstruct the cognitive failure moment from the session mistakes above. Explain exactly where the mental breakdown occurred (3-4 sentences).",
+  "behavioral_exercises": ["Specific drill targeting their exact failure pattern", "Second drill targeting the dominant fail scenario", "Third drill for sustained improvement"],
+  "mental_conditioning_techniques": ["Technique targeting the psychological root cause", "Second technique for long-term habit formation"],
+  "attention_reinforcement_tasks": ["Specific simulation recommendation", "Daily practice task outside simulation"],
+  "future_risk_projection": "What happens if this specific behavioral pattern continues uncorrected in real driving (2 sentences).",
+  "personalized_improvement_strategy": "Adaptive roadmap: what to practice next session, what milestone to hit, and what unlocks after achieving it.",
+  "session_trigger": "Explain in 1-2 sentences exactly WHY this lesson was generated — reference the specific mistakes, reaction times, and scenarios from this session.",
+  "measurable_goal": "Specific, quantified improvement target tied to current metrics (e.g., 'Reduce sub-2s interactions by 60% within 4 sessions. Target: >85% safe rate for 2 consecutive sessions.').",
   "difficulty": "Beginner|Intermediate|Advanced",
   "reaction_time_target": 2.5,
   "distraction_tolerance_target": 0.85,
-  "generated_reason": "Specific reason this lesson was generated traceably.",
-  "recommended_focus": "What specific cognitive filter or ignore rule the user should practice next"
+  "generated_reason": "Specific reason this lesson was generated traceably — same as session_trigger but more concise.",
+  "recommended_focus": "What specific cognitive filter or ignore rule the user should practice next session."
 }}"""
 
 
@@ -226,7 +244,7 @@ class LessonGenerationService:
             response = await llm_provider.complete(
                 prompt=prompt,
                 agent_type="instructor",
-                max_tokens=600,
+                max_tokens=1000,  # Increased: 16-field JSON requires more tokens
                 temperature=0.75,
             )
             if response.provider != "fallback":
@@ -276,7 +294,8 @@ class LessonGenerationService:
         
         # Use hash of mistakes to be deterministic yet highly varied per session
         import hashlib
-        hash_val = int(hashlib.md5(latest_mistakes_str.encode('utf-8')).hexdigest(), 16)
+        seed_str = f"{latest_mistakes_str}_{session_id or ''}"
+        hash_val = int(hashlib.md5(seed_str.encode('utf-8')).hexdigest(), 16)
         idx = hash_val % len(variation_titles)
         base_fallback["title"] = variation_titles[idx]
         

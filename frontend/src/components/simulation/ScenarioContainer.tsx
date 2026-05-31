@@ -301,10 +301,6 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
       : finalScore >= 50 ? { label: 'Fair', color: 'text-orange-400', emoji: '💪' }
       : { label: 'Needs Work', color: 'text-red-400', emoji: '📚' };
 
-    const driverType = stats?.driver_type || 'unknown';
-    let weakness = { title: "Maintaining Steady Focus", category: "General Defensive Driving", summary: "Your core safety instincts are functional." };
-    if (driverType === 'impulsive') weakness = { title: "High Distraction Reflexes", category: "Impulse Control", summary: "You respond extremely quickly to phone alerts." };
-    else if (driverType === 'distractible') weakness = { title: "Digital Susceptibility", category: "Attention Management", summary: "You are highly prone to interacting with chat alerts." };
 
     return (
       <div className="max-w-md mx-auto animate-slide-up text-center">

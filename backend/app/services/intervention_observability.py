@@ -200,6 +200,12 @@ class ObservabilityEngine:
             "cognitive_overload_failure_pct": cognitive_overload_pct,
             "avg_hesitation_recovery_sec": avg_hesitation_recovery,
             "intervention_fatigue_index": max(0.0, fatigue_index),
+            "data_source_summary": (
+                f"Derived from {total_sessions} session{'s' if total_sessions != 1 else ''}, "
+                f"{total_events} event{'s' if total_events != 1 else ''}"
+                + (f", {len(int_logs)} intervention log{'s' if len(int_logs) != 1 else ''}" if int_logs else "")
+                + "."
+            ),
         }
 
     def _empty_metrics(self) -> Dict[str, Any]:
@@ -210,7 +216,9 @@ class ObservabilityEngine:
             "cognitive_overload_failure_pct": 0.0,
             "avg_hesitation_recovery_sec": 0.0,
             "intervention_fatigue_index": 0.0,
+            "data_source_summary": None,
         }
+
 
     async def get_psychological_metrics(self, db: AsyncSession, user_id: str) -> Dict[str, Any]:
         """

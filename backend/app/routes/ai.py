@@ -80,6 +80,7 @@ class ObservabilityMetrics(BaseModel):
     cognitive_overload_failure_pct: float
     avg_hesitation_recovery_sec: float
     intervention_fatigue_index: float
+    data_source_summary: Optional[str] = None  # e.g. "Derived from 3 sessions, 18 events"
 
 class FeedbackResponse(BaseModel):
     agent: str

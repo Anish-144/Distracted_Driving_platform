@@ -44,38 +44,140 @@ class VoiceNarration:
 
 
 # ── Fallback narration pools (when all LLMs fail) ─────────────────────────────
+# 4 rotating variants per driver type so fallback never repeats consecutively.
 
-_FALLBACK_POST_SESSION = {
-    "impulsive": (
-        "Your session revealed a clear pattern of sub-2-second reactions to auditory stimuli. "
-        "Before your next session, practice a 3-second pause rule: "
-        "when a distraction appears, count to three before deciding."
-    ),
-    "overconfident": (
-        "Your confidence in handling distractions is leading to higher interaction rates "
-        "than your scores justify. Skill does not eliminate reaction-time risk. "
-        "Treat each distraction as a full threat, regardless of your perceived ability."
-    ),
-    "anxious": (
-        "Extended hesitation is costing you points and creating dangerous indecision windows. "
-        "Your instinct to ignore is correct — the delay is the problem. "
-        "Practice committing to the ignore decision within 2 seconds of distraction onset."
-    ),
-    "distractible": (
-        "External alerts are consistently capturing your visual attention. "
-        "The pull you feel is a conditioned dopamine response, not urgency. "
-        "Your next session goal: decide to ignore before the alert finishes appearing."
-    ),
-    "rule_following": (
-        "Your discipline is real, but social pressure is overriding it in specific scenarios. "
-        "Identify which distraction type most frequently causes you to break your own rule. "
-        "That is your primary target."
-    ),
-    "unknown": (
-        "Your baseline behavioral profile is being established. "
-        "The patterns from this session will inform your personalized intervention plan. "
-        "Complete two more sessions to unlock your full behavioral dossier."
-    ),
+_FALLBACK_POST_SESSION: dict[str, list[str]] = {
+    "impulsive": [
+        (
+            "The data from this session is clear: your responses are occurring before your judgment has time to engage. "
+            "That reflex is the training target. Before your next session, commit to a 3-second count after any alert appears before you allow yourself to react."
+        ),
+        (
+            "Sub-2-second interactions were the defining pattern here. "
+            "The dopamine pull of an alert is overriding your prefrontal brake — that's a physiological process you can interrupt. "
+            "Practice counting 'one, two, three' silently every time you feel the urge to engage."
+        ),
+        (
+            "Your reaction speed is fast — that's a strength in the right context. "
+            "What this session shows is that the same speed is firing when you should be waiting. "
+            "The intervention is a deliberate pause: insert it before every decision, without exception."
+        ),
+        (
+            "Every sub-2-second reaction you made in this session was a reflex bypassing a decision. "
+            "The goal isn't slower reactions — it's conscious ones. "
+            "Your next session target: zero impulsive interactions, regardless of how urgent the alert sounds."
+        ),
+    ],
+    "overconfident": [
+        (
+            "Your confidence is real, but this session shows it's creating blind spots. "
+            "High perceived competence correlates with reduced vigilance — that's the mechanism here. "
+            "Treat each distraction as a genuine threat, even the ones that feel manageable."
+        ),
+        (
+            "The interaction pattern in this session suggests you're evaluating distractions mid-drive rather than pre-committing to ignore. "
+            "Every evaluation is a cognitive cost — and a risk window. "
+            "The goal is zero evaluation: pre-decide to ignore, before the session starts."
+        ),
+        (
+            "Skill doesn't eliminate reaction-time risk — and this session's data confirms that. "
+            "Your performance dropped in the scenarios you likely rated as 'easy.' "
+            "Complacency is the specific vulnerability to target."
+        ),
+        (
+            "The sessions where you feel most in control tend to be the ones with the most unforced errors. "
+            "That pattern is characteristic of overconfidence — not incompetence. "
+            "The counter-measure is deliberate humility: assume every scenario is harder than it looks."
+        ),
+    ],
+    "anxious": [
+        (
+            "Extended hesitation is the cost pattern in this session. "
+            "The indecision window itself is dangerous — not just the distraction. "
+            "The goal isn't faster reactions; it's pre-committed ones. Decide before the event appears."
+        ),
+        (
+            "Your instinct to be careful is correct. "
+            "What this session shows is that the hesitation is exceeding the safe window — holding a decision open for longer than 5 seconds adds risk, not safety. "
+            "Practice committing within 3 seconds of any distraction onset."
+        ),
+        (
+            "Uncertainty is the specific mechanism working against you here. "
+            "The data shows extended response latency — your brain is searching for the perfect answer when a good-enough answer already existed. "
+            "Before next session: the rule is 'when uncertain, ignore.' Apply it without exception."
+        ),
+        (
+            "This session's hesitation pattern reflects approach-avoidance conflict — the brain cycling between engagement and avoidance without resolving. "
+            "The solution is a pre-committed rule that eliminates the choice entirely. "
+            "'All alerts are ignored' is a rule. 'I'll see how it feels' is not."
+        ),
+    ],
+    "distractible": [
+        (
+            "Attentional capture is the primary mechanism in this session. "
+            "The alerts are pulling your focus before you've consciously decided to look. "
+            "Your next session goal: decide to ignore before the alert finishes appearing."
+        ),
+        (
+            "The pull you feel from notifications is a conditioned dopamine response — not urgency. "
+            "Every interaction in this session reinforced that pathway. "
+            "Every ignore you execute next session begins weakening it."
+        ),
+        (
+            "The key pattern from this session: you looked before you decided to look. "
+            "That's attentional capture — automatic, not intentional. "
+            "The counter-move is a pre-session commitment: 'I will not check any alert, regardless of source.'"
+        ),
+        (
+            "Your visual attention shifted to distractions faster than your decision-making engaged. "
+            "That sequence — attention first, decision second — is the vulnerability this training targets. "
+            "Next session: practice holding gaze forward for 2 full seconds after an alert appears before any decision."
+        ),
+    ],
+    "rule_following": [
+        (
+            "Your discipline is genuine — this session confirms it in most scenarios. "
+            "The data shows specific pressure contexts where your own rules are being overridden. "
+            "Identify which distraction type caused you to break your standard. That's your primary target."
+        ),
+        (
+            "Social pressure scenarios are where your otherwise strong performance drops. "
+            "The rule you follow under low pressure stops applying when the pressure comes from another person. "
+            "That gap is the specific training target — not your general discipline."
+        ),
+        (
+            "Your safe decision rate holds well until the passenger pressure scenarios. "
+            "That's a specific vulnerability: your behavioral standards are context-conditional. "
+            "The intervention is making those standards unconditional — non-negotiable under any source of pressure."
+        ),
+        (
+            "The pattern here is consistent with authority pressure susceptibility — your rules bend when someone else is watching or asking. "
+            "The next session goal: apply the same ignore standard regardless of whether a passenger scenario is active. "
+            "Your rules don't have a passenger exception."
+        ),
+    ],
+    "unknown": [
+        (
+            "This session is contributing to your behavioral baseline. "
+            "The decisions you made here — both safe and unsafe — are shaping your personalized intervention plan. "
+            "Complete two more sessions to unlock your full behavioral profile."
+        ),
+        (
+            "Your behavioral pattern is still being classified from early session data. "
+            "What's already clear: the situations where you hesitated or interacted are your training targets. "
+            "Keep playing to sharpen the profile."
+        ),
+        (
+            "The early data from this session shows the beginning of a behavioral signature. "
+            "Your safe decision rate and reaction times are being analyzed. "
+            "After your next two sessions, your personalized intervention plan will activate."
+        ),
+        (
+            "Baseline establishment is the purpose of early sessions — and this one added meaningful data. "
+            "Your specific distraction vulnerability pattern is beginning to emerge. "
+            "One more session will be enough to classify your driver type and unlock a targeted lesson plan."
+        ),
+    ],
 }
 
 _FALLBACK_REPORT = (
@@ -91,8 +193,15 @@ _FALLBACK_LESSON = (
 )
 
 
-def _get_fallback_post_session(driver_type: str) -> str:
-    return _FALLBACK_POST_SESSION.get(driver_type, _FALLBACK_POST_SESSION["unknown"])
+def _get_fallback_post_session(driver_type: str, session_id: str = "") -> str:
+    """Return a rotating fallback narration keyed by session_id hash to prevent repetition."""
+    import hashlib
+    pool = _FALLBACK_POST_SESSION.get(driver_type, _FALLBACK_POST_SESSION["unknown"])
+    if session_id:
+        idx = int(hashlib.md5(session_id.encode()).hexdigest(), 16) % len(pool)
+    else:
+        idx = 0
+    return pool[idx]
 
 
 # ── Main Orchestrator ─────────────────────────────────────────────────────────
@@ -139,7 +248,7 @@ class VoiceOrchestrator:
 
         narration_text, provider = await self._generate_narration_text(
             prompt=prompt,
-            fallback_text=_get_fallback_post_session(driver_type),
+            fallback_text=_get_fallback_post_session(driver_type, session_id),
             max_tokens=120,
         )
 
