@@ -1,4 +1,4 @@
-﻿import Head from 'next/head';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -11,13 +11,15 @@ import ScoreDisplay from '@/components/simulation/ScoreDisplay';
 import SimulationVoiceOverlay from '@/components/voice/SimulationVoiceOverlay';
 import { motion } from 'framer-motion';
 import { FadeUp } from '@/components/motion/ScrollReveal';
-import { ArrowLeft, Info, PlayCircle, Loader2, Shield, Zap } from 'lucide-react';
+import { ArrowLeft, Info, PlayCircle, Loader2, Shield, Zap, Phone, MessageCircle, MapPinned, Car, Mail, Smartphone } from 'lucide-react';
 import Link from 'next/link';
 
 const scenarios = [
- { icon: 'ðŸ“±', name: 'Incoming Phone Call', desc: 'Your phone rings. Do you answer, decline, or ignore it?', difficulty: 'Medium', color: '#f59e0b' },
- { icon: 'ðŸ’¬', name: 'WhatsApp Notification', desc: 'A buzzing message notification with preview text appears.', difficulty: 'Easy', color: '#10b981' },
- { icon: 'ðŸ—ºï¸', name: 'GPS Rerouting Alert', desc: 'Your GPS needs attention â€” new route calculated, turn in 200m.', difficulty: 'Hard', color: '#ef4444' },
+ { icon: <Phone className="w-6 h-6" />, name: 'Incoming Phone Call', desc: 'Your phone rings. Do you answer, decline, or ignore it?', difficulty: 'High', color: '#f59e0b' },
+ { icon: <MessageCircle className="w-6 h-6" />, name: 'WhatsApp Notification', desc: 'A buzzing message notification with preview text appears.', difficulty: 'Medium', color: '#10b981' },
+ { icon: <MapPinned className="w-6 h-6" />, name: 'GPS Rerouting Alert', desc: 'Your GPS needs attention — new route calculated, turn in 200m.', difficulty: 'Medium', color: '#ef4444' },
+ { icon: <Mail className="w-6 h-6" />, name: 'Email Alert', desc: 'A low urgency work email notification pops up on your screen.', difficulty: 'Low', color: '#eab308' },
+ { icon: <Smartphone className="w-6 h-6" />, name: 'Social Media', desc: 'An ambient social media notification buzzes your device.', difficulty: 'Low', color: '#a855f7' },
 ];
 
 const stagger = {
@@ -50,7 +52,7 @@ export default function SimulationPage() {
  try {
  const session = await createSession();
  dispatch(sessionStarted({ sessionId: session.id, score: session.score }));
- toast.success('Session started! Get ready for distractions... ðŸš—');
+ toast.success('Session started! Get ready for distractions...');
  } catch { toast.error('Failed to start session. Please try again.'); }
  finally { setIsStarting(false); }
  };
@@ -61,7 +63,7 @@ export default function SimulationPage() {
  return (
  <>
  <Head>
- <title>Driving Simulation â€” SafeDrive AI</title>
+ <title>Driving Simulation — SafeDrive AI</title>
  <meta name="description" content="Practice responding to driving distractions in a safe training environment." />
  </Head>
 
@@ -100,12 +102,12 @@ export default function SimulationPage() {
  style={{ background: 'radial-gradient(circle,rgba(8,145,178,0.1) 0%,transparent 70%)' }} />
 
  <motion.div
- className="relative z-10 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl"
+ className="relative z-10 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-emerald-500"
  style={{ background: 'rgba(5,150,105,0.1)', border: '1px solid rgba(5,150,105,0.2)' }}
  animate={{ opacity: [0.1, 0.4, 0.1] }}
  transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
  >
- ðŸš—
+ <Car className="w-8 h-8" />
  </motion.div>
 
  <div className="relative z-10">

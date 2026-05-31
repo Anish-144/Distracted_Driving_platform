@@ -806,3 +806,72 @@ pm run build with zero regressions or hydration errors. Validated smooth layout 
 3. **Redux State Management**: Deployed `settingsSlice.ts` utilizing Redux Toolkit `createAsyncThunk`. We dispatch an `optimisticUpdate` synchronously upon toggle, providing instantaneous 0ms visual feedback to the user.
 4. **Frontend API & Rollback Integration**: Wired the `settings.tsx` component to Redux. Any toggle or dropdown choice fires the optimistic update, waits for the background PATCH, and catches network failures to rollback the toggle state seamlessly with a toast error notification.
 
+
+
+## Duplicate Scenario Repetition Audit
+
+**Root Cause (Prior Repetition Flaw):**
+- The frontend `ScenarioContainer.tsx` randomly selected 5 events by weighting the 3 existing event categories (`incoming_call`, `whatsapp_notification`, `gps_rerouting`).
+- While it applied a 90% weight reduction to the *last* type generated, it did not completely eliminate it, and with only 3 total categories for 5 events, mathematical repetition was guaranteed.
+- The `recentHistoryStats` structure only penalized sequential repetition, allowing "Phone -> GPS -> Phone -> GPS" loops.
+
+**New Uniqueness Architecture:**
+- Implemented a strict uniqueness filter: the frontend now maintains a `Set` of `generatedTypes` for the active session.
+- Before selecting the next event, the generator filters the master list of `SCENARIO_TYPES` against `generatedTypes`.
+- If a category was already used in this session, its selection probability is structurally forced to 0% (removed from the array entirely).
+
+**Cognitive Diversity Strategy:**
+- To support 5 strictly unique events without exhausting the category pool, we expanded the frontend's available distraction categories.
+- Added `email_alert` (low urgency) and `social_media` (low urgency) categories which naturally map to the backend's existing LLM fallback pool.
+- This creates richer behavioral analysis by balancing high-urgency communication, navigation stress, and low-urgency ambient digital noise within a single session.
+
+**Validation Guarantees:**
+- Session restoration from `localStorage` tracks `generatedTypes` to maintain uniqueness even across page refreshes.
+- Added runtime assertion in the simulation loop: if the filtered category list drops to 0 before reaching the event goal, it logs a warning (`console.warn("No more unique scenario types available.")`) and gracefully ends the session early instead of defaulting to a silent duplicate.
+
+
+## Emoji UTF Corruption Audit
+
+**Root Cause:**
+- Emojis were hardcoded directly in the frontend component files (`pages/simulation/index.tsx` and `components/simulation/ScenarioContainer.tsx`) rather than via proper icon components.
+- Encoding failure occurred when these source files were saved or transmitted without proper UTF-8 handling, causing the emoji literals to degrade into corrupted mojibake characters.
+- Emojis were being passed around in UI definitions which is unsafe for enterprise/premium styling architectures.
+
+**Emoji Removal Rationale:**
+- Relying on unicode characters for critical UI elements leads to cross-platform rendering inconsistencies and character encoding corruption during file saves or build steps.
+- Raw emojis conflict with the premium, distraction-free aesthetic required for the SafeDrive AI platform.
+
+**New Semantic Icon Architecture:**
+- Implemented a standardized icon architecture using `lucide-react`.
+- All instances of literal emojis in `pages/simulation/index.tsx` and `components/simulation/ScenarioContainer.tsx` were replaced.
+- `Phone Call` -> `<Phone />`
+- `WhatsApp / Message` -> `<MessageCircle />`
+- `GPS Alert` -> `<MapPinned />`
+- `Driving / Idle` -> `<Car />`
+- `Grades` -> `<Trophy />`, `<ThumbsUp />`, `<Activity />`, `<BookOpen />`
+
+These components natively respect the dark/light mode themes, inherit semantic colors via Tailwind, and guarantee scalable, consistent rendering without UTF encoding risks.
+
+
+## Scenario Uniqueness Compiler Error Audit
+
+**Cause of Compile Failure:**
+- The previous scenario uniqueness refactoring replaced a block of weighting logic where `getDifficultyFactor()` was assigned to `const difficultyFactor`.
+- In doing so, the definition of `difficultyFactor` was deleted, but it was still being referenced inside the `map()` loop for probability weighting, leading to a TypeScript compile error: `Cannot find name 'difficultyFactor'`.
+
+**Variable Scope Issue & Hook Dependency Cleanup:**
+- Calling `getDifficultyFactor()` directly inside React `useCallback` or loops triggered React Hook exhaustive-deps warnings, as `getDifficultyFactor` itself had to be in dependency arrays, chaining unnecessary reference cycles.
+- The `getDifficultyFactor` function heavily relied on `recentHistoryRef`, meaning it did not strictly depend on React state (other than initial render).
+
+**Final Weighting Architecture:**
+- Converted `getDifficultyFactor` from a `useCallback` function into a direct `useMemo` calculated value (`const difficultyFactor = useMemo(...)`).
+- Tied the `useMemo` dependency array cleanly to `[eventsCount]`. This means `difficultyFactor` computes exactly once per scenario event instead of being re-evaluated continuously.
+- Removed all functional calls (`getDifficultyFactor()`) across the file and replaced them with the stabilized `difficultyFactor` memoized value.
+- Cleaned up dependency arrays in `useEffect` and `useCallback` hooks by swapping `getDifficultyFactor` with the stable `difficultyFactor` constant, satisfying strict ESLint checks.
+- This creates a cleaner data flow, prevents infinite loop vulnerabilities, and guarantees that all probability math for a single event uses the identical difficulty scalar.
+
+
+**Addendum: Removing `useMemo` Exhaustive-Deps Hook Issue**
+- React's `react-hooks/exhaustive-deps` linter rule flagged `eventsCount` as an unnecessary dependency because it was not directly referenced in the `useMemo` body, despite being required to force the memoized value to recalculate when `recentHistoryRef` mutated.
+- To resolve this structurally, we removed `useMemo` entirely. `difficultyFactor` is now computed dynamically as a simple inline constant during every render of the `ScenarioContainer` component.
+- Since the calculation is extremely lightweight (a `.reduce` on an array with max 5 elements), removing `useMemo` avoids linter warnings, eliminates hook dependency complexity, and strictly guarantees accurate difficulty scaling on every render.

@@ -89,7 +89,7 @@ class AICoach:
             db=db,
             user_id=user_id,
             session_id=session_id,
-            event_id=event_type, # passing event_type as proxy for ID since it's pre-event
+            event_id=None, # Event row not created yet, so leave null to avoid FK constraint error
             agent_type="passenger",
             intervention_phase="pre_decision",
             strategy_used=f"pressure_{urgency}",
@@ -223,7 +223,7 @@ class AICoach:
             db=db,
             user_id=user_id,
             session_id=session_id,
-            event_id=event_type,
+            event_id=None,
             agent_type=agent,
             intervention_phase="post_decision",
             strategy_used=strategy,

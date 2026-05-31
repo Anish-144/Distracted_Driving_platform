@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, MessageCircle, Navigation, Activity, ShieldAlert, Zap } from 'lucide-react';
+import { Phone, MessageCircle, Navigation, Activity, ShieldAlert, Zap, Mail, Smartphone } from 'lucide-react';
 import { GeneratedScenario } from '@/api/ai';
 
 interface DistractionEventProps {
@@ -11,6 +11,8 @@ const iconMap: Record<string, React.ReactNode> = {
   incoming_call: <Phone className="w-6 h-6" />,
   whatsapp_notification: <MessageCircle className="w-6 h-6" />,
   gps_rerouting: <Navigation className="w-6 h-6" />,
+  email_alert: <Mail className="w-6 h-6" />,
+  social_media: <Smartphone className="w-6 h-6" />,
 };
 
 const colorMap: Record<string, { ring: string; bg: string; text: string; badge: string }> = {
@@ -31,6 +33,18 @@ const colorMap: Record<string, { ring: string; bg: string; text: string; badge: 
     bg: 'bg-blue-900/20',
     text: 'text-blue-400',
     badge: 'bg-blue-500',
+  },
+  email_alert: {
+    ring: 'ring-yellow-500/50',
+    bg: 'bg-yellow-900/20',
+    text: 'text-yellow-400',
+    badge: 'bg-yellow-500',
+  },
+  social_media: {
+    ring: 'ring-purple-500/50',
+    bg: 'bg-purple-900/20',
+    text: 'text-purple-400',
+    badge: 'bg-purple-500',
   },
 };
 

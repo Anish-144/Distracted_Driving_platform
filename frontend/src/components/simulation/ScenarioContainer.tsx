@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { eventTriggered, eventResolved, sessionRestored } from '@/store/sessionSlice';
 import { fetchProgressData, generateNewAILessonFromSession, generateSessionCognitiveReport } from '@/store/progressSlice';
@@ -17,7 +17,7 @@ import DecisionButtons, { ResponseChoice } from './DecisionButtons';
 import AIDialogue from './AIDialogue';
 import Timer from './Timer';
 import VoiceInput from '@/components/VoiceInput';
-import { CheckCircle, XCircle, Car } from 'lucide-react';
+import { CheckCircle, XCircle, Car, Trophy, ThumbsUp, Activity, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import CoachingAudioCard from '@/components/voice/CoachingAudioCard';
@@ -26,6 +26,8 @@ const SCENARIO_TYPES = [
   { type: 'incoming_call', urgency: 'high' },
   { type: 'whatsapp_notification', urgency: 'medium' },
   { type: 'gps_rerouting', urgency: 'medium' },
+  { type: 'email_alert', urgency: 'low' },
+  { type: 'social_media', urgency: 'low' },
 ];
 
 const TOTAL_EVENTS = 5;
@@ -57,28 +59,29 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
   const aiCancelTokenRef = useRef<boolean>(false);
   const recentHistoryRef = useRef<number[]>([]);
   const sessionStatsRef = useRef<{ urgency: string; type: string; perfWeight: number }[]>([]);
+  const generatedTypesRef = useRef<Set<string>>(new Set());
 
-  const getDifficultyFactor = useCallback(() => {
-    const history = recentHistoryRef.current;
-    if (history.length === 0) return 0.5;
-    const avgPerformance = history.reduce((a, b) => a + b, 0) / history.length;
-    const curvedFactor = Math.pow(avgPerformance, 1.5);
-    return Math.max(0.2, Math.min(0.9, curvedFactor)); 
-  }, []);
+  const history = recentHistoryRef.current;
+  const avgPerformance = history.length > 0 ? history.reduce((a, b) => a + b, 0) / history.length : 0.5;
+  const difficultyFactor = history.length > 0 ? Math.max(0.2, Math.min(0.9, Math.pow(avgPerformance, 1.5))) : 0.5;
 
   const triggerNextEvent = useCallback(async (currentCount: number) => {
     if (currentCount >= TOTAL_EVENTS) return;
     
     setSimState('LOADING_SCENARIO');
-    const difficultyFactor = getDifficultyFactor();
-    const recentHistoryStats = sessionStatsRef.current;
-    const lastType = recentHistoryStats.length > 0 ? recentHistoryStats[recentHistoryStats.length - 1].type : null;
+    // STRICT UNIQUENESS FILTER
+    const availableTypes = SCENARIO_TYPES.filter(s => !generatedTypesRef.current.has(s.type));
+    
+    if (availableTypes.length === 0) {
+        console.warn("No more unique scenario types available. Ending session early.");
+        setSimState('SESSION_COMPLETE');
+        return;
+    }
 
     let totalWeight = 0;
-    const weights = SCENARIO_TYPES.map(s => {
+    const weights = availableTypes.map(s => {
       const isHigh = s.urgency === 'high';
       let weight = isHigh ? 0.3 + (0.7 * difficultyFactor) : Math.max(0.2, 1.0 - (0.6 * difficultyFactor));
-      if (s.type === lastType) weight *= 0.1; 
       totalWeight += weight;
       return weight;
     });
@@ -92,7 +95,10 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
             break;
         }
     }
-    const selectedType = SCENARIO_TYPES[selectedIndex];
+    const selectedType = availableTypes[selectedIndex];
+    
+    // Mark as generated
+    generatedTypesRef.current.add(selectedType.type);
 
     try {
       // Fetch dynamic psychological scenario from AI engine
@@ -142,7 +148,7 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
       toast.error('Failed to generate scenario. Retrying...');
       setSimState('IDLE'); // Let the loop retry
     }
-  }, [dispatch, sessionId, aiEnabled, getDifficultyFactor]);
+  }, [dispatch, sessionId, aiEnabled, difficultyFactor]);
 
   // Handle dynamic psychological escalation
   useEffect(() => {
@@ -163,7 +169,7 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
   useEffect(() => {
     if (eventsCount > 0 && simState !== 'SESSION_COMPLETE') {
       localStorage.setItem(`simulation_${sessionId}`, JSON.stringify({ 
-        eventsCount, score, history: recentHistoryRef.current, timestamp: Date.now()
+        eventsCount, score, history: recentHistoryRef.current, generatedTypes: Array.from(generatedTypesRef.current), timestamp: Date.now()
       }));
     }
   }, [eventsCount, score, simState, sessionId]);
@@ -172,7 +178,6 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
     if (engineTimerRef.current) clearTimeout(engineTimerRef.current);
 
     if (simState === 'IDLE') {
-      const difficultyFactor = getDifficultyFactor();
       const baseDelay = 3500 - (2000 * difficultyFactor);
       const variance = (Math.random() - 0.5) * (baseDelay * 0.6);
       const spawnDelay = baseDelay + Math.round(variance);
@@ -188,6 +193,7 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
               if (saved.timestamp && (Date.now() - saved.timestamp < 3600000) && saved.eventsCount > 0) {
                 dispatch(sessionRestored({ score: saved.score, eventsCount: saved.eventsCount }));
                 if (saved.history) recentHistoryRef.current = saved.history.map((v: number, i: number, a: number[]) => i < a.length - 2 ? v * 0.8 : v);
+                if (saved.generatedTypes) generatedTypesRef.current = new Set(saved.generatedTypes);
                 activeCount = saved.eventsCount;
               } else {
                 localStorage.removeItem(backupKey);
@@ -203,7 +209,7 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
       }, spawnDelay);
     }
     return () => { if (engineTimerRef.current) clearTimeout(engineTimerRef.current); };
-  }, [simState, eventsCount, sessionId, dispatch, triggerNextEvent, getDifficultyFactor]);
+  }, [simState, eventsCount, sessionId, dispatch, triggerNextEvent, difficultyFactor]);
 
   const handleDecision = async (userResponse: 'ignored' | 'interacted' | 'no_response', risk?: string) => {
     if (simState !== 'EVENT_ACTIVE' || !currentEvent) return;
@@ -237,7 +243,7 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
       const isGood = result.score_delta >= 0;
       let perfWeight = 0;
       if (isGood) {
-        const maxAllowedTime = 10 - (5 * getDifficultyFactor());
+        const maxAllowedTime = 10 - (5 * difficultyFactor);
         perfWeight = Math.max(0, Math.min(1, 1 - (responseTime / maxAllowedTime)));
       }
       recentHistoryRef.current.push(perfWeight);
@@ -296,16 +302,16 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
   };
 
   if (simState === 'SESSION_COMPLETE') {
-    const grade = finalScore >= 90 ? { label: 'Excellent', color: 'text-brand-400', emoji: '🏆' }
-      : finalScore >= 70 ? { label: 'Good', color: 'text-accent-400', emoji: '👍' }
-      : finalScore >= 50 ? { label: 'Fair', color: 'text-orange-400', emoji: '💪' }
-      : { label: 'Needs Work', color: 'text-red-400', emoji: '📚' };
+    const grade = finalScore >= 90 ? { label: 'Excellent', color: 'text-brand-400', icon: <Trophy className="w-16 h-16 mx-auto text-brand-400" /> }
+      : finalScore >= 70 ? { label: 'Good', color: 'text-accent-400', icon: <ThumbsUp className="w-16 h-16 mx-auto text-accent-400" /> }
+      : finalScore >= 50 ? { label: 'Fair', color: 'text-orange-400', icon: <Activity className="w-16 h-16 mx-auto text-orange-400" /> }
+      : { label: 'Needs Work', color: 'text-red-400', icon: <BookOpen className="w-16 h-16 mx-auto text-red-400" /> };
 
 
     return (
       <div className="max-w-md mx-auto animate-slide-up text-center">
         <div className="card">
-          <div className="text-6xl mb-4">{grade.emoji}</div>
+          <div className="mb-4">{grade.icon}</div>
           <h2 className="text-2xl font-bold text-primary mb-1">Session Complete!</h2>
           <p className={`text-lg font-semibold ${grade.color} mb-2`}>{grade.label}</p>
           <div className="w-32 h-32 mx-auto my-6 relative">
@@ -380,20 +386,29 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
             </div>
           ) : !currentEvent || !activeScenario ? (
             <div className="animate-pulse text-center my-12">
-              <div className="text-5xl mb-3">🚗</div>
+              <div className="mb-3 text-emerald-500"><Car className="w-12 h-12 mx-auto" /></div>
               <p className="text-muted text-sm">Driving safely... awaiting events.</p>
             </div>
           ) : (
             <>
               <DistractionEvent scenario={activeScenario} escalationLevel={escalationLevel} />
-              <Timer duration={Math.round(10 - (5 * getDifficultyFactor()))} onExpire={() => handleDecision('no_response')} key={currentEvent.id} />
+              <Timer duration={Math.round(10 - (5 * difficultyFactor))} onExpire={() => handleDecision('no_response')} key={currentEvent.id} />
             </>
           )}
         </div>
       </div>
 
       {currentEvent && activeScenario && simState === 'EVENT_ACTIVE' && (
-        <DecisionButtons choices={parsedChoices} onDecision={handleDecision} isDisabled={simState !== 'EVENT_ACTIVE'} />
+        <div className="flex items-center gap-3 w-full">
+          <div className="flex-1">
+            <DecisionButtons choices={parsedChoices} onDecision={handleDecision} isDisabled={simState !== 'EVENT_ACTIVE'} />
+          </div>
+          <VoiceInput
+            onDecision={handleDecision as any}
+            isActive={simState === 'EVENT_ACTIVE'}
+            isDisabled={simState !== 'EVENT_ACTIVE'}
+          />
+        </div>
       )}
 
       <div className="mt-4"><AIDialogue /></div>
