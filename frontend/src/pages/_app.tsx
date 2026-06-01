@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from '@/context/ThemeContext';
 import '@/styles/globals.css';
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import FloatingFeedbackButton from '@/components/feedback/FloatingFeedbackButton';
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
   constructor(props: { children: ReactNode }) {
@@ -68,6 +69,7 @@ export default function App({ Component, pageProps }: AppProps) {
             duration: 3500,
           }}
         />
+        <FloatingFeedbackButton />
         </ThemeProvider>
       </Provider>
     </ErrorBoundary>

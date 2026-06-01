@@ -185,16 +185,16 @@ function LessonDetailModal({ lesson, onClose, onComplete, onRetake, completing }
  if (!lesson) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-500/20 dark:bg-black/60 backdrop-blur-md animate-fade-in">
       <div className="bg-card rounded-3xl border border-strong shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col animate-scale-up text-primary" style={{ boxShadow: '0 0 50px -10px rgba(139, 92, 246, 0.15)' }}>
         {/* Header - Dossier Style */}
         <div className="p-8 border-b border-strong/60 flex items-start justify-between gap-4 bg-secondary rounded-t-3xl shrink-0">
           <div>
             <div className="flex items-center gap-3 mb-3">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] px-2.5 py-1 rounded-sm border border-violet-500/30 bg-violet-500/10 text-violet-400">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] px-2.5 py-1 rounded-sm border border-violet-200 dark:border-violet-500/30 bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400">
                 {lesson.isAI ? 'Cognitive Intervention Module' : 'Curriculum Module'}
               </span>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] px-2.5 py-1 rounded-sm border border-blue-500/30 bg-blue-500/10 text-blue-400">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] px-2.5 py-1 rounded-sm border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400">
                 {lesson.lesson_category}
               </span>
             </div>
@@ -209,7 +209,7 @@ function LessonDetailModal({ lesson, onClose, onComplete, onRetake, completing }
         {/* Content */}
         <div className="p-8 flex-1 overflow-y-auto space-y-8 bg-card relative">
           {/* Subtle Grid Background */}
-          <div className="absolute inset-0 bg-[linear-gradient(var(--border-subtle)_1px,transparent_1px),linear-gradient(90deg,var(--border-subtle)_1px,transparent_1px)] bg-[size:30px_30px] opacity-20 pointer-events-none" />
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] dark:bg-[linear-gradient(var(--border-subtle)_1px,transparent_1px),linear-gradient(90deg,var(--border-subtle)_1px,transparent_1px)] bg-[size:30px_30px] dark:opacity-20 pointer-events-none" />
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
             {/* Left Column: Diagnostics & Coaching */}
@@ -217,7 +217,7 @@ function LessonDetailModal({ lesson, onClose, onComplete, onRetake, completing }
               {/* Behavioral Diagnosis */}
               <div className="bg-secondary border border-subtle rounded-2xl p-6">
                 <h3 className="text-xs font-bold text-muted uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <Target className="w-4 h-4 text-emerald-400" /> Behavioral Diagnosis
+                  <Target className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Behavioral Diagnosis
                 </h3>
                 <p className="text-sm text-secondary leading-relaxed font-medium">
                   {lesson.behavioral_diagnosis}
@@ -227,7 +227,7 @@ function LessonDetailModal({ lesson, onClose, onComplete, onRetake, completing }
               {/* Psychological Interpretation */}
               <div className="bg-secondary border border-subtle rounded-2xl p-6">
                 <h3 className="text-xs font-bold text-muted uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <Brain className="w-4 h-4 text-violet-400" /> Psychological Interpretation
+                  <Brain className="w-4 h-4 text-violet-600 dark:text-violet-400" /> Psychological Interpretation
                 </h3>
                 <p className="text-sm text-secondary leading-relaxed">
                   {lesson.psychological_interpretation}
@@ -235,7 +235,7 @@ function LessonDetailModal({ lesson, onClose, onComplete, onRetake, completing }
               </div>
 
               {/* AI Coaching Narrative */}
-              <div className="bg-violet-500/10 border border-violet-500/20 rounded-2xl p-6">
+              <div className="bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/20 rounded-2xl p-6">
                 <h3 className="text-xs font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-violet-500" /> Cognitive Coaching Narrative
                 </h3>
@@ -248,16 +248,16 @@ function LessonDetailModal({ lesson, onClose, onComplete, onRetake, completing }
             {/* Right Column: Risks & Actions */}
             <div className="space-y-6">
               {/* Risk Impact & Projection */}
-              <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6">
+              <div className="bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-2xl p-6">
                 <h3 className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-red-500" /> Risk Assessment
+                  <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-500" /> Risk Assessment
                 </h3>
                 <div className="space-y-4">
                   <div>
                     <h4 className="text-[10px] font-bold text-muted uppercase tracking-wider mb-1">Real-World Impact</h4>
                     <p className="text-sm text-secondary leading-relaxed">{lesson.real_world_risk_impact}</p>
                   </div>
-                  <div className="h-px bg-red-500/10 w-full" />
+                  <div className="h-px bg-red-200 dark:bg-red-500/10 w-full" />
                   <div>
                     <h4 className="text-[10px] font-bold text-muted uppercase tracking-wider mb-1">Future Projection</h4>
                     <p className="text-sm text-red-600 dark:text-red-300/80 leading-relaxed font-medium">{lesson.future_risk_projection}</p>
@@ -268,7 +268,7 @@ function LessonDetailModal({ lesson, onClose, onComplete, onRetake, completing }
               {/* Scenario Replay Analysis */}
               <div className="bg-secondary border border-subtle rounded-2xl p-6">
                 <h3 className="text-xs font-bold text-muted uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <PlayCircle className="w-4 h-4 text-blue-400" /> Scenario Replay Analysis
+                  <PlayCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" /> Scenario Replay Analysis
                 </h3>
                 <p className="text-sm text-secondary leading-relaxed">
                   {lesson.scenario_replay_analysis}
@@ -276,15 +276,15 @@ function LessonDetailModal({ lesson, onClose, onComplete, onRetake, completing }
               </div>
 
               {/* Strategy & Focus */}
-              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-6">
+              <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-2xl p-6">
                 <h3 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-emerald-500" /> Intervention Strategy
+                  <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-500" /> Intervention Strategy
                 </h3>
                 <p className="text-sm text-emerald-700 dark:text-emerald-100/90 leading-relaxed font-medium mb-4">
                   {lesson.personalized_improvement_strategy}
                 </p>
                 {lesson.recommended_focus && (
-                  <div className="bg-card/50 rounded-lg p-3 border border-emerald-500/10">
+                  <div className="bg-white/50 dark:bg-card/50 rounded-lg p-3 border border-emerald-200 dark:border-emerald-500/10">
                     <h4 className="text-[10px] font-bold text-emerald-600 dark:text-emerald-500 uppercase tracking-wider mb-1">Target Focus</h4>
                     <p className="text-xs text-secondary">{lesson.recommended_focus}</p>
                   </div>
@@ -300,7 +300,7 @@ function LessonDetailModal({ lesson, onClose, onComplete, onRetake, completing }
               <ul className="space-y-3">
                 {lesson.behavioral_exercises.map((ex, i) => (
                   <li key={i} className="flex items-start gap-3 text-sm text-muted">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-500 mt-1.5 shrink-0" />
                     <span>{ex}</span>
                   </li>
                 ))}
@@ -311,7 +311,7 @@ function LessonDetailModal({ lesson, onClose, onComplete, onRetake, completing }
               <ul className="space-y-3">
                 {lesson.mental_conditioning_techniques.map((ex, i) => (
                   <li key={i} className="flex items-start gap-3 text-sm text-muted">
-                    <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-1.5 shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-violet-600 dark:bg-violet-500 mt-1.5 shrink-0" />
                     <span>{ex}</span>
                   </li>
                 ))}
@@ -322,7 +322,7 @@ function LessonDetailModal({ lesson, onClose, onComplete, onRetake, completing }
               <ul className="space-y-3">
                 {lesson.attention_reinforcement_tasks.map((ex, i) => (
                   <li key={i} className="flex items-start gap-3 text-sm text-muted">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-emerald-500 mt-1.5 shrink-0" />
                     <span>{ex}</span>
                   </li>
                 ))}

@@ -2,15 +2,12 @@ import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { eventTriggered, eventResolved, sessionRestored } from '@/store/sessionSlice';
 import { fetchProgressData, generateNewAILessonFromSession, generateSessionCognitiveReport } from '@/store/progressSlice';
-import {
-  aiRequestStarted,
-  aiMessageReceived,
-  behaviorUpdated,
-  aiCleared,
-} from '@/store/aiSlice';
+import { aiRequestStarted, aiMessageReceived, aiCleared, behaviorUpdated } from '@/store/aiSlice';
+import { fetchFeedback, b64ToAudioUrl, fetchNextScenario, GeneratedScenario } from '@/api/ai';
 import { postEvent } from '@/api/events';
 import { completeSession } from '@/api/sessions';
-import { fetchPressure, fetchFeedback, b64ToAudioUrl, fetchNextScenario, GeneratedScenario } from '@/api/ai';
+import { audioMixer, AudioPriority } from '@/utils/AudioMixer';
+import { passengerEngine } from '@/utils/passengerEngine';
 import toast from 'react-hot-toast';
 import DistractionEvent from './DistractionEvent';
 import DecisionButtons, { ResponseChoice } from './DecisionButtons';
@@ -36,7 +33,7 @@ interface ScenarioContainerProps {
   sessionId: string;
 }
 
-type SimulationState = 'IDLE' | 'LOADING_SCENARIO' | 'EVENT_ACTIVE' | 'DECISION_PENDING' | 'COACHING_ACTIVE' | 'SESSION_COMPLETE';
+type SimulationState = 'IDLE' | 'LOADING_SCENARIO' | 'EVENT_ACTIVE' | 'DECISION_PENDING' | 'SESSION_COMPLETE';
 
 export default function ScenarioContainer({ sessionId }: ScenarioContainerProps) {
   const dispatch = useAppDispatch();
@@ -60,6 +57,10 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
   const recentHistoryRef = useRef<number[]>([]);
   const sessionStatsRef = useRef<{ urgency: string; type: string; perfWeight: number }[]>([]);
   const generatedTypesRef = useRef<Set<string>>(new Set());
+
+  // Immersion Audio Refs
+  const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
+  const chatterTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const history = recentHistoryRef.current;
   const avgPerformance = history.length > 0 ? history.reduce((a, b) => a + b, 0) / history.length : 0.5;
@@ -125,30 +126,81 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
       eventStartTimeRef.current = Date.now();
       setSimState('EVENT_ACTIVE');
       aiCancelTokenRef.current = false;
-
-      // Secondary AI Passenger Pressure
-      if (aiEnabled) {
-        dispatch(aiRequestStarted());
-        fetchPressure({
-          session_id: sessionId,
-          event_type: generated.distraction_type,
-          urgency: selectedType.urgency as any,
-          with_audio: true,
-        }).then((res) => {
-          if (aiCancelTokenRef.current) return;
-          dispatch(aiMessageReceived({
-            agent: res.agent,
-            text: res.text,
-            audioUrl: res.audio_b64 ? b64ToAudioUrl(res.audio_b64) : null,
-            provider: res.provider,
-          }));
-        }).catch(() => dispatch(aiCleared()));
-      }
     } catch (e) {
       toast.error('Failed to generate scenario. Retrying...');
       setSimState('IDLE'); // Let the loop retry
     }
   }, [dispatch, sessionId, aiEnabled, difficultyFactor]);
+
+  // Passenger Chatter Engine
+  const pollChatter = useCallback(async () => {
+    if (simState === 'SESSION_COMPLETE' || aiCancelTokenRef.current) return;
+    if (simState === 'EVENT_ACTIVE') {
+       chatterTimerRef.current = setTimeout(pollChatter, 5000);
+       return;
+    }
+
+    try {
+      const snippet = passengerEngine.getNextSnippet();
+      if (snippet) {
+        await audioMixer.playTTS(snippet.text, AudioPriority.PASSENGER);
+
+        chatterTimerRef.current = setTimeout(pollChatter, passengerEngine.getNextSilenceGap());
+      } else {
+         chatterTimerRef.current = setTimeout(pollChatter, 15000);
+      }
+    } catch (e) {
+      chatterTimerRef.current = setTimeout(pollChatter, 15000);
+    }
+  }, [simState, dispatch]);
+
+  // Strict unmount cleanup (Bug 3: Audio Continues After Exit)
+  useEffect(() => {
+    return () => {
+      aiCancelTokenRef.current = true;
+      if (chatterTimerRef.current) clearTimeout(chatterTimerRef.current);
+      if (engineTimerRef.current) clearTimeout(engineTimerRef.current);
+      if (escalationTimerRef.current) clearInterval(escalationTimerRef.current);
+      audioMixer.stopAllTTS();
+      if (ambientAudioRef.current) {
+         ambientAudioRef.current.pause();
+         ambientAudioRef.current.src = "";
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (aiEnabled && simState === 'IDLE' && !chatterTimerRef.current && eventsCount > 0) {
+        // Init mixer context on first idle after a user interaction (like starting session)
+        audioMixer.init();
+        chatterTimerRef.current = setTimeout(pollChatter, passengerEngine.getNextSilenceGap());
+    }
+    if (simState === 'SESSION_COMPLETE') {
+        if (chatterTimerRef.current) clearTimeout(chatterTimerRef.current);
+        audioMixer.stopAllTTS();
+        if (ambientAudioRef.current) ambientAudioRef.current.pause();
+    }
+  }, [simState, eventsCount, aiEnabled, pollChatter]);
+
+  // Ambient Audio Setup
+  useEffect(() => {
+    if (!ambientAudioRef.current && typeof window !== 'undefined') {
+      const audio = new Audio('/audio/highway_ambient.mp3'); 
+      audio.loop = true;
+      ambientAudioRef.current = audio;
+    }
+    if (simState !== 'SESSION_COMPLETE' && simState !== 'IDLE' && eventsCount === 0) {
+         audioMixer.init();
+         const playPromise = ambientAudioRef.current?.play();
+         if (playPromise !== undefined) {
+            playPromise.then(() => {
+               if (ambientAudioRef.current) {
+                 audioMixer.playAudioElement(ambientAudioRef.current, AudioPriority.AMBIENT);
+               }
+            }).catch(() => {});
+         }
+    }
+  }, [simState, eventsCount]);
 
   // Handle dynamic psychological escalation
   useEffect(() => {
@@ -254,10 +306,8 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
       else toast.error(`⚠️ Risky! ${result.score_delta} pts`);
 
       if (aiEnabled) {
-        setSimState('COACHING_ACTIVE');
-        dispatch(aiRequestStarted());
-        try {
-          const res = await fetchFeedback({
+        // Background behavior update, no mid-session coaching pause!
+        fetchFeedback({
             session_id: sessionId,
             event_type: currentEvent.event_type,
             decision_type: result.decision_type,
@@ -265,19 +315,12 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
             score_delta: result.score_delta,
             session_score: result.new_score,
             urgency: 'medium',
-            with_audio: true,
-          });
-          dispatch(aiMessageReceived({
-            agent: res.agent as any, text: res.text,
-            audioUrl: res.audio_b64 ? b64ToAudioUrl(res.audio_b64) : null,
-            provider: res.provider,
-          }));
-          dispatch(behaviorUpdated(res.behavior));
-          setTimeout(() => setSimState('IDLE'), 4000);
-        } catch (e) {
-          dispatch(aiCleared());
-          setSimState('IDLE');
-        }
+            with_audio: false,
+        }).then((res) => {
+            dispatch(behaviorUpdated(res.behavior));
+        }).catch(() => {});
+        
+        setSimState('IDLE');
       } else {
         setSimState('IDLE');
       }

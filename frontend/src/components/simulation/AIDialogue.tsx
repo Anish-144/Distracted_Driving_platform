@@ -16,15 +16,6 @@ import { Mic, Shield, User, AlertTriangle, Volume2, VolumeX, Loader2 } from 'luc
 // ── Agent Config ──────────────────────────────────────────────────────────────
 
 const AGENT_CONFIG = {
-  passenger: {
-    label: 'Passenger',
-    icon: User,
-    bgClass: 'bg-amber-50 border-amber-200',
-    badgeClass: 'bg-amber-100 text-amber-800 border-amber-200',
-    textClass: 'text-amber-900',
-    iconColor: 'text-amber-600',
-    dot: 'bg-amber-400',
-  },
   instructor: {
     label: 'Instructor',
     icon: Shield,
@@ -62,11 +53,11 @@ export default function AIDialogue() {
     }
     setDisplayedText('');
     let i = 0;
-    const chars = activeMessage.text.split('');
+    const text = activeMessage.text;
     const interval = setInterval(() => {
-      setDisplayedText((prev) => prev + chars[i]);
       i++;
-      if (i >= chars.length) clearInterval(interval);
+      setDisplayedText(text.slice(0, i));
+      if (i >= text.length) clearInterval(interval);
     }, 28);
     return () => clearInterval(interval);
   }, [activeMessage?.text, activeMessage?.timestamp]);

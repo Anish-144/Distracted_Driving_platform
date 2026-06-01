@@ -2,8 +2,9 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useAppSelector, useAppDispatch } from '@/store';
-import { logout } from '@/store/authSlice';
+import { logout, updateUserProfile } from '@/store/authSlice';
 import { loadSettings, updateSettings, optimisticUpdate } from '@/store/settingsSlice';
+import { updatePassword } from '@/api/auth';
 import { UserSettingsUpdate } from '@/api/settings';
 import AppShell from '@/components/layout/AppShell';
 import { FadeUp } from '@/components/motion/ScrollReveal';
@@ -97,12 +98,25 @@ export default function SettingsPage() {
   const handleProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSavingProfile(true);
-    await dispatch(updateSettings({
+    
+    const settingsPromise = dispatch(updateSettings({
       phone: profileForm.phone,
       emergency_contact: profileForm.emergencyContact
-    }));
-    toast.success('Account information updated');
-    setSavingProfile(false);
+    })).unwrap();
+    
+    const profilePromise = dispatch(updateUserProfile({
+      name: profileForm.name,
+      email: profileForm.email
+    })).unwrap();
+
+    try {
+      await Promise.all([settingsPromise, profilePromise]);
+      toast.success('Account information updated');
+    } catch (err: any) {
+      toast.error(err || 'Failed to update account information');
+    } finally {
+      setSavingProfile(false);
+    }
   };
 
   const handleToggle = (field: keyof UserSettingsUpdate, currentValue: boolean) => {
@@ -129,10 +143,18 @@ export default function SettingsPage() {
       return toast.error('Passwords do not match');
     }
     setSavingPassword(true);
-    await new Promise(res => setTimeout(res, 800)); // mock
-    toast.success('Password updated successfully');
-    setPasswordForm({ current: '', new: '', confirm: '' });
-    setSavingPassword(false);
+    try {
+      await updatePassword({
+        current_password: passwordForm.current,
+        new_password: passwordForm.new
+      });
+      toast.success('Password updated successfully');
+      setPasswordForm({ current: '', new: '', confirm: '' });
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || 'Failed to update password');
+    } finally {
+      setSavingPassword(false);
+    }
   };
 
   const handleExportData = () => {

@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 from app.config import settings
 from app.database import init_db
-from app.routes import auth, user, sessions, events, lessons, progress, ai
+from app.routes import auth, user, sessions, events, lessons, progress, ai, feedback
 from app.routes import onboarding, scenarios, cognitive_reports, settings as settings_router  # new: personality + AI scenario routes
 from app.routes import voice  # ElevenLabs voice narration routes
 # Ensure all models are imported so Base.metadata.create_all picks them up
@@ -54,6 +54,30 @@ async def lifespan(app: FastAPI):
         
     await init_db()
     logger.info("✅ Database connections established")
+
+    # ─── Schema Drift Validation ────────────────────────────────────────────────
+    from app.database import engine
+    from app.database import Base
+
+    def check_schema_drift(connection):
+        from alembic.autogenerate import compare_metadata
+        from alembic.runtime.migration import MigrationContext
+        context = MigrationContext.configure(connection)
+        diff = compare_metadata(context, Base.metadata)
+        if diff:
+            import sys
+            logger.critical(f"CRITICAL: Schema drift detected between Models and Database! Diffs: {diff}")
+            logger.critical("Failing startup. Please generate and apply missing migrations.")
+            sys.exit(1)
+
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(check_schema_drift)
+        logger.info("✅ Schema validation passed: Models match Database")
+    except SystemExit:
+        raise
+    except Exception as e:
+        logger.warning(f"Schema validation could not be completed: {e}")
 
     # ─── Automatic DB Seeding ───────────────────────────────────────────────────
     # Automatically seed default scenarios, test user, and lessons if they are missing
@@ -185,6 +209,7 @@ app.include_router(events.router)
 app.include_router(lessons.router)
 app.include_router(progress.router)
 app.include_router(ai.router)
+app.include_router(feedback.router)
 app.include_router(onboarding.router)
 app.include_router(scenarios.router)
 app.include_router(cognitive_reports.router)

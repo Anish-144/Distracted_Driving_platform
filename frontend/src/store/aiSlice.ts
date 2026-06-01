@@ -3,7 +3,7 @@ import type { BehaviorState } from '@/api/ai';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export type AgentType = 'passenger' | 'instructor' | 'authority' | null;
+export type AgentType = 'instructor' | 'authority' | null;
 
 export interface AIMessage {
   agent: AgentType;

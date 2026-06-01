@@ -1,8 +1,7 @@
 """
 AI Routes — behavioral coaching and voice synthesis endpoints.
 
-POST /api/ai/pressure    → Generate social pressure when event starts (Passenger Agent)
-POST /api/ai/feedback    → Generate coaching feedback after user decision
+POST /api/ai/feedback    → Generate post-decision coaching feedback after user decision
 POST /api/ai/synthesize  → Convert text to audio (ElevenLabs TTS)
 GET  /api/ai/behavior/me → Get current user's behavioral state summary
 """
@@ -29,20 +28,6 @@ router = APIRouter(prefix="/api/ai", tags=["AI Coaching"])
 
 
 # ── Pydantic Schemas ──────────────────────────────────────────────────────────
-
-class PressureRequest(BaseModel):
-    session_id: str
-    event_type: str
-    urgency: str = "medium"          # low | medium | high
-    with_audio: bool = True
-
-
-class PressureResponse(BaseModel):
-    agent: str
-    text: str
-    audio_b64: Optional[str] = None  # base64-encoded MP3, None if TTS unavailable
-    provider: str
-
 
 class FeedbackRequest(BaseModel):
     session_id: str
@@ -96,46 +81,6 @@ class SynthesizeRequest(BaseModel):
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
-
-@router.post("/pressure", response_model=PressureResponse)
-async def generate_pressure(
-    request: PressureRequest,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """
-    Called when a simulation distraction event STARTS.
-    Returns Passenger Agent social pressure dialogue + optional audio.
-    """
-    try:
-        coach_resp = await ai_coach.generate_pressure(
-            db=db,
-            user_id=current_user.id,
-            session_id=request.session_id,
-            event_type=request.event_type,
-            driver_profile=current_user.profile_type.value,
-            urgency=request.urgency,
-            with_audio=request.with_audio,
-        )
-    except Exception as e:
-        logger.error("generate_pressure error: %s", e, exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="AI coaching temporarily unavailable",
-        )
-
-    audio_b64 = None
-    if coach_resp.audio_bytes:
-        audio_b64 = base64.b64encode(coach_resp.audio_bytes).decode()
-
-    return PressureResponse(
-        agent=coach_resp.agent,
-        text=coach_resp.text,
-        audio_b64=audio_b64,
-        provider=coach_resp.provider,
-    )
-
-
 @router.post("/feedback", response_model=FeedbackResponse)
 async def generate_feedback(
     request: FeedbackRequest,
@@ -178,14 +123,14 @@ async def generate_feedback(
         audio_b64=audio_b64,
         provider=coach_resp.provider,
         behavior=BehaviorState(
-            dominant_pattern=b.dominant_pattern,
-            behavior_summary=b.behavior_summary,
-            consecutive_mistakes=b.consecutive_mistakes,
-            pressure_level=b.pressure_level,
-            pressure_level_label=b.pressure_level_label,
-            safe_ratio=round(b.safe_ratio, 3),
-            avg_reaction_time=b.avg_reaction_time,
-            dominant_fail_scenario=b.dominant_fail_scenario,
+            dominant_pattern=b.dominant_pattern if b else "unknown",
+            behavior_summary=b.behavior_summary if b else "",
+            consecutive_mistakes=b.consecutive_mistakes if b else 0,
+            pressure_level=b.pressure_level if b else 0,
+            pressure_level_label=b.pressure_level_label if b else "low",
+            safe_ratio=round(b.safe_ratio, 3) if b else 1.0,
+            avg_reaction_time=b.avg_reaction_time if b else 0.0,
+            dominant_fail_scenario=b.dominant_fail_scenario if b else "",
         ),
     )
 

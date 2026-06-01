@@ -1,4 +1,4 @@
-﻿import Head from 'next/head';
+import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -15,6 +15,7 @@ import {
  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ReferenceLine
 } from 'recharts';
 import CoachingAudioCard from '@/components/voice/CoachingAudioCard';
+import FeedbackModal from '@/components/feedback/FeedbackModal';
 
 const CARD = 'card overflow-hidden relative';
 const LABEL = 'text-[11px] font-bold uppercase tracking-[0.15em] text-muted';
@@ -25,6 +26,7 @@ export default function CognitiveReportPage() {
  const [report, setReport] = useState<CognitiveReport | null>(null);
  const [isLoading, setIsLoading] = useState(true);
  const [error, setError] = useState<string | null>(null);
+ const [showFeedback, setShowFeedback] = useState(false);
 
  useEffect(() => {
     if (!isAuthenticated) {
@@ -66,6 +68,12 @@ export default function CognitiveReportPage() {
  <p>
  {error || "You need to complete a full simulation session to generate a cognitive behavioral report."}
  </p>
+ <button
+  onClick={() => setShowFeedback(true)}
+  className="px-4 py-2 bg-brand-500/10 text-brand-500 font-semibold rounded-xl border border-brand-500/20 hover:bg-brand-500/20 transition-colors"
+ >
+  Rate Simulation
+ </button>
  <Link
  href="/simulation"
  className="btn-primary"
@@ -365,7 +373,13 @@ export default function CognitiveReportPage() {
  </div>
  </div>
  </div>
- </AppShell>
- </>
+      <FeedbackModal 
+        isOpen={showFeedback} 
+        onClose={() => setShowFeedback(false)} 
+        defaultType="simulation" 
+        sessionId={report?.session_id || router.query.sessionId as string}
+      />
+    </AppShell>
+  </>
  );
 }

@@ -413,30 +413,30 @@ When the `generateError` state was injected into the Redux `progressSlice` and t
 
 ---
 
-## SECTION 14 — AUTH FLOW CINEMATIC COMPOSITION REFINEMENT (PHASE 8)
+## SECTION 14 ï¿½ AUTH FLOW CINEMATIC COMPOSITION REFINEMENT (PHASE 8)
 
-### 14.1 — Problem Summary
+### 14.1 ï¿½ Problem Summary
 The auth flow (login and register pages) suffered from compounded issues: floating gradient orbs and animated particles created startup SaaS aesthetics incompatible with the Behavioral Intelligence OS identity. The auth card felt disconnected and floating. Button CTAs were inconsistent between pages (white button on login vs. CSS variable on register). Typography was weak with flat utility class hierarchy. Excessive whitespace created low-density, unintentional layouts.
 
-### 14.2 — Tonal Architecture Implemented
+### 14.2 ï¿½ Tonal Architecture Implemented
 Three-level tonal stack aligned with the Cinematic Intelligence Terminal design system: Canvas (#13151A) page body, Left Brand Panel (#151719) separated by 1px structural border, Right Form Panel (#1E2126) elevated one tone, Input Fields (#13151A) recessed below the panel surface for tactile depth.
 
-### 14.3 — Compositional Anchoring
-Split-panel layout (55/45 Login, 45/55 Register) grounds the form into the page architecture — no floating card. Brand identity lives in the left panel with a dot-grid texture (radial-gradient at low opacity) providing operational atmosphere. A subtle horizontal scan-line gradient adds depth without visual noise.
+### 14.3 ï¿½ Compositional Anchoring
+Split-panel layout (55/45 Login, 45/55 Register) grounds the form into the page architecture ï¿½ no floating card. Brand identity lives in the left panel with a dot-grid texture (radial-gradient at low opacity) providing operational atmosphere. A subtle horizontal scan-line gradient adds depth without visual noise.
 
-### 14.4 — Typography Hierarchy Corrections
+### 14.4 ï¿½ Typography Hierarchy Corrections
 Primary heading #F0EDE8 warm ivory. Subtitle #4A5060 muted graphite. Field labels #6B7280 JetBrains Mono uppercase with 0.08em tracking. Footer telemetry #2E3138. All labels use JetBrains Mono to signal operational context.
 
-### 14.5 — Button System Unification
-Primary CTA: #E8E4DF background, #13151A text, no glow, no shadow — solid warm ivory. Hover lifts to #F0EDE8. Dev Bypass: transparent, rgba(52,211,153,0.18) border, muted sage text 55% opacity using JetBrains Mono. Links: restrained #34d399 sage green. Fully unified tactical hierarchy.
+### 14.5 ï¿½ Button System Unification
+Primary CTA: #E8E4DF background, #13151A text, no glow, no shadow ï¿½ solid warm ivory. Hover lifts to #F0EDE8. Dev Bypass: transparent, rgba(52,211,153,0.18) border, muted sage text 55% opacity using JetBrains Mono. Links: restrained #34d399 sage green. Fully unified tactical hierarchy.
 
-### 14.6 — Operational Identity Markers
-JetBrains Mono status indicators in the left panel replace decorative animated orbs: Login shows "Behavioral Analysis Engine — ACTIVE", "AI Coaching System — ONLINE", "Session Encryption — SECURED". Register shows "Onboarding Protocol — READY", "Profile Analysis — STANDBY". Reinforces intelligence-terminal identity with meaningful system telemetry.
+### 14.6 ï¿½ Operational Identity Markers
+JetBrains Mono status indicators in the left panel replace decorative animated orbs: Login shows "Behavioral Analysis Engine ï¿½ ACTIVE", "AI Coaching System ï¿½ ONLINE", "Session Encryption ï¿½ SECURED". Register shows "Onboarding Protocol ï¿½ READY", "Profile Analysis ï¿½ STANDBY". Reinforces intelligence-terminal identity with meaningful system telemetry.
 
-### 14.7 — Fatigue Reduction
-All decorative animated elements (floating orbs, particles, blob animations) removed. Static atmospheric elements only: dot-grid texture, subtle scan-line, structural borders. Auth pages are intentionally always dark (cinematic entry terminal) regardless of app theme — ThemeToggle persists but the auth environment is permanently grounded.
+### 14.7 ï¿½ Fatigue Reduction
+All decorative animated elements (floating orbs, particles, blob animations) removed. Static atmospheric elements only: dot-grid texture, subtle scan-line, structural borders. Auth pages are intentionally always dark (cinematic entry terminal) regardless of app theme ï¿½ ThemeToggle persists but the auth environment is permanently grounded.
 
-### 14.8 — Validation Status
+### 14.8 ï¿½ Validation Status
 npm run build passes with zero TypeScript errors. Both pages verified: /auth/login (539ms) and /auth/register (1156ms) in the production build route table.
 
 ---

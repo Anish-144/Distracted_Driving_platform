@@ -6,20 +6,6 @@ import client from './client';
 
 // ── Request / Response Types ──────────────────────────────────────────────────
 
-export interface PressureRequest {
-  session_id: string;
-  event_type: string;
-  urgency?: 'low' | 'medium' | 'high';
-  with_audio?: boolean;
-}
-
-export interface PressureResponse {
-  agent: 'passenger';
-  text: string;
-  audio_b64: string | null;
-  provider: string;
-}
-
 export interface FeedbackRequest {
   session_id: string;
   event_type: string;
@@ -103,17 +89,6 @@ export interface PersonalityProfile {
 }
 
 // ── API Functions ─────────────────────────────────────────────────────────────
-
-/**
- * Called when a distraction event STARTS.
- * Fetches passenger social pressure dialogue (+ optional audio).
- */
-export async function fetchPressure(
-  payload: PressureRequest
-): Promise<PressureResponse> {
-  const res = await client.post<PressureResponse>('/ai/pressure', payload);
-  return res.data;
-}
 
 /**
  * Called AFTER the user makes a decision.

@@ -4,7 +4,7 @@ User model — stores registered users and their behavioral profile type.
 
 import uuid
 from datetime import datetime
-from sqlalchemy import String, DateTime, func, Enum as SAEnum
+from sqlalchemy import String, DateTime, Boolean, func, Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 import enum
@@ -28,6 +28,7 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     profile_type: Mapped[ProfileType] = mapped_column(
         SAEnum(ProfileType, values_callable=lambda x: [e.value for e in x]),
         default=ProfileType.UNKNOWN,

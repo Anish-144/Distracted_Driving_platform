@@ -215,30 +215,6 @@ COACHING RULES:
 Write ONLY the coaching line. No quotes. No prefix."""
 
 
-PSYCHOGRAPHIC_PRESSURE_PROMPT = """\
-You are a passenger in a car creating social/emotional pressure during a distraction event.
-
-DRIVER PSYCHOLOGICAL PROFILE:
-{trait_context}
-
-SCENARIO CONTEXT:
-{narrative_context}
-
-EMOTIONAL PRESSURE TYPE TO USE: {emotional_pressure_type}
-TARGET PSYCHOLOGICAL WEAKNESS: {target_weakness}
-URGENCY LEVEL: {urgency_level}/3
-
-RULES:
-- ONE sentence only. Sound like a real person, not a warning system.
-- Exploit the {emotional_pressure_type} pressure specifically — be psychologically realistic.
-- If urgency is 3, be genuinely urgent and emotionally pointed.
-- If urgency is 1, be subtle — just a gentle nudge, not dramatic.
-- No robotic phrases like "You should check this" or "This might be important."
-- Sound human. Sound present. Sound real.
-
-Write ONLY the passenger's spoken line. No quotes. No prefix."""
-
-
 def build_psychographic_coaching_prompt(
     event_type: str,
     decision_type: str,
@@ -264,21 +240,4 @@ def build_psychographic_coaching_prompt(
         score_delta=score_delta,
         consecutive_mistakes=consecutive_mistakes,
         recent_dialogue=recent_dialogue or "None yet.",
-    )
-
-
-def build_psychographic_pressure_prompt(
-    narrative_context: str,
-    trait_context: str,
-    emotional_pressure_type: str,
-    target_weakness: str,
-    urgency_level: int,
-) -> str:
-    """Build a psychographically-targeted passenger pressure prompt."""
-    return PSYCHOGRAPHIC_PRESSURE_PROMPT.format(
-        trait_context=trait_context or "Unknown cognitive profile.",
-        narrative_context=narrative_context,
-        emotional_pressure_type=emotional_pressure_type,
-        target_weakness=target_weakness,
-        urgency_level=urgency_level,
     )

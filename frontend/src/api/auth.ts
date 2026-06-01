@@ -53,3 +53,29 @@ export async function getMe(): Promise<UserProfile> {
   const response = await client.get<UserProfile>('/auth/me');
   return response.data;
 }
+
+export interface UpdateCoreProfilePayload {
+  name: string;
+  email: string;
+}
+
+export interface UpdatePasswordPayload {
+  current_password: string;
+  new_password: string;
+}
+
+/**
+ * Update current user's name and email.
+ */
+export async function updateCoreProfile(payload: UpdateCoreProfilePayload): Promise<{ status: string, name: string, email: string }> {
+  const response = await client.patch('/users/profile', payload);
+  return response.data;
+}
+
+/**
+ * Update current user's password.
+ */
+export async function updatePassword(payload: UpdatePasswordPayload): Promise<{ status: string, message: string }> {
+  const response = await client.patch('/users/password', payload);
+  return response.data;
+}

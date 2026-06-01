@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.models.user import User, ProfileType
-from app.services.auth_service import hash_password
+from app.services.auth_service import hash_password, verify_password
 
 
 async def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
@@ -60,3 +60,47 @@ async def update_user_profile(
     await db.flush()
     await db.refresh(user)
     return user
+
+
+async def update_core_profile(
+    db: AsyncSession,
+    user_id: str,
+    name: str,
+    email: str,
+) -> Optional[User]:
+    """Update user's name and email. Raises ValueError if email is taken."""
+    user = await get_user_by_id(db, user_id)
+    if user is None:
+        return None
+    
+    # Check for email conflict
+    email = email.lower().strip()
+    if email != user.email:
+        conflict = await get_user_by_email(db, email)
+        if conflict:
+            raise ValueError("An account with this email already exists")
+    
+    user.name = name.strip()
+    user.email = email
+    await db.flush()
+    await db.refresh(user)
+    return user
+
+
+async def update_password(
+    db: AsyncSession,
+    user_id: str,
+    current_password: str,
+    new_password: str,
+) -> bool:
+    """Update a user's password. Raises ValueError if current password is incorrect."""
+    user = await get_user_by_id(db, user_id)
+    if user is None:
+        return False
+    
+    if not verify_password(current_password, user.hashed_password):
+        raise ValueError("Incorrect current password")
+        
+    user.hashed_password = hash_password(new_password)
+    await db.flush()
+    return True

@@ -1,4 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
+import { updateCoreProfile, UpdateCoreProfilePayload } from '@/api/auth';
 
 interface AuthUser {
   id: string;
@@ -46,6 +47,17 @@ const initialState: AuthState = {
   isLoading: false,
   error: null,
 };
+
+export const updateUserProfile = createAsyncThunk(
+  'auth/updateProfile',
+  async (payload: UpdateCoreProfilePayload, { rejectWithValue }) => {
+    try {
+      return await updateCoreProfile(payload);
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.detail || 'Failed to update profile');
+    }
+  }
+);
 
 const authSlice = createSlice({
   name: 'auth',
@@ -100,6 +112,17 @@ const authSlice = createSlice({
         }
       }
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(updateUserProfile.fulfilled, (state, action) => {
+      if (state.user) {
+        state.user.name = action.payload.name;
+        state.user.email = action.payload.email;
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('auth_user', JSON.stringify(state.user));
+        }
+      }
+    });
   },
 });
 
