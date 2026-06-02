@@ -2,9 +2,9 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useAppSelector, useAppDispatch } from '@/store';
-import { logout, updateUserProfile } from '@/store/authSlice';
+import { logout, updateUserProfile, updateProfileType } from '@/store/authSlice';
 import { loadSettings, updateSettings, optimisticUpdate } from '@/store/settingsSlice';
-import { updatePassword } from '@/api/auth';
+import { updatePassword, deleteAccount, exportMyData, resetProgress } from '@/api/auth';
 import { UserSettingsUpdate } from '@/api/settings';
 import AppShell from '@/components/layout/AppShell';
 import { FadeUp } from '@/components/motion/ScrollReveal';
@@ -58,6 +58,9 @@ export default function SettingsPage() {
   const [savingPassword, setSavingPassword] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [exportingData, setExportingData] = useState(false);
+  const [resettingProgress, setResettingProgress] = useState(false);
 
   useEffect(() => { setIsMounted(true); }, []);
 
@@ -157,8 +160,56 @@ export default function SettingsPage() {
     }
   };
 
-  const handleExportData = () => {
-    toast.success('Preparing data export. You will receive an email shortly.');
+  const handleExportData = async () => {
+    setExportingData(true);
+    try {
+      const filename = await exportMyData();
+      toast.success(`Download started: ${filename}`);
+    } catch (err: any) {
+      const msg = err?.response?.data?.detail || 'Failed to export data. Please try again.';
+      toast.error(msg);
+    } finally {
+      setExportingData(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeletingAccount(true);
+    try {
+      await deleteAccount();
+      // Clear all local state on success
+      dispatch(logout());
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('auth_user');
+      }
+      toast.success('Account permanently deleted.');
+      router.replace('/auth/login');
+    } catch (err: any) {
+      const msg = err?.response?.data?.detail || 'Failed to delete account. Please try again.';
+      toast.error(msg);
+    } finally {
+      setDeletingAccount(false);
+      setShowDeleteModal(false);
+    }
+  };
+
+  const handleResetProgress = async () => {
+    setResettingProgress(true);
+    try {
+      const result = await resetProgress();
+      // Sync Redux profile_type so dashboard reflects the reset
+      dispatch(updateProfileType(result.profile_type_reset));
+      setShowResetModal(false);
+      toast.success('Training progress reset. Starting fresh!');
+      // Navigate to dashboard so progress metrics reload immediately
+      router.push('/dashboard');
+    } catch (err: any) {
+      const msg = err?.response?.data?.detail || 'Failed to reset progress. Please try again.';
+      toast.error(msg);
+    } finally {
+      setResettingProgress(false);
+    }
   };
 
   const handleSignOut = () => {
@@ -413,10 +464,14 @@ export default function SettingsPage() {
                 </p>
                 <button
                   onClick={handleExportData}
-                  className="btn-secondary flex items-center gap-2"
+                  disabled={exportingData}
+                  className="btn-secondary flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <Download className="w-4 h-4" />
-                  Export My Data
+                  {exportingData ? (
+                    <><RefreshCw className="w-4 h-4 animate-spin" />Preparing…</>
+                  ) : (
+                    <><Download className="w-4 h-4" />Export My Data</>
+                  )}
                 </button>
               </div>
             </div>
@@ -480,7 +535,17 @@ export default function SettingsPage() {
                 </p>
                 <div className="flex gap-3">
                   <button onClick={() => setShowResetModal(false)} className="btn-secondary flex-1">Cancel</button>
-                  <button onClick={() => { toast.success('Progress reset successfully'); setShowResetModal(false); }} className="px-4 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm transition-colors flex-1">Reset Progress</button>
+                  <button
+                    onClick={handleResetProgress}
+                    disabled={resettingProgress}
+                    className="px-4 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold text-sm transition-colors flex-1 flex items-center justify-center gap-2"
+                  >
+                    {resettingProgress ? (
+                      <><RefreshCw className="w-4 h-4 animate-spin" />Resetting…</>
+                    ) : (
+                      <>Reset Progress</>
+                    )}
+                  </button>
                 </div>
               </motion.div>
             </div>
@@ -510,7 +575,17 @@ export default function SettingsPage() {
                 </p>
                 <div className="flex gap-3 relative z-10">
                   <button onClick={() => setShowDeleteModal(false)} className="btn-secondary flex-1">Cancel</button>
-                  <button onClick={() => { toast.success('Account deleted'); dispatch(logout()); }} className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm transition-colors flex-1">Yes, Delete Account</button>
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={deletingAccount}
+                    className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold text-sm transition-colors flex-1 flex items-center justify-center gap-2"
+                  >
+                    {deletingAccount ? (
+                      <><RefreshCw className="w-4 h-4 animate-spin" />Deleting…</>
+                    ) : (
+                      <><Trash2 className="w-4 h-4" />Yes, Delete Account</>
+                    )}
+                  </button>
                 </div>
               </motion.div>
             </div>

@@ -7,6 +7,7 @@ export interface LoginResponse {
   name: string;
   email: string;
   profile_type: string;
+  is_admin: boolean;
 }
 
 export interface RegisterPayload {
@@ -20,6 +21,7 @@ export interface UserProfile {
   name: string;
   email: string;
   profile_type: string;
+  is_admin: boolean;
   created_at: string;
 }
 
@@ -79,3 +81,71 @@ export async function updatePassword(payload: UpdatePasswordPayload): Promise<{ 
   const response = await client.patch('/users/password', payload);
   return response.data;
 }
+
+export interface ResetProgressResponse {
+  success: boolean;
+  cleared: string[];
+  preserved: string[];
+  profile_type_reset: string;
+}
+
+/**
+ * Reset all training progress for the current user.
+ * Clears: sessions, events, behavioral data, lessons, personality profiles.
+ * Preserves: account, settings, feedback.
+ * Also resets profile_type to 'unknown'.
+ */
+export async function resetProgress(): Promise<ResetProgressResponse> {
+  const response = await client.post<ResetProgressResponse>('/users/reset-progress');
+  return response.data;
+}
+
+
+
+/**
+ * Permanently delete the current user's account and all associated data.
+ * The caller is responsible for clearing auth state after this resolves.
+ */
+export async function deleteAccount(): Promise<{ success: boolean }> {
+  const response = await client.delete<{ success: boolean }>('/users/me');
+  return response.data;
+}
+
+/**
+ * Export the current user's data as a downloadable JSON file.
+ *
+ * Requests GET /api/users/export with responseType: 'blob' so Axios
+ * returns the raw binary payload without parsing it. Creates a temporary
+ * object URL and programmatically triggers a download anchor so the browser
+ * saves the file without any page navigation.
+ *
+ * @returns filename — the name of the file that was downloaded
+ */
+export async function exportMyData(): Promise<string> {
+  const response = await client.get('/users/export', {
+    responseType: 'blob',
+  });
+
+  // Extract filename from Content-Disposition header if present
+  const disposition: string = response.headers['content-disposition'] ?? '';
+  let filename = `safedrive_export_${new Date().toISOString().slice(0, 10)}.json`;
+  const match = disposition.match(/filename="?([^";\s]+)"?/);
+  if (match?.[1]) {
+    filename = match[1];
+  }
+
+  // Create an object URL from the blob and trigger a native browser download
+  const url = URL.createObjectURL(new Blob([response.data], { type: 'application/json' }));
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  // Clean up immediately — the download is already queued by the browser
+  anchor.remove();
+  URL.revokeObjectURL(url);
+
+  return filename;
+}
+
+

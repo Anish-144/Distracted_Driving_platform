@@ -70,11 +70,16 @@ export default function LoginPage() {
           name: response.name,
           email: response.email,
           profile_type: response.profile_type,
+          is_admin: response.is_admin,
         },
         token: response.access_token,
       }));
       toast.success(`Welcome back, ${response.name}!`);
-      router.push('/dashboard');
+      if (response.is_admin) {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err: any) {
       const msg = err?.response?.data?.detail || 'Login failed. Please check your credentials.';
       dispatch(setError(msg));

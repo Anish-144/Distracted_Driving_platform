@@ -9,9 +9,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 import logging
 from app.config import settings
-from app.database import init_db
+from app.database import Base
 from app.routes import auth, user, sessions, events, lessons, progress, ai, feedback
-from app.routes import onboarding, scenarios, cognitive_reports, settings as settings_router  # new: personality + AI scenario routes
+from app.routes import onboarding, scenarios, cognitive_reports, settings as settings_router, admin, admin_users  # new: personality + AI scenario routes
 from app.routes import voice  # ElevenLabs voice narration routes
 # Ensure all models are imported so Base.metadata.create_all picks them up
 from app.models import user as _user_model  # noqa: F401
@@ -52,8 +52,7 @@ async def lifespan(app: FastAPI):
     if not settings.ELEVENLABS_API_KEY:
         logger.warning("No ElevenLabs API key provided. AI voice synthesis will be disabled.")
         
-    await init_db()
-    logger.info("✅ Database connections established")
+    logger.info("✅ Startup checks complete. Database migrations are managed via Alembic.")
 
     # ─── Schema Drift Validation ────────────────────────────────────────────────
     from app.database import engine
@@ -213,6 +212,8 @@ app.include_router(feedback.router)
 app.include_router(onboarding.router)
 app.include_router(scenarios.router)
 app.include_router(cognitive_reports.router)
+app.include_router(admin.router)
+app.include_router(admin_users.router)
 app.include_router(settings_router.router, prefix="/api/settings", tags=["Settings"])
 app.include_router(voice.router)
 

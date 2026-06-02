@@ -548,6 +548,13 @@ export default function LessonsPage() {
  const [completing, setCompleting] = useState(false);
  const [completedStaticIds, setCompletedStaticIds] = useState<string[]>([]);
 
+  // History Pagination State
+  const [historyItems, setHistoryItems] = useState<AILesson[]>([]);
+  const [historyTotal, setHistoryTotal] = useState(0);
+  const [historyOffset, setHistoryOffset] = useState(0);
+  const [historyLimit] = useState(4);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+
  useEffect(() => { setIsMounted(true); }, []);
 
  useEffect(() => {
@@ -564,6 +571,29 @@ export default function LessonsPage() {
  setCompletedStaticIds(ids);
  } catch {}
  }, [selectedLesson]);
+
+  // Fetch History
+  useEffect(() => {
+    if (!isAuthenticated || !isMounted || activeTab !== 'ai') return;
+    
+    let isSubscribed = true;
+    setIsHistoryLoading(true);
+    import('@/api/lessons').then(({ getAILessonHistory }) => {
+      getAILessonHistory(historyLimit, historyOffset)
+        .then(res => {
+          if (isSubscribed) {
+            setHistoryItems(res.items);
+            setHistoryTotal(res.total_count);
+          }
+        })
+        .catch(console.error)
+        .finally(() => {
+          if (isSubscribed) setIsHistoryLoading(false);
+        });
+    });
+
+    return () => { isSubscribed = false; };
+  }, [isAuthenticated, isMounted, activeTab, historyOffset, historyLimit, selectedLesson]);
 
  if (!isMounted) return null;
  if (!isAuthenticated || !user) {

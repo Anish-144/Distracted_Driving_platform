@@ -74,6 +74,14 @@ class CompleteLessonRequest(BaseModel):
     pass
 
 
+class AILessonListResponse(BaseModel):
+    items: List[AILessonResponse]
+    total_count: int
+    limit: int
+    offset: int
+
+
+
 def _serialize_ai_lesson(lesson: UserLesson) -> AILessonResponse:
     """Convert UserLesson ORM object to API response."""
     try:
@@ -225,14 +233,31 @@ async def get_ai_recommended_lessons(
     return [_serialize_ai_lesson(l) for l in lessons]
 
 
-@router.get("/ai/history", response_model=List[AILessonResponse])
+@router.get("/ai/history", response_model=AILessonListResponse)
 async def get_ai_lesson_history(
+    limit: int = 20,
+    offset: int = 0,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Return the full AI lesson history for the authenticated user."""
-    lessons = await lesson_generation_service.get_all_lessons(db, current_user.id)
-    return [_serialize_ai_lesson(l) for l in lessons]
+    """Return the paginated AI lesson history for the authenticated user."""
+    from sqlalchemy import func, desc
+    
+    # Count total
+    count_query = select(func.count(UserLesson.id)).where(UserLesson.user_id == current_user.id)
+    total = await db.scalar(count_query)
+    
+    # Fetch paginated
+    query = select(UserLesson).where(UserLesson.user_id == current_user.id).order_by(desc(UserLesson.created_at)).offset(offset).limit(limit)
+    result = await db.execute(query)
+    lessons = result.scalars().all()
+    
+    return AILessonListResponse(
+        items=[_serialize_ai_lesson(l) for l in lessons],
+        total_count=total or 0,
+        limit=limit,
+        offset=offset
+    )
 
 
 @router.post("/ai/generate", response_model=AILessonResponse, status_code=status.HTTP_201_CREATED)

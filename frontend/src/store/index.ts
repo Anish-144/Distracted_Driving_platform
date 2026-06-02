@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import authReducer from './authSlice';
 import sessionReducer from './sessionSlice';
@@ -6,14 +6,24 @@ import progressReducer from './progressSlice';
 import aiReducer from './aiSlice';
 import settingsReducer from './settingsSlice';
 
+const appReducer = combineReducers({
+  auth: authReducer,
+  session: sessionReducer,
+  progress: progressReducer,
+  ai: aiReducer,
+  settings: settingsReducer,
+});
+
+const rootReducer = (state: any, action: any) => {
+  if (action.type === 'auth/logout') {
+    // Completely wipe redux state (all slices) on logout for security
+    state = undefined;
+  }
+  return appReducer(state, action);
+};
+
 export const store = configureStore({
-  reducer: {
-    auth: authReducer,
-    session: sessionReducer,
-    progress: progressReducer,
-    ai: aiReducer,
-    settings: settingsReducer,
-  },
+  reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {

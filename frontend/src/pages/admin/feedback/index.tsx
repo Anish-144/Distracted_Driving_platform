@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { MessageSquare, CheckCircle, Clock, Search, Filter } from 'lucide-react';
 import { getAdminFeedback, getFeedbackAnalytics, FeedbackListResponse, FeedbackAnalyticsResponse, FeedbackType, FeedbackStatus } from '@/api/feedback';
-import Navbar from '@/components/layout/Navbar';
+import AppShell from '@/components/layout/AppShell';
 import AIFeedbackInsights from '@/components/admin/AIFeedbackInsights';
 
 export default function FeedbackDashboard() {
@@ -23,7 +23,7 @@ export default function FeedbackDashboard() {
   const loadData = async () => {
     try {
       const [listRes, statsRes] = await Promise.all([
-        getAdminFeedback({ page, size: 20, type: filterType || undefined, status: filterStatus || undefined }),
+        getAdminFeedback({ limit: 20, offset: (page - 1) * 20, type: filterType || undefined, status: filterStatus || undefined }),
         getFeedbackAnalytics()
       ]);
       setData(listRes);
@@ -41,10 +41,8 @@ export default function FeedbackDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-primary flex flex-col">
-      <Navbar />
-      
-      <main className="flex-1 overflow-y-auto p-6 lg:p-8">
+    <AppShell>
+      <div className="flex-1 overflow-y-auto p-6 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-6">
           
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
@@ -172,10 +170,10 @@ export default function FeedbackDashboard() {
             </div>
             
             {/* Pagination */}
-            {data && data.total > data.size && (
+            {data && data.total_count > data.limit && (
               <div className="p-4 border-t border-subtle flex items-center justify-between">
                 <span className="text-sm text-muted">
-                  Showing {(page - 1) * data.size + 1} to {Math.min(page * data.size, data.total)} of {data.total} results
+                  Showing {data.offset + 1} to {Math.min(data.offset + data.limit, data.total_count)} of {data.total_count} results
                 </span>
                 <div className="flex gap-2">
                   <button 
@@ -186,7 +184,7 @@ export default function FeedbackDashboard() {
                     Previous
                   </button>
                   <button 
-                    disabled={page * data.size >= data.total}
+                    disabled={data.offset + data.limit >= data.total_count}
                     onClick={() => setPage(p => p + 1)}
                     className="px-3 py-1 bg-primary border border-subtle rounded-lg text-sm disabled:opacity-50"
                   >
@@ -198,8 +196,8 @@ export default function FeedbackDashboard() {
           </div>
 
         </div>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }
 

@@ -50,6 +50,7 @@ class LoginResponse(BaseModel):
     name: str
     email: str
     profile_type: str
+    is_admin: bool
 
 
 class UserResponse(BaseModel):
@@ -57,6 +58,7 @@ class UserResponse(BaseModel):
     name: str
     email: str
     profile_type: str
+    is_admin: bool
     created_at: str
 
 
@@ -79,6 +81,11 @@ async def get_current_user(
     if user is None:
         raise credentials_exception
     return user
+
+async def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
+    if not current_user.is_admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin privileges required")
+    return current_user
 
 
 # ─── Routes ──────────────────────────────────────────────────────────────────
@@ -105,6 +112,7 @@ async def register(request: RegisterRequest, db: AsyncSession = Depends(get_db))
         name=user.name,
         email=user.email,
         profile_type=user.profile_type.value,
+        is_admin=user.is_admin,
     )
 
 
@@ -129,6 +137,7 @@ async def login(
         name=user.name,
         email=user.email,
         profile_type=user.profile_type.value,
+        is_admin=user.is_admin,
     )
 
 
@@ -140,5 +149,6 @@ async def get_me(current_user: User = Depends(get_current_user)):
         name=current_user.name,
         email=current_user.email,
         profile_type=current_user.profile_type.value,
+        is_admin=current_user.is_admin,
         created_at=current_user.created_at.isoformat(),
     )

@@ -33,4 +33,13 @@ docker compose up --build -d
 ```
 Access the platform at `http://localhost:4000`. Test credentials are `test@example.com` / `password123`.
 
+### 🔐 Admin Setup
+
+The platform does not create admin users by default. To bootstrap an admin account or grant admin privileges to an existing user, run the bootstrap script from the root directory:
+
+```bash
+python scripts/create_admin.py
+```
+You will be prompted to enter the admin's email, name, and a secure password.
+
 *For detailed local development setup, see [docs/deployment.md](docs/deployment.md).*

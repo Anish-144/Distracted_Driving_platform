@@ -17,6 +17,9 @@ export interface ProgressStats {
   percentile: number;
   mistakes: { scenario: string; response: string }[];
   timeline: SessionTimelineEntry[];
+  lessons_completed: number;
+  lesson_streak: number;
+  lesson_completion_rate: number;
 }
 
 export const getMyProgress = async (): Promise<ProgressStats> => {

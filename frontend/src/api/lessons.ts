@@ -58,8 +58,15 @@ export const getAIRecommendedLessons = async (): Promise<AILesson[]> => {
   return data;
 };
 
-export const getAILessonHistory = async (): Promise<AILesson[]> => {
-  const { data } = await apiClient.get<AILesson[]>('/lessons/ai/history');
+export interface AILessonListResponse {
+  items: AILesson[];
+  total_count: number;
+  limit: number;
+  offset: number;
+}
+
+export const getAILessonHistory = async (limit: number = 20, offset: number = 0): Promise<AILessonListResponse> => {
+  const { data } = await apiClient.get<AILessonListResponse>(`/lessons/ai/history?limit=${limit}&offset=${offset}`);
   return data;
 };
 

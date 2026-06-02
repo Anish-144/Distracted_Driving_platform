@@ -118,15 +118,13 @@ async def submit_feedback(
 
 @router.get("/admin", response_model=FeedbackListResponse)
 async def list_feedback(
-    page: int = Query(1, ge=1),
-    size: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
     status: Optional[FeedbackStatus] = None,
     type: Optional[FeedbackType] = None,
     current_admin: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db)
 ):
-    offset = (page - 1) * size
-    
     query = select(Feedback)
     if status:
         query = query.where(Feedback.status == status)
@@ -145,14 +143,14 @@ async def list_feedback(
     total_result = await db.execute(count_query)
     total = total_result.scalar_one()
     
-    result = await db.execute(query.offset(offset).limit(size))
+    result = await db.execute(query.offset(offset).limit(limit))
     items = result.scalars().all()
     
     return FeedbackListResponse(
         items=items,
-        total=total,
-        page=page,
-        size=size
+        total_count=total,
+        limit=limit,
+        offset=offset
     )
 
 
@@ -187,61 +185,6 @@ async def get_analytics(
         type_counts=type_counts,
         status_counts=status_counts
     )
-
-
-@router.get("/admin/{id}", response_model=FeedbackAdminRead)
-async def get_feedback_detail(
-    id: str,
-    current_admin: User = Depends(get_current_admin),
-    db: AsyncSession = Depends(get_db)
-):
-    feedback = await db.get(Feedback, id)
-    if not feedback:
-        raise HTTPException(status_code=404, detail="Feedback not found")
-    return feedback
-
-
-@router.patch("/admin/{id}", response_model=FeedbackAdminRead)
-async def update_feedback_status(
-    id: str,
-    payload: FeedbackStatusUpdate,
-    current_admin: User = Depends(get_current_admin),
-    db: AsyncSession = Depends(get_db)
-):
-    feedback = await db.get(Feedback, id)
-    if not feedback:
-        raise HTTPException(status_code=404, detail="Feedback not found")
-        
-    if payload.status:
-        feedback.status = payload.status
-    if payload.priority:
-        feedback.priority = payload.priority
-        
-    await db.commit()
-    await db.refresh(feedback)
-    return feedback
-
-
-@router.post("/admin/{id}/notes", response_model=FeedbackAdminRead)
-async def add_feedback_note(
-    id: str,
-    payload: FeedbackNoteBase,
-    current_admin: User = Depends(get_current_admin),
-    db: AsyncSession = Depends(get_db)
-):
-    feedback = await db.get(Feedback, id)
-    if not feedback:
-        raise HTTPException(status_code=404, detail="Feedback not found")
-        
-    note = FeedbackNote(
-        feedback_id=id,
-        admin_id=current_admin.id,
-        content=payload.content
-    )
-    db.add(note)
-    await db.commit()
-    await db.refresh(feedback)
-    return feedback
 
 
 async def _generate_ai_insights(db: AsyncSession):
@@ -346,3 +289,60 @@ async def regenerate_ai_insights(
         }
     
     return data
+
+
+@router.get("/admin/{id}", response_model=FeedbackAdminRead)
+async def get_feedback_detail(
+    id: str,
+    current_admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    feedback = await db.get(Feedback, id)
+    if not feedback:
+        raise HTTPException(status_code=404, detail="Feedback not found")
+    return feedback
+
+
+@router.patch("/admin/{id}", response_model=FeedbackAdminRead)
+async def update_feedback_status(
+    id: str,
+    payload: FeedbackStatusUpdate,
+    current_admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    feedback = await db.get(Feedback, id)
+    if not feedback:
+        raise HTTPException(status_code=404, detail="Feedback not found")
+        
+    if payload.status:
+        feedback.status = payload.status
+    if payload.priority:
+        feedback.priority = payload.priority
+        
+    await db.commit()
+    await db.refresh(feedback)
+    return feedback
+
+
+@router.post("/admin/{id}/notes", response_model=FeedbackAdminRead)
+async def add_feedback_note(
+    id: str,
+    payload: FeedbackNoteBase,
+    current_admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    feedback = await db.get(Feedback, id)
+    if not feedback:
+        raise HTTPException(status_code=404, detail="Feedback not found")
+        
+    note = FeedbackNote(
+        feedback_id=id,
+        admin_id=current_admin.id,
+        content=payload.content
+    )
+    db.add(note)
+    await db.commit()
+    await db.refresh(feedback)
+    return feedback
+
+

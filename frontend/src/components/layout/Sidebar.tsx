@@ -8,17 +8,13 @@ import {
   Settings,
   ShieldCheck,
   Microscope,
+  Users,
+  PieChart,
+  MessageSquare
 } from 'lucide-react';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
-
-const primaryNav = [
-  { label: 'Dashboard',  href: '/dashboard',          icon: LayoutDashboard },
-  { label: 'Simulation', href: '/simulation',          icon: Car,       badge: 'Go' },
-  { label: 'Lessons',    href: '/lessons',             icon: BookOpen },
-  { label: 'Progress',   href: '/dashboard/progress',  icon: BarChart2 },
-  { label: 'Research',   href: '/dashboard/research',  icon: Microscope },
-];
+import { useAppSelector } from '@/store';
 
 const secondaryNav = [
   { label: 'Settings',   href: '/settings',            icon: Settings },
@@ -34,7 +30,14 @@ const itemVariants = {
   visible: { opacity: 1, x: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
 };
 
-function NavItem({ item, isActive }: { item: typeof primaryNav[0]; isActive: boolean }) {
+type NavItemType = {
+  label: string;
+  href: string;
+  icon: any;
+  badge?: string;
+};
+
+function NavItem({ item, isActive }: { item: NavItemType; isActive: boolean }) {
   return (
     <motion.div variants={itemVariants}>
       <Link href={item.href}>
@@ -77,6 +80,23 @@ function NavItem({ item, isActive }: { item: typeof primaryNav[0]; isActive: boo
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { user } = useAppSelector((state) => state.auth);
+
+  const primaryNav = user?.is_admin
+    ? [
+        { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+        { label: 'Users', href: '/admin/users', icon: Users },
+        { label: 'Analytics', href: '/admin/analytics', icon: PieChart },
+        { label: 'Feedback', href: '/admin/feedback', icon: MessageSquare },
+        { label: 'Research', href: '/admin/research', icon: Microscope },
+      ]
+    : [
+        { label: 'Dashboard',  href: '/dashboard',          icon: LayoutDashboard },
+        { label: 'Simulation', href: '/simulation',          icon: Car,       badge: 'Go' },
+        { label: 'Lessons',    href: '/lessons',             icon: BookOpen },
+        { label: 'Progress',   href: '/dashboard/progress',  icon: BarChart2 },
+        { label: 'Research',   href: '/dashboard/research',  icon: Microscope },
+      ];
 
   return (
     <aside

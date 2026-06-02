@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAppSelector, useAppDispatch } from '@/store';
 import { logout } from '@/store/authSlice';
 import toast from 'react-hot-toast';
-import { LogOut, User, ChevronDown, ChevronRight } from 'lucide-react';
+import { LogOut, User, ChevronDown, ChevronRight, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ThemeToggle from '@/components/common/ThemeToggle';
 import clsx from 'clsx';
@@ -162,6 +162,18 @@ export default function Navbar() {
                       <User className="w-4 h-4 text-muted group-hover:text-accent transition-colors flex-shrink-0" />
                       Profile Settings
                     </Link>
+                    {user?.is_admin && (
+                      <Link 
+                        href="/admin/feedback"
+                        onClick={() => setShowDropdown(false)}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-secondary
+                                   hover:bg-secondary hover:text-accent focus:bg-secondary focus:outline-none 
+                                   active:scale-[0.98] transition-all duration-150 group"
+                      >
+                        <Shield className="w-4 h-4 text-muted group-hover:text-accent transition-colors flex-shrink-0" />
+                        Admin Feedback
+                      </Link>
+                    )}
                     <button
                       id="logout-btn"
                       onClick={handleLogout}

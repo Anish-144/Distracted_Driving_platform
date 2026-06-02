@@ -15,12 +15,12 @@ from app.models.behavioral_state import BehavioralState  # noqa: F401
 from app.models.intervention_log import InterventionLog  # noqa: F401
 from app.models.user_lesson import UserLesson  # noqa: F401
 from app.models.feedback import Feedback, FeedbackAttachment, FeedbackNote, AIFeedbackInsightsCache  # noqa: F401
+from app.models.admin import AdminPlatformInsightsCache  # noqa: F401
 
 __all__ = [
     "User", "UserSettings", "Session", "Event", "BehavioralLog", "Scenario", "Lesson",
     "PersonalityProfile", "GeneratedScenario", "CognitiveReport", "CalibrationEvent",
     "BehavioralState", "InterventionLog", "UserLesson",
-    "Feedback", "FeedbackAttachment", "FeedbackNote", "AIFeedbackInsightsCache"
+    "Feedback", "FeedbackAttachment", "FeedbackNote", "AIFeedbackInsightsCache",
+    "AdminPlatformInsightsCache"
 ]
-
-

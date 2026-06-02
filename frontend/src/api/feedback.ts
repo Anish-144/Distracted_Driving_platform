@@ -40,9 +40,9 @@ export interface Feedback {
 
 export interface FeedbackListResponse {
   items: Feedback[];
-  total: number;
-  page: number;
-  size: number;
+  total_count: number;
+  limit: number;
+  offset: number;
 }
 
 export interface FeedbackAnalyticsResponse {
@@ -61,7 +61,7 @@ export async function submitFeedback(data: FormData): Promise<Feedback> {
   return res.data;
 }
 
-export async function getAdminFeedback(params: { page: number; size: number; status?: string; type?: string }): Promise<FeedbackListResponse> {
+export async function getAdminFeedback(params: { limit: number; offset: number; status?: string; type?: string }): Promise<FeedbackListResponse> {
   const res = await client.get<FeedbackListResponse>('/feedback/admin', { params });
   return res.data;
 }

@@ -81,6 +81,7 @@ export default function RegisterPage() {
             name: response.name,
             email: response.email,
             profile_type: response.profile_type,
+            is_admin: response.is_admin,
           },
           token: response.access_token,
         })

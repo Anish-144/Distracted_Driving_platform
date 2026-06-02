@@ -63,9 +63,9 @@ class FeedbackStatusUpdate(BaseModel):
 
 class FeedbackListResponse(BaseModel):
     items: List[FeedbackAdminRead]
-    total: int
-    page: int
-    size: int
+    total_count: int
+    limit: int
+    offset: int
     
 class FeedbackAnalyticsResponse(BaseModel):
     total_feedback: int

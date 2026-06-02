@@ -13,6 +13,7 @@ from app.models.user import User, ProfileType
 from app.models.session import Session
 from app.models.behavioral_log import BehavioralLog, DecisionType
 from app.models.event import Event, UserResponseType
+from app.models.user_lesson import UserLesson
 from app.routes.auth import get_current_user
 from app.services.ai_feedback import generate_feedback
 
@@ -35,6 +36,9 @@ class ProgressResponse(BaseModel):
     percentile: int
     mistakes: List[dict]
     timeline: List[SessionTimelineEntry]
+    lessons_completed: int
+    lesson_streak: int
+    lesson_completion_rate: float
 
 
 @router.get("/me", response_model=ProgressResponse)
@@ -158,6 +162,36 @@ async def get_my_progress(
             )
         )
 
+    # ── Lesson Metrics ────────────────────────────────────────────────────────
+    lesson_stmt = select(UserLesson).where(UserLesson.user_id == current_user.id).order_by(desc(UserLesson.completed_at))
+    lesson_result = await db.execute(lesson_stmt)
+    user_lessons = lesson_result.scalars().all()
+
+    total_lessons = len(user_lessons)
+    completed_lessons = [l for l in user_lessons if l.completed and l.completed_at]
+    lessons_completed_count = len(completed_lessons)
+    lesson_completion_rate = (lessons_completed_count / total_lessons * 100) if total_lessons > 0 else 0.0
+
+    # Streak calculation
+    # A streak is consecutive days (up to today or yesterday) where at least one lesson was completed.
+    from datetime import datetime, timezone, timedelta
+    lesson_streak = 0
+    if completed_lessons:
+        today = datetime.now(timezone.utc).date()
+        # Get unique dates of completion, sorted descending
+        completion_dates = sorted(list(set([l.completed_at.date() for l in completed_lessons])), reverse=True)
+        
+        # Check if the streak is active (completed today or yesterday)
+        if completion_dates and (today - completion_dates[0]).days <= 1:
+            lesson_streak = 1
+            current_date = completion_dates[0]
+            for d in completion_dates[1:]:
+                if (current_date - d).days == 1:
+                    lesson_streak += 1
+                    current_date = d
+                else:
+                    break
+
     return ProgressResponse(
         total_sessions=total_sessions,
         avg_score=round(avg_score, 1),
@@ -167,8 +201,12 @@ async def get_my_progress(
         avg_reaction_time=round(avg_reaction_time, 2),
         percentile=percentile,
         mistakes=mistakes,
-        timeline=timeline
+        timeline=timeline,
+        lessons_completed=lessons_completed_count,
+        lesson_streak=lesson_streak,
+        lesson_completion_rate=round(lesson_completion_rate, 1)
     )
+
 
 
 # ── Leaderboard Endpoint ──────────────────────────────────────────────────────

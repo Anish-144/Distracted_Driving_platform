@@ -395,7 +395,29 @@ export default function DashboardPage() {
               </div>
             </FadeUp>
 
+            {/* Learning Metrics */}
+            <FadeUp delay={0.12}>
+              <div className="bg-primary rounded-xl border border-card p-5">
+                <SectionLabel>Learning Metrics</SectionLabel>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="p-2.5 rounded-lg bg-secondary border border-subtle text-center">
+                    <p className="text-lg font-bold text-primary mono-data">{stats?.lessons_completed ?? 0}</p>
+                    <p className="text-[10px] text-muted font-medium mt-0.5">Completed</p>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-secondary border border-subtle text-center">
+                    <p className="text-lg font-bold text-brand-500 mono-data">{stats?.lesson_streak ?? 0}</p>
+                    <p className="text-[10px] text-muted font-medium mt-0.5">Day Streak</p>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-secondary border border-subtle text-center">
+                    <p className="text-lg font-bold text-accent mono-data">{stats?.lesson_completion_rate ?? 0}%</p>
+                    <p className="text-[10px] text-muted font-medium mt-0.5">Win Rate</p>
+                  </div>
+                </div>
+              </div>
+            </FadeUp>
+
             {/* Quick Actions */}
+
             <FadeUp delay={0.15}>
               <div className="bg-primary rounded-xl border border-card p-5">
                 <SectionLabel>Quick Navigation</SectionLabel>

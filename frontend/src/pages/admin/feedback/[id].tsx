@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { ArrowLeft, Monitor, Smartphone, Globe, Clock, Star, Paperclip, Send, Loader2 } from 'lucide-react';
 import { getAdminFeedbackDetail, updateFeedbackStatus, addFeedbackNote, Feedback, FeedbackStatus, FeedbackPriority } from '@/api/feedback';
-import Navbar from '@/components/layout/Navbar';
+import AppShell from '@/components/layout/AppShell';
 import toast from 'react-hot-toast';
 
 export default function FeedbackDetail() {
@@ -83,10 +83,8 @@ export default function FeedbackDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-primary flex flex-col">
-      <Navbar />
-      
-      <main className="flex-1 overflow-y-auto p-6 lg:p-8">
+    <AppShell>
+      <div className="flex-1 overflow-y-auto p-6 lg:p-8">
         <div className="max-w-5xl mx-auto space-y-6">
           
           <Link href="/admin/feedback" className="inline-flex items-center gap-2 text-sm font-medium text-muted hover:text-primary transition-colors">
@@ -272,7 +270,7 @@ export default function FeedbackDetail() {
 
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }

@@ -1,6 +1,6 @@
 import type { AppProps } from 'next/app';
 import { Provider } from 'react-redux';
-import { store } from '@/store';
+import { store, useAppDispatch } from '@/store';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from '@/context/ThemeContext';
 import '@/styles/globals.css';
@@ -44,11 +44,27 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
   }
 }
 
+import { useEffect } from 'react';
+import { setupMultiTabLogout } from '@/services/logoutService';
+import { logout } from '@/store/authSlice';
+
+// A tiny invisible component inside the Redux Provider to setup multi-tab logout sync
+function MultiTabSync() {
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    return setupMultiTabLogout(() => {
+      dispatch(logout());
+    });
+  }, [dispatch]);
+  return null;
+}
+
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <ErrorBoundary>
       <Provider store={store}>
         <ThemeProvider>
+          <MultiTabSync />
           <Component {...pageProps} />
           <Toaster
           position="top-right"

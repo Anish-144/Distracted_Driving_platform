@@ -1,11 +1,13 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { updateCoreProfile, UpdateCoreProfilePayload } from '@/api/auth';
+import { performLogoutCleanup } from '@/services/logoutService';
 
 interface AuthUser {
   id: string;
   name: string;
   email: string;
   profile_type: string;
+  is_admin: boolean;
 }
 
 interface AuthState {
@@ -86,10 +88,7 @@ const authSlice = createSlice({
       state.token = null;
       state.isAuthenticated = false;
       state.error = null;
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('auth_user');
-      }
+      performLogoutCleanup();
     },
     setError(state, action: PayloadAction<string | null>) {
       state.error = action.payload;
