@@ -31,7 +31,7 @@ Ensure Docker Desktop is running, then execute:
 cp backend/.env.example backend/.env
 docker compose up --build -d
 ```
-Access the platform at `http://localhost:4000`. Test credentials are `test@example.com` / `password123`.
+Access the platform at `http://localhost:3000`. Test credentials are `test@example.com` / `password123`.
 
 ### 🔐 Admin Setup
 
