@@ -995,12 +995,12 @@ function SocialPressureScenario({ scenarioId, title, instruction, durationMs, on
  <div className="rounded-2xl rounded-tl-none px-3 py-2 text-sm max-w-xs"
  style={{
  background: idx === escalation
- ? `rgba(${escalation === 3 ? '239,68,68' : '109,40,217'},0.2)`
- : 'rgba(255,255,255,0.07)',
+ ? `rgba(${escalation === 3 ? '239,68,68' : '109,40,217'},0.15)`
+ : 'var(--bg-subtle)',
  border: idx === escalation
- ? `1px solid rgba(${escalation === 3 ? '239,68,68' : '109,40,217'},0.4)`
- : '1px solid rgba(255,255,255,0.08)',
- color: '#d1d5db',
+ ? `1px solid rgba(${escalation === 3 ? '239,68,68' : '109,40,217'},0.3)`
+ : '1px solid var(--border-subtle)',
+ color: idx === escalation ? 'var(--text-primary)' : 'var(--text-secondary)',
  }}
  >
  {msg.text}
@@ -1024,7 +1024,7 @@ function SocialPressureScenario({ scenarioId, title, instruction, durationMs, on
  <motion.button
  onClick={() => handleResponse(false)}
  className="flex-1 py-2.5 rounded-xl text-xs font-bold text-secondary border border-subtle"
- style={{ background: 'rgba(255,255,255,0.04)' }}
+ style={{ background: 'var(--bg-subtle)' }}
  whileTap={{ scale: 0.97 }}
  >
  Stay focused
