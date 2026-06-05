@@ -114,33 +114,39 @@ async def submit_feedback(
     await db.commit()
     await db.refresh(new_feedback)
 
-    # --- Append to local CSV ---
-    csv_file_path = "local_feedback.csv"
-    file_exists = os.path.isfile(csv_file_path)
+    # --- Append to local JSON ---
+    json_file_path = "local_feedback.json"
     try:
-        import csv
-        import io
+        import json
         from datetime import datetime
         
-        row = [
-            str(new_feedback.id),
-            new_feedback.type.value if hasattr(new_feedback.type, 'value') else str(new_feedback.type),
-            str(new_feedback.rating) if new_feedback.rating is not None else "",
-            new_feedback.comment.replace('\n', ' ').replace('\r', ''),
-            str(new_feedback.user_id) if new_feedback.user_id else "Anonymous",
-            new_feedback.created_at.isoformat() if new_feedback.created_at else datetime.utcnow().isoformat()
-        ]
+        feedback_data = {
+            "id": str(new_feedback.id),
+            "type": new_feedback.type.value if hasattr(new_feedback.type, 'value') else str(new_feedback.type),
+            "rating": new_feedback.rating,
+            "comment": new_feedback.comment,
+            "user_id": str(new_feedback.user_id) if new_feedback.user_id else "Anonymous",
+            "created_at": new_feedback.created_at.isoformat() if new_feedback.created_at else datetime.utcnow().isoformat()
+        }
         
-        output = io.StringIO()
-        csv.writer(output).writerow(row)
+        existing_data = []
+        if os.path.isfile(json_file_path):
+            async with aiofiles.open(json_file_path, mode='r', encoding='utf-8') as f:
+                content = await f.read()
+                if content.strip():
+                    try:
+                        existing_data = json.loads(content)
+                    except json.JSONDecodeError:
+                        existing_data = []
         
-        async with aiofiles.open(csv_file_path, mode='a', encoding='utf-8') as f:
-            if not file_exists:
-                await f.write("id,type,rating,comment,user_id,created_at\n")
-            await f.write(output.getvalue())
+        existing_data.append(feedback_data)
+        
+        async with aiofiles.open(json_file_path, mode='w', encoding='utf-8') as f:
+            await f.write(json.dumps(existing_data, indent=4))
+            
     except Exception as e:
         import logging
-        logging.getLogger(__name__).error(f"Failed to write to local feedback CSV: {e}")
+        logging.getLogger(__name__).error(f"Failed to write to local feedback JSON: {e}")
 
     return new_feedback
 
