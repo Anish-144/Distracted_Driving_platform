@@ -247,6 +247,16 @@ export default function CognitiveReportPage() {
  Session Evolution Timeline
  </h3>
  
+ {report.behavioral_timeline.length === 0 ? (
+   <div className="flex flex-col items-center justify-center py-10 px-4 bg-secondary/30 rounded-xl border border-subtle border-dashed mb-6">
+     <Clock className="w-8 h-8 text-muted mb-3 opacity-30" />
+     <p className="text-sm font-medium text-secondary">Timeline Unavailable</p>
+     <p className="text-xs text-muted text-center max-w-xs mt-1">
+       Detailed event timeline plotting requires full AI processing, which is currently running in fallback mode.
+     </p>
+   </div>
+ ) : (
+   <>
  <div className="h-[200px] w-full mb-6">
  <ResponsiveContainer width="100%" height="100%">
  <LineChart data={timelineData} margin={{ top: 5, right: 5, left: -25, bottom: 5 }}>
@@ -285,6 +295,8 @@ export default function CognitiveReportPage() {
  </div>
  ))}
  </div>
+ </>
+ )}
  </div>
  </FadeUp>
  </div>

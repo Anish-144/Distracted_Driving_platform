@@ -118,9 +118,11 @@ export default function DashboardPage() {
   const displayScore = hasSession ? latestData!.score : (reduxScore ?? stats?.avg_score ?? '—');
   const displayReaction = hasSession ? `${latestData!.avg_reaction_time}s` : '—';
   const displayImprovement = stats ? `${stats.improvement_rate > 0 ? '+' : ''}${stats.improvement_rate}` : '—';
-  const displayDriverType = hasSession ? latestData!.driver_type : (stats?.driver_type ?? 'Unknown');
-  const firstName = user.name?.split(' ')[0] || 'User';
   const profileKnown = user.profile_type && user.profile_type !== 'unknown';
+  const displayDriverType = hasSession 
+    ? latestData!.driver_type 
+    : (profileKnown ? user.profile_type!.replace('_', ' ') : (stats?.driver_type ?? 'Unknown'));
+  const firstName = user.name?.split(' ')[0] || 'User';
 
   const statCards = [
     {
