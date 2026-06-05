@@ -56,3 +56,5 @@ build/
 *.log
 *.sqlite
 *.node
+
+local_feedback.csv
