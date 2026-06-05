@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 import { useAppDispatch } from '@/store';
 import { loginSuccess, setLoading, setError } from '@/store/authSlice';
 import { login } from '@/api/auth';
-import { Car, Mail, Lock, Loader2, ArrowRight, Zap } from 'lucide-react';
+import { Car, Mail, Lock, Loader2, ArrowRight, Zap, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ThemeToggle from '@/components/common/ThemeToggle';
 
@@ -54,6 +54,7 @@ export default function LoginPage() {
   const dispatch = useAppDispatch();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -299,9 +300,9 @@ export default function LoginPage() {
                   />
                   <input
                     id="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
-                    className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl transition-all duration-150 outline-none"
+                    className="w-full pl-10 pr-10 py-2.5 text-sm rounded-xl transition-all duration-150 outline-none"
                     style={{
                       backgroundColor: 'var(--input-bg)',
                       border: `1px solid ${focusedField === 'password' ? 'var(--color-primary)' : 'var(--input-border)'}`,
@@ -315,6 +316,14 @@ export default function LoginPage() {
                       setFocusedField(null);
                     }}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 outline-none transition-colors duration-150"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4 hover:opacity-80" /> : <Eye className="w-4 h-4 hover:opacity-80" />}
+                  </button>
                 </div>
                 {errors.password && (
                   <p className="mt-1.5 text-xs" style={{ color: '#A85C5C' }}>{errors.password.message}</p>
