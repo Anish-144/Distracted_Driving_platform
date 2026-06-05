@@ -114,9 +114,6 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
         setParsedChoices([]);
       }
 
-      // Stop passenger idle chatter immediately when event begins
-      audioMixer.stopAllTTS();
-
       dispatch(
         eventTriggered({
           id: `${sessionId}-event-${currentCount + 1}`,
@@ -129,11 +126,6 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
       eventStartTimeRef.current = Date.now();
       setSimState('EVENT_ACTIVE');
       aiCancelTokenRef.current = false;
-      
-      // Speak the first escalation stage
-      if (aiEnabled) {
-        audioMixer.playTTS(generated.escalation_stage_1, AudioPriority.HIGH_EVENT);
-      }
     } catch (e) {
       toast.error('Failed to generate scenario. Retrying...');
       setSimState('IDLE'); // Let the loop retry
@@ -143,10 +135,6 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
   // Passenger Chatter Engine
   const pollChatter = useCallback(async () => {
     if (simState === 'SESSION_COMPLETE' || aiCancelTokenRef.current) return;
-    if (simState !== 'EVENT_ACTIVE') {
-       chatterTimerRef.current = setTimeout(pollChatter, 2000);
-       return;
-    }
 
     try {
       const snippet = passengerEngine.getNextSnippet();
@@ -220,24 +208,16 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
     if (simState === 'EVENT_ACTIVE' && activeScenario) {
       if (escalationTimerRef.current) clearInterval(escalationTimerRef.current);
       
-      // Escalate every 3.5 seconds to build pressure (give TTS time to finish)
+      // Escalate every 2.5 seconds to build pressure
       escalationTimerRef.current = setInterval(() => {
-        setEscalationLevel((prev) => {
-          const next = Math.min(prev + 1, 3);
-          if (next !== prev && aiEnabled) {
-            audioMixer.stopAllTTS(); // Interrupt current speech for urgency
-            const text = next === 2 ? activeScenario.escalation_stage_2 : activeScenario.escalation_stage_3;
-            audioMixer.playTTS(text, AudioPriority.HIGH_EVENT);
-          }
-          return next;
-        });
-      }, 3500);
+        setEscalationLevel((prev) => Math.min(prev + 1, 3));
+      }, 2500);
       
       return () => {
         if (escalationTimerRef.current) clearInterval(escalationTimerRef.current);
       };
     }
-  }, [simState, activeScenario, aiEnabled]);
+  }, [simState, activeScenario]);
 
   useEffect(() => {
     if (eventsCount > 0 && simState !== 'SESSION_COMPLETE') {
@@ -288,7 +268,6 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
     if (simState !== 'EVENT_ACTIVE' || !currentEvent) return;
     setSimState('DECISION_PENDING');
     if (escalationTimerRef.current) clearInterval(escalationTimerRef.current);
-    aiCancelTokenRef.current = true;
     dispatch(aiCleared());
 
     const startTime = eventStartTimeRef.current;
