@@ -979,8 +979,8 @@ function SocialPressureScenario({ scenarioId, title, instruction, durationMs, on
  <ScenarioShell title={title} instruction={instruction} scenarioId={scenarioId}>
  <div className="space-y-3">
  {/* Message thread */}
- <div className="rounded-2xl border border-subtle p-4 space-y-3"
- style={{ background: 'rgba(15,15,25,0.7)', minHeight: 120 }}>
+ <div className="rounded-2xl border border-subtle p-4 space-y-3 card-glass"
+ style={{ minHeight: 120 }}>
  <AnimatePresence>
  {messages.slice(0, escalation + 1).map((msg, idx) => (
  <motion.div
@@ -1086,8 +1086,7 @@ function TradeoffChoiceScenario({ scenarioId, title, instruction, durationMs, on
 
  return (
  <ScenarioShell title={title} instruction={instruction} scenarioId={scenarioId}>
- <div className="rounded-2xl border border-subtle p-5"
- style={{ background: 'rgba(15,15,25,0.7)' }}>
+ <div className="rounded-2xl border border-subtle p-5 card-glass">
  <p className="text-sm font-bold text-primary mb-1 leading-relaxed">
  A system requires an allocation decision.
  </p>
@@ -1119,10 +1118,10 @@ function TradeoffChoiceScenario({ scenarioId, title, instruction, durationMs, on
  }`}
  style={{
  background: chosen === opt.val
- ? 'rgba(109,40,217,0.15)'
+ ? 'var(--color-primary-container)'
  : hoveredOption === opt.val && !chosen
- ? 'rgba(255,255,255,0.06)'
- : 'rgba(255,255,255,0.03)',
+ ? 'var(--bg-secondary)'
+ : 'var(--bg-card)',
  }}
  whileTap={{ scale: 0.98 }}
  >
@@ -1298,8 +1297,7 @@ function ResultPhase({
  className="space-y-5"
  >
  {/* Profile card */}
- <div className="rounded-3xl overflow-hidden border border-subtle p-7 text-center"
- style={{ background: 'rgba(12,12,22,0.85)', backdropFilter: 'blur(12px)' }}>
+ <div className="rounded-3xl overflow-hidden border border-subtle p-7 text-center card-glass">
  {/* Icon */}
  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6"
  style={{ background: `rgba(${display.accent}, 0.1)`, border: `1px solid rgba(${display.accent}, 0.2)` }}>
@@ -1325,8 +1323,7 @@ function ResultPhase({
  </div>
 
  {/* Behavioral trait breakdown */}
- <div className="rounded-2xl border border-subtle p-5"
- style={{ background: 'rgba(12,12,22,0.7)' }}>
+ <div className="rounded-2xl border border-subtle p-5 card-glass">
  <p className="text-xs font-black uppercase tracking-widest text-muted mb-5">
  Behavioral Signal Map
  {profile.calibration_completed && <span className="ml-2 text-cyan-500">● Calibrated</span>}
@@ -1420,8 +1417,7 @@ function ProcessingScreen({ stage }: { stage: string }) {
  <motion.div
  initial={{ opacity: 0, scale: 0.96 }}
  animate={{ opacity: 1, scale: 1 }}
- className="rounded-3xl border border-subtle p-10 text-center"
- style={{ background: 'rgba(12,12,22,0.85)' }}
+ className="rounded-3xl border border-subtle p-10 text-center card-glass"
  >
  <div className="relative w-16 h-16 mx-auto mb-6">
  <div className="w-16 h-16 rounded-full border-2 border-violet-500/20 border-t-violet-500 animate-spin" />

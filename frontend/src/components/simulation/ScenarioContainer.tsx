@@ -114,6 +114,9 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
         setParsedChoices([]);
       }
 
+      // Stop passenger idle chatter immediately when event begins
+      audioMixer.stopAllTTS();
+
       dispatch(
         eventTriggered({
           id: `${sessionId}-event-${currentCount + 1}`,
@@ -126,6 +129,11 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
       eventStartTimeRef.current = Date.now();
       setSimState('EVENT_ACTIVE');
       aiCancelTokenRef.current = false;
+      
+      // Speak the first escalation stage
+      if (aiEnabled) {
+        audioMixer.playTTS(generated.escalation_stage_1, AudioPriority.HIGH_EVENT);
+      }
     } catch (e) {
       toast.error('Failed to generate scenario. Retrying...');
       setSimState('IDLE'); // Let the loop retry
@@ -135,8 +143,8 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
   // Passenger Chatter Engine
   const pollChatter = useCallback(async () => {
     if (simState === 'SESSION_COMPLETE' || aiCancelTokenRef.current) return;
-    if (simState === 'EVENT_ACTIVE') {
-       chatterTimerRef.current = setTimeout(pollChatter, 5000);
+    if (simState !== 'EVENT_ACTIVE') {
+       chatterTimerRef.current = setTimeout(pollChatter, 2000);
        return;
     }
 
@@ -147,10 +155,10 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
 
         chatterTimerRef.current = setTimeout(pollChatter, passengerEngine.getNextSilenceGap());
       } else {
-         chatterTimerRef.current = setTimeout(pollChatter, 15000);
+         chatterTimerRef.current = setTimeout(pollChatter, 10000);
       }
     } catch (e) {
-      chatterTimerRef.current = setTimeout(pollChatter, 15000);
+      chatterTimerRef.current = setTimeout(pollChatter, 10000);
     }
   }, [simState, dispatch]);
 
@@ -170,10 +178,15 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
   }, []);
 
   useEffect(() => {
-    if (aiEnabled && simState === 'IDLE' && !chatterTimerRef.current && eventsCount > 0) {
+    if (aiEnabled && simState === 'EVENT_ACTIVE') {
+        if (chatterTimerRef.current) clearTimeout(chatterTimerRef.current);
+        // Init mixer context and trigger chatter immediately when an event starts
+        audioMixer.init();
+        pollChatter();
+    } else if (aiEnabled && simState === 'IDLE' && !chatterTimerRef.current && eventsCount > 0) {
         // Init mixer context on first idle after a user interaction (like starting session)
         audioMixer.init();
-        chatterTimerRef.current = setTimeout(pollChatter, passengerEngine.getNextSilenceGap());
+        chatterTimerRef.current = setTimeout(pollChatter, 2000);
     }
     if (simState === 'SESSION_COMPLETE') {
         if (chatterTimerRef.current) clearTimeout(chatterTimerRef.current);
@@ -207,16 +220,24 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
     if (simState === 'EVENT_ACTIVE' && activeScenario) {
       if (escalationTimerRef.current) clearInterval(escalationTimerRef.current);
       
-      // Escalate every 2.5 seconds to build pressure
+      // Escalate every 3.5 seconds to build pressure (give TTS time to finish)
       escalationTimerRef.current = setInterval(() => {
-        setEscalationLevel((prev) => Math.min(prev + 1, 3));
-      }, 2500);
+        setEscalationLevel((prev) => {
+          const next = Math.min(prev + 1, 3);
+          if (next !== prev && aiEnabled) {
+            audioMixer.stopAllTTS(); // Interrupt current speech for urgency
+            const text = next === 2 ? activeScenario.escalation_stage_2 : activeScenario.escalation_stage_3;
+            audioMixer.playTTS(text, AudioPriority.HIGH_EVENT);
+          }
+          return next;
+        });
+      }, 3500);
       
       return () => {
         if (escalationTimerRef.current) clearInterval(escalationTimerRef.current);
       };
     }
-  }, [simState, activeScenario]);
+  }, [simState, activeScenario, aiEnabled]);
 
   useEffect(() => {
     if (eventsCount > 0 && simState !== 'SESSION_COMPLETE') {
