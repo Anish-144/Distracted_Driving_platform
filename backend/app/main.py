@@ -40,8 +40,8 @@ async def lifespan(app: FastAPI):
     logger.info(f"🚀 Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     
     # Security check: Never run prod with fallback secret
-    if settings.SECRET_KEY == "change-this-secret-key-in-production-please" and settings.ENVIRONMENT == "production":
-        logger.critical("CRITICAL: Running in production with default hardcoded SECRET_KEY! Halting startup.")
+    if settings.JWT_SECRET_KEY == "change-this-secret-key-in-production" and not settings.DEBUG:
+        logger.critical("CRITICAL: Running in production with default hardcoded JWT_SECRET_KEY! Halting startup.")
         import sys
         sys.exit(1)
         

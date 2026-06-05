@@ -7,14 +7,13 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # pyrefly: ignore [missing-import]
 from sqlalchemy import select
-from app.database import engine, AsyncSessionLocal, init_db
+from app.database import engine, AsyncSessionLocal
 from app.models.user import User
 from app.models.lesson import Lesson, LessonTag
 from app.services import auth_service
 
 async def seed_test_user():
-    print("--- Initializing database ---")
-    await init_db()
+    print("--- Seeding user ---")
     
     async with AsyncSessionLocal() as session:
         # Check if user already exists
