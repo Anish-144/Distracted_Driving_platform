@@ -113,6 +113,35 @@ async def submit_feedback(
 
     await db.commit()
     await db.refresh(new_feedback)
+
+    # --- Append to local CSV ---
+    csv_file_path = "local_feedback.csv"
+    file_exists = os.path.isfile(csv_file_path)
+    try:
+        import csv
+        import io
+        from datetime import datetime
+        
+        row = [
+            str(new_feedback.id),
+            new_feedback.type.value if hasattr(new_feedback.type, 'value') else str(new_feedback.type),
+            str(new_feedback.rating) if new_feedback.rating is not None else "",
+            new_feedback.comment.replace('\n', ' ').replace('\r', ''),
+            str(new_feedback.user_id) if new_feedback.user_id else "Anonymous",
+            new_feedback.created_at.isoformat() if new_feedback.created_at else datetime.utcnow().isoformat()
+        ]
+        
+        output = io.StringIO()
+        csv.writer(output).writerow(row)
+        
+        async with aiofiles.open(csv_file_path, mode='a', encoding='utf-8') as f:
+            if not file_exists:
+                await f.write("id,type,rating,comment,user_id,created_at\n")
+            await f.write(output.getvalue())
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Failed to write to local feedback CSV: {e}")
+
     return new_feedback
 
 
