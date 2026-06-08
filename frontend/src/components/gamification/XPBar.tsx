@@ -1,4 +1,6 @@
 import { motion } from 'framer-motion';
+import { useEffect, useRef } from 'react';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
 
 interface XPBarProps {
   xp: number;
@@ -13,6 +15,16 @@ interface XPBarProps {
 export default function XPBar({
   xp, currentLevelXP, nextLevelXP, level, progressPct, xpToNext, compact = false,
 }: XPBarProps) {
+  const { playLevelUp } = useSoundEffects();
+  const prevLevel = useRef(level);
+
+  useEffect(() => {
+    if (level > prevLevel.current) {
+      playLevelUp();
+      prevLevel.current = level;
+    }
+  }, [level, playLevelUp]);
+
   return (
     <div className={compact ? 'w-full' : 'w-full px-1'}>
       <div className="flex items-center justify-between mb-1.5">

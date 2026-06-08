@@ -18,7 +18,9 @@ import XPBar from '@/components/gamification/XPBar';
 import StreakWidget from '@/components/gamification/StreakWidget';
 import AchievementBadge from '@/components/gamification/AchievementBadge';
 import DailyChallenge from '@/components/gamification/DailyChallenge';
+import WeeklyQuest from '@/components/gamification/WeeklyQuest';
 import LevelUpToast, { playSound } from '@/components/gamification/LevelUpToast';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
 
 // ─── Animated counter ─────────────────────────────────────────────────────────
 function AnimatedNumber({ value, suffix = '' }: { value: number; suffix?: string }) {
@@ -148,6 +150,7 @@ export default function DashboardPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<'home' | 'friends' | 'leaderboard'>('home');
   const [showAddFriend, setShowAddFriend] = useState(false);
+  const { playClick, playPop } = useSoundEffects();
   useEffect(() => { setIsMounted(true); }, []);
 
   // Load data
@@ -198,7 +201,7 @@ export default function DashboardPage() {
   const quickActions = [
     { label: 'Behavioral Report', icon: FileText, href: '/dashboard/report', desc: 'Your cognitive dossier' },
     { label: 'Progress History', icon: BarChart2, href: '/dashboard/progress', desc: 'Session timeline' },
-    { label: 'Learning Center', icon: BookOpen, href: '/lessons', desc: 'Adaptive lessons' },
+    { label: 'Achievement Gallery', icon: Trophy, href: '/dashboard/achievements', desc: 'View all milestones' },
     { label: 'Research Data', icon: Target, href: '/dashboard/research', desc: 'Behavioral analytics' },
   ];
 
@@ -256,21 +259,21 @@ export default function DashboardPage() {
               )}
             </div>
             {/* Quick start */}
-            <Link href="/simulation" id="start-simulation-btn">
-              <motion.div
-                className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold"
-                style={{
-                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                  color: '#fff',
-                  boxShadow: '0 4px 20px rgba(99,102,241,0.4)',
-                }}
-                whileHover={{ scale: 1.04, boxShadow: '0 6px 28px rgba(99,102,241,0.55)' }}
-                whileTap={{ scale: 0.97 }}
-              >
-                <PlayCircle className="w-4 h-4" />
-                <span className="hidden sm:inline">Play</span>
-              </motion.div>
-            </Link>
+              <Link href="/simulation" id="start-simulation-btn" onClick={() => playPop()}>
+                <motion.div
+                  className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold"
+                  style={{
+                    background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                    color: '#fff',
+                    boxShadow: '0 4px 20px rgba(99,102,241,0.4)',
+                  }}
+                  whileHover={{ scale: 1.04, boxShadow: '0 6px 28px rgba(99,102,241,0.55)' }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  <PlayCircle className="w-4 h-4" />
+                  <span className="hidden sm:inline">Play</span>
+                </motion.div>
+              </Link>
           </div>
         </motion.div>
 
@@ -282,7 +285,10 @@ export default function DashboardPage() {
           {tabs.map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                setActiveTab(tab.id);
+                playClick();
+              }}
               className="relative flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold transition-all duration-200"
               style={{
                 color: activeTab === tab.id ? '#fff' : 'var(--color-text-muted)',
@@ -420,7 +426,7 @@ export default function DashboardPage() {
               ))}
             </motion.div>
 
-            {/* Daily Challenge */}
+            {/* Daily & Weekly Challenges */}
             {gData?.daily_challenge && (
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
@@ -428,6 +434,7 @@ export default function DashboardPage() {
                 transition={{ delay: 0.25 }}
               >
                 <DailyChallenge challenge={gData.daily_challenge} />
+                <WeeklyQuest progress={gData.total_sessions_completed} targetValue={10} />
               </motion.div>
             )}
 
@@ -437,7 +444,7 @@ export default function DashboardPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <Link href="/simulation">
+              <Link href="/simulation" onClick={() => playPop()}>
                 <motion.div
                   className="relative w-full rounded-2xl overflow-hidden flex items-center justify-center gap-3 py-5"
                   style={{
@@ -508,9 +515,12 @@ export default function DashboardPage() {
               transition={{ delay: 0.4 }}
             >
               <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
-                  Achievements {unlockedAchs.length > 0 && `(${unlockedAchs.length})`}
-                </p>
+                <Link href="/dashboard/achievements" className="hover:opacity-80 transition-opacity">
+                  <p className="text-xs font-bold uppercase tracking-wider flex items-center gap-2" style={{ color: 'var(--color-text-muted)' }}>
+                    Achievements {unlockedAchs.length > 0 && `(${unlockedAchs.length})`}
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </p>
+                </Link>
                 <Trophy className="w-3.5 h-3.5" style={{ color: '#fbbf24' }} />
               </div>
               {isLoadingAny ? (
@@ -627,7 +637,10 @@ export default function DashboardPage() {
                   Friends ({acceptedFriends.length})
                 </p>
                 <button
-                  onClick={() => setShowAddFriend(true)}
+                  onClick={() => {
+                    setShowAddFriend(true);
+                    playClick();
+                  }}
                   className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold text-white"
                   style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
                 >

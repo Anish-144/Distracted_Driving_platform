@@ -6,7 +6,8 @@ import { fetchProgressData } from '@/store/progressSlice';
 import AppShell from '@/components/layout/AppShell';
 import { motion } from 'framer-motion';
 import { FadeUp } from '@/components/motion/ScrollReveal';
-import { BarChart2, AlertCircle, Target, TrendingUp, TrendingDown, Clock, MoveRight } from 'lucide-react';
+import { BarChart2, AlertCircle, Target, TrendingUp, TrendingDown, Clock, MoveRight, Users } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart, ReferenceLine } from 'recharts';
 
 interface TimelineEntry { 
  session_id: string; 
@@ -45,9 +46,17 @@ export default function ProgressPage() {
  dispatch(fetchProgressData());
  }, [isAuthenticated, router, dispatch]);
 
- const firstScore = timeline.length > 0 ? timeline[0].score : 0;
- const lastScore = timeline.length > 0 ? timeline[timeline.length - 1].score : 0;
- const overallDelta = lastScore - firstScore;
+  const firstScore = timeline.length > 0 ? timeline[0].score : 0;
+  const lastScore = timeline.length > 0 ? timeline[timeline.length - 1].score : 0;
+  const overallDelta = lastScore - firstScore;
+
+  // Format timeline for recharts
+  const chartData = timeline.map((entry, idx) => ({
+    name: `S${idx + 1}`,
+    score: entry.score,
+    globalAvg: 65, // Mock global average for comparison
+    date: new Date(entry.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+  }));
 
  if (!isMounted) return null;
 
@@ -110,6 +119,29 @@ export default function ProgressPage() {
  </div>
  ))}
  </div>
+
+  {/* Recharts Chart */}
+  <div className="w-full h-64 mb-8 -ml-4">
+    <ResponsiveContainer width="100%" height="100%">
+      <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+        <defs>
+          <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
+            <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+        <XAxis dataKey="name" stroke="rgba(255,255,255,0.2)" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }} axisLine={false} tickLine={false} />
+        <YAxis stroke="rgba(255,255,255,0.2)" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }} axisLine={false} tickLine={false} domain={[0, 100]} />
+        <Tooltip
+          contentStyle={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '12px', color: '#fff' }}
+          itemStyle={{ color: '#fff', fontWeight: 'bold' }}
+        />
+        <ReferenceLine y={65} stroke="#64748b" strokeDasharray="3 3" label={{ position: 'insideTopLeft', value: 'Global Avg', fill: '#94a3b8', fontSize: 10 }} />
+        <Area type="monotone" dataKey="score" name="Your Score" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorScore)" activeDot={{ r: 6, fill: '#8b5cf6', stroke: '#fff', strokeWidth: 2 }} />
+      </AreaChart>
+    </ResponsiveContainer>
+  </div>
  </div>
  </FadeUp>
  )}

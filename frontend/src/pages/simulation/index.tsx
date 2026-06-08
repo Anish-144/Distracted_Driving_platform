@@ -14,12 +14,13 @@ import { FadeUp } from '@/components/motion/ScrollReveal';
 import { ArrowLeft, Info, PlayCircle, Loader2, Shield, Zap, Phone, MessageCircle, MapPinned, Car, Mail, Smartphone } from 'lucide-react';
 import Link from 'next/link';
 
-const scenarios = [
- { icon: <Phone className="w-6 h-6" />, name: 'Incoming Phone Call', desc: 'Your phone rings. Do you answer, decline, or ignore it?', difficulty: 'High', color: '#f59e0b' },
- { icon: <MessageCircle className="w-6 h-6" />, name: 'WhatsApp Notification', desc: 'A buzzing message notification with preview text appears.', difficulty: 'Medium', color: '#10b981' },
- { icon: <MapPinned className="w-6 h-6" />, name: 'GPS Rerouting Alert', desc: 'Your GPS needs attention — new route calculated, turn in 200m.', difficulty: 'Medium', color: '#ef4444' },
- { icon: <Mail className="w-6 h-6" />, name: 'Email Alert', desc: 'A low urgency work email notification pops up on your screen.', difficulty: 'Low', color: '#eab308' },
- { icon: <Smartphone className="w-6 h-6" />, name: 'Social Media', desc: 'An ambient social media notification buzzes your device.', difficulty: 'Low', color: '#a855f7' },
+import { useSoundEffects } from '@/hooks/useSoundEffects';
+
+const missionProfiles = [
+  { id: 'adaptive', name: 'Adaptive Mode', desc: 'AI dynamically tailors distractions to your specific weaknesses.', icon: <Zap className="w-6 h-6" />, color: '#8b5cf6', difficulty: 'Dynamic', xpBonus: '+20%' },
+  { id: 'highway', name: 'Highway Cruising', desc: 'High speed, long-form distractions like phone calls.', icon: <MapPinned className="w-6 h-6" />, color: '#3b82f6', difficulty: 'Standard', xpBonus: '+0%' },
+  { id: 'city', name: 'City Gridlock', desc: 'Rapid-fire notifications and high social pressure.', icon: <MessageCircle className="w-6 h-6" />, color: '#ef4444', difficulty: 'Hard', xpBonus: '+50%' },
+  { id: 'night', name: 'Night Drive', desc: 'Low visibility with sudden priority alerts.', icon: <Shield className="w-6 h-6" />, color: '#10b981', difficulty: 'Expert', xpBonus: '+100%' }
 ];
 
 const stagger = {
@@ -41,6 +42,8 @@ export default function SimulationPage() {
  const { sessionId, isSimulating, score } = useAppSelector((state) => state.session);
  const [isStarting, setIsStarting] = useState(false);
  const [isMounted, setIsMounted] = useState(false);
+ const [selectedMission, setSelectedMission] = useState('adaptive');
+ const { playClick, playPop, playDing } = useSoundEffects();
 
  useEffect(() => { setIsMounted(true); }, []);
 
@@ -48,13 +51,14 @@ export default function SimulationPage() {
  useEffect(() => { return () => { dispatch(sessionReset()); }; }, [dispatch]);
 
  const handleStartSession = async () => {
- setIsStarting(true);
- try {
- const session = await createSession();
- dispatch(sessionStarted({ sessionId: session.id, score: session.score }));
- toast.success('Session started! Get ready for distractions...');
- } catch { toast.error('Failed to start session. Please try again.'); }
- finally { setIsStarting(false); }
+   playDing();
+   setIsStarting(true);
+   try {
+     const session = await createSession();
+     dispatch(sessionStarted({ sessionId: session.id, score: session.score }));
+     toast.success('Session started! Get ready for distractions...');
+   } catch { toast.error('Failed to start session. Please try again.'); }
+   finally { setIsStarting(false); }
  };
 
  if (!isMounted) return null;
@@ -122,65 +126,91 @@ export default function SimulationPage() {
  </div>
  </FadeUp>
 
- {/* Scenarios */}
- <FadeUp delay={0.1}>
- <p className={`${LABEL} mb-4 px-1`}>
- Scenarios You May Encounter
- </p>
- </FadeUp>
+  {/* Mission Select Grid */}
+  <FadeUp delay={0.1}>
+  <p className={`${LABEL} mb-4 px-1 flex items-center justify-between`}>
+  <span>Select Mission Profile</span>
+  <span className="text-brand-400">XP Bonus</span>
+  </p>
+  </FadeUp>
 
- <motion.div className="grid gap-3 mb-6" variants={stagger} initial="hidden" animate="visible">
- {scenarios.map((s) => (
- <motion.div key={s.name} variants={cardAnim}
- className={`${CARD} p-4 flex items-center gap-4 transition-all duration-200 group cursor-default`}
- whileHover={{ y: -2 }}>
- <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
- style={{ background: `${s.color}1a`, border: `1px solid ${s.color}33` }}>
- {s.icon}
- </div>
- <div className="flex-1">
- <div className="flex items-center gap-2 mb-1">
- <span className="font-bold text-primary text-sm">{s.name}</span>
- <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md"
- style={{ background: `${s.color}1a`, color: s.color, border: `1px solid ${s.color}33` }}>
- {s.difficulty}
- </span>
- </div>
- <p className="text-muted text-xs leading-relaxed">{s.desc}</p>
- </div>
- </motion.div>
- ))}
- </motion.div>
+  <motion.div className="grid sm:grid-cols-2 gap-3 mb-8" variants={stagger} initial="hidden" animate="visible">
+  {missionProfiles.map((m) => {
+    const isSelected = selectedMission === m.id;
+    return (
+      <motion.div
+        key={m.id}
+        variants={cardAnim}
+        onClick={() => {
+          setSelectedMission(m.id);
+          playClick();
+        }}
+        className={`relative p-5 rounded-2xl cursor-pointer transition-all duration-300 ${
+          isSelected 
+            ? 'bg-secondary ring-2 ring-brand-500 shadow-[0_0_20px_rgba(139,92,246,0.3)]' 
+            : 'bg-primary border border-subtle hover:border-strong hover:bg-secondary'
+        }`}
+        whileHover={{ y: -2 }}
+        whileTap={{ scale: 0.98 }}
+      >
+        {isSelected && (
+          <div className="absolute top-3 right-3 text-brand-500">
+            <div className="w-5 h-5 bg-brand-500 rounded-full flex items-center justify-center">
+              <div className="w-2 h-2 bg-white rounded-full" />
+            </div>
+          </div>
+        )}
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white flex-shrink-0 mb-4"
+        style={{ background: `linear-gradient(135deg, ${m.color}, #1e293b)`, boxShadow: `0 4px 12px ${m.color}40` }}>
+          {m.icon}
+        </div>
+        <div>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="font-bold text-primary text-base">{m.name}</span>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md"
+            style={{ background: `${m.color}1a`, color: m.color, border: `1px solid ${m.color}33` }}>
+              {m.difficulty}
+            </span>
+          </div>
+          <p className="text-muted text-sm leading-relaxed mb-3">{m.desc}</p>
+          <div className="text-xs font-bold" style={{ color: m.color }}>
+            {m.xpBonus} XP Multiplier
+          </div>
+        </div>
+      </motion.div>
+    );
+  })}
+  </motion.div>
 
- {/* Rules */}
- <FadeUp delay={0.25}>
- <div className={`${CARD} p-5 mb-7 flex gap-3.5 items-start bg-blue-500/10 border-blue-500/20`}>
- <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
- <div className="text-sm text-secondary leading-relaxed">
- <span className="font-bold text-primary block mb-1">Scoring Rules</span>
- Safe decisions earn <span className="text-brand-400 font-bold bg-brand-500/10 px-1 rounded">+10 pts</span>.
- Risky interactions lose <span className="text-red-400 font-bold bg-red-500/10 px-1 rounded">-15 to -20 pts</span>.
- Reaction time scaling applies.
- </div>
- </div>
- </FadeUp>
+  {/* Rules */}
+  <FadeUp delay={0.25}>
+  <div className={`${CARD} p-5 mb-7 flex gap-3.5 items-start bg-blue-500/10 border-blue-500/20 rounded-2xl`}>
+  <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+  <div className="text-sm text-secondary leading-relaxed">
+  <span className="font-bold text-primary block mb-1">Scoring Rules</span>
+  Safe decisions earn <span className="text-brand-400 font-bold bg-brand-500/10 px-1 rounded">+10 pts</span>.
+  Risky interactions lose <span className="text-red-400 font-bold bg-red-500/10 px-1 rounded">-15 to -20 pts</span>.
+  Reaction time scaling applies.
+  </div>
+  </div>
+  </FadeUp>
 
- {/* Begin CTA */}
- <FadeUp delay={0.3}>
- <motion.button
- id="begin-simulation-btn"
- onClick={handleStartSession}
- disabled={isStarting}
- className="btn-primary w-full py-4 text-lg"
- whileHover={{ scale: 1.01 }}
- whileTap={{ scale: 0.98 }}
- transition={{ duration: 0.15 }}
- >
- <span className="relative z-10 flex items-center gap-2 py-1">
- {isStarting ? (<><Loader2 className="w-5 h-5 animate-spin" />Starting Session...</>) : (<><PlayCircle className="w-5 h-5" />Begin Simulation</>)}
- </span>
- </motion.button>
- </FadeUp>
+  {/* Begin CTA */}
+  <FadeUp delay={0.3}>
+  <motion.button
+  id="begin-simulation-btn"
+  onClick={handleStartSession}
+  onMouseEnter={() => playPop()}
+  disabled={isStarting}
+  className="w-full py-4 rounded-2xl text-lg font-black text-white shadow-[0_8px_32px_rgba(99,102,241,0.5)] transition-all flex items-center justify-center gap-2"
+  style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+  whileHover={{ scale: 1.02, boxShadow: '0 12px 40px rgba(99,102,241,0.6)' }}
+  whileTap={{ scale: 0.98 }}
+  transition={{ duration: 0.15 }}
+  >
+  {isStarting ? (<><Loader2 className="w-5 h-5 animate-spin" />Deploying Scenario...</>) : (<><PlayCircle className="w-5 h-5" />Launch {missionProfiles.find(m => m.id === selectedMission)?.name}</>)}
+  </motion.button>
+  </FadeUp>
  </div>
  ) : (
  <ScenarioContainer sessionId={sessionId!} />

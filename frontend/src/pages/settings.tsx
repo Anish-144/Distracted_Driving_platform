@@ -11,6 +11,7 @@ import { FadeUp } from '@/components/motion/ScrollReveal';
 import toast from 'react-hot-toast';
 import { Settings, User, Shield, Bell, Lock, AlertTriangle, Trash2, Save, RefreshCw, Activity, Download, CheckCircle2, LogOut, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
 
 const CARD = 'bg-primary rounded-2xl border border-subtle ';
 const LABEL = 'text-[11px] font-bold uppercase tracking-[0.12em] text-muted';
@@ -45,6 +46,7 @@ export default function SettingsPage() {
   const [isMounted, setIsMounted] = useState(false);
 
   const { data: settingsData, isLoading: settingsLoading } = useAppSelector((state) => state.settings);
+  const { soundEnabled, toggleSound } = useSoundEffects();
 
   const [profileForm, setProfileForm] = useState({
     name: user?.name || '',
@@ -393,12 +395,18 @@ export default function SettingsPage() {
                     <option>Lenient</option>
                   </select>
                 </div>
-                <div className="sm:col-span-2 border-t border-subtle pt-4">
+                <div className="sm:col-span-2 border-t border-subtle pt-4 space-y-2">
                   <Toggle
                     label="Audio Guidance"
                     description="Enable real-time voice alerts during simulation runs."
                     checked={settingsData?.audio_guidance ?? true}
                     onChange={() => handleToggle('audio_guidance', settingsData?.audio_guidance ?? true)}
+                  />
+                  <Toggle
+                    label="Game Sound Effects"
+                    description="Play UI sound effects for XP, clicks, and leveling up."
+                    checked={soundEnabled}
+                    onChange={toggleSound}
                   />
                 </div>
               </div>

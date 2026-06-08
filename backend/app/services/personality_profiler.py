@@ -54,116 +54,7 @@ logger = logging.getLogger(__name__)
 # All answer options are designed to appear equally reasonable.
 # The `dimension` field is server-side ONLY — never sent to frontend.
 
-ASSESSMENT_QUESTIONS = [
-    {
-        "id": "q1",
-        "text": "You're halfway through an email when your phone buzzes. What's your natural first move?",
-        "dimension": "attention_notification",   # internal only — never shown
-        "options": [
-            {
-                "value": "a",
-                "text": "Glance at the notification immediately — I'll know in a second if it matters",
-                "scores": {"attention_control_score": 0.2, "impulsiveness_score": 0.75, "behavioral_notification_fixation_prior": 0.8}
-            },
-            {
-                "value": "b",
-                "text": "Finish my current sentence, then check it",
-                "scores": {"attention_control_score": 0.55, "impulsiveness_score": 0.45, "behavioral_notification_fixation_prior": 0.5}
-            },
-            {
-                "value": "c",
-                "text": "Ignore it and finish the full email before checking",
-                "scores": {"attention_control_score": 0.85, "impulsiveness_score": 0.2, "behavioral_notification_fixation_prior": 0.2}
-            },
-            {
-                "value": "d",
-                "text": "It depends entirely on who it's from",
-                "scores": {"attention_control_score": 0.5, "authority_compliance_score": 0.65, "behavioral_notification_fixation_prior": 0.55}
-            },
-        ]
-    },
-    {
-        "id": "q2",
-        "text": "Your navigation app reroutes with 3 unexpected turns while you're mid-conversation. How do you typically feel?",
-        "dimension": "cognitive_overload",       # internal only
-        "options": [
-            {
-                "value": "a",
-                "text": "Frustrated — I need to pause everything to process the new route",
-                "scores": {"stress_resilience_score": 0.2, "cognitive_patience_score": 0.25, "behavioral_cognitive_overload_prior": 0.8}
-            },
-            {
-                "value": "b",
-                "text": "Mildly stressed, but I adapt quickly",
-                "scores": {"stress_resilience_score": 0.55, "cognitive_patience_score": 0.5, "behavioral_cognitive_overload_prior": 0.45}
-            },
-            {
-                "value": "c",
-                "text": "Fine — I process both streams without much difficulty",
-                "scores": {"stress_resilience_score": 0.85, "multitasking_tendency_score": 0.7, "behavioral_cognitive_overload_prior": 0.2}
-            },
-            {
-                "value": "d",
-                "text": "I'd probably miss some turns or lose track of the conversation",
-                "scores": {"stress_resilience_score": 0.15, "attention_control_score": 0.2, "behavioral_cognitive_overload_prior": 0.9}
-            },
-        ]
-    },
-    {
-        "id": "q3",
-        "text": "You have 10 minutes before a meeting. A coworker asks for a quick favor. What do you typically do?",
-        "dimension": "urgency_time_pressure",    # internal only
-        "options": [
-            {
-                "value": "a",
-                "text": "Help immediately — the favor matters, the meeting will still be there",
-                "scores": {"authority_compliance_score": 0.7, "impulsiveness_score": 0.65, "emotional_reactivity_score": 0.6, "behavioral_urgency_susceptibility_prior": 0.6}
-            },
-            {
-                "value": "b",
-                "text": "Quick gut-check on timing, then probably help if it's really quick",
-                "scores": {"cognitive_patience_score": 0.6, "impulsiveness_score": 0.4, "behavioral_urgency_susceptibility_prior": 0.45}
-            },
-            {
-                "value": "c",
-                "text": "Explain I only have 10 minutes and ask if it can wait",
-                "scores": {"stress_resilience_score": 0.75, "risk_tolerance_score": 0.5, "behavioral_urgency_susceptibility_prior": 0.3}
-            },
-            {
-                "value": "d",
-                "text": "Politely decline — I don't compromise meeting prep",
-                "scores": {"authority_compliance_score": 0.25, "cognitive_patience_score": 0.8, "behavioral_urgency_susceptibility_prior": 0.15}
-            },
-        ]
-    },
-    {
-        "id": "q4",
-        "text": "You've deliberately ignored a notification for 10 minutes while focused on something. How often do you think about it?",
-        "dimension": "notification_fixation",    # internal only
-        "options": [
-            {
-                "value": "a",
-                "text": "Constantly — I'm aware of it the entire time and feel pulled toward it",
-                "scores": {"attention_control_score": 0.1, "behavioral_notification_fixation_prior": 0.95, "impulsiveness_score": 0.7}
-            },
-            {
-                "value": "b",
-                "text": "A few times — it crosses my mind but doesn't derail me",
-                "scores": {"attention_control_score": 0.5, "behavioral_notification_fixation_prior": 0.55, "impulsiveness_score": 0.45}
-            },
-            {
-                "value": "c",
-                "text": "Rarely — once I decide to ignore something, it leaves my attention",
-                "scores": {"attention_control_score": 0.85, "behavioral_notification_fixation_prior": 0.15, "impulsiveness_score": 0.2}
-            },
-            {
-                "value": "d",
-                "text": "It depends — low-urgency things vanish, important ones linger",
-                "scores": {"attention_control_score": 0.55, "authority_compliance_score": 0.6, "behavioral_notification_fixation_prior": 0.5}
-            },
-        ]
-    },
-]
+ASSESSMENT_QUESTIONS = []
 
 
 # ── Trait Dimensions ──────────────────────────────────────────────────────────
@@ -192,63 +83,43 @@ PRIOR_BEHAVIORAL_DIMENSIONS = [
 CALIBRATION_SCENARIOS = [
     {
         "id": "S1",
-        "name": "navigation_interrupt",
-        "title": "Route Active",
-        "duration_ms": 20000,
+        "name": "notification_storm",
+        "title": "Group Chat",
+        "duration_ms": 5000,
         "primary_traits": ["attention_control", "notification_fixation"],
-        "description": "A navigation interface with an incoming notification badge. User must complete a route confirmation.",
-        "ui_type": "navigation_sim",
-        "instruction": "Confirm your route to proceed. You may see other activity on screen.",
+        "description": "A fake group chat interface appears on screen with rapid, escalating messages.",
+        "ui_type": "notification_storm",
+        "instruction": "Read Chat or Swipe Away.",
     },
     {
         "id": "S2",
-        "name": "countdown_clock",
-        "title": "Time Sensitive",
-        "duration_ms": 12000,
-        "primary_traits": ["impulsiveness", "urgency_susceptibility"],
-        "description": "A choice presented under a visible countdown timer. Measures whether pressure causes premature decisions.",
-        "ui_type": "countdown_choice",
-        "instruction": "Review your options and select when ready.",
+        "name": "conflicting_directions",
+        "title": "Split Screen",
+        "duration_ms": 3000,
+        "primary_traits": ["authority_compliance", "cognitive_overload"],
+        "description": "Navigation arrow points Left. Friend's voice audio says 'No, turn Right here!'",
+        "ui_type": "conflicting_directions",
+        "instruction": "Choose direction immediately.",
     },
     {
         "id": "S3",
-        "name": "conflicting_authority",
-        "title": "System Check",
-        "duration_ms": 30000,
-        "primary_traits": ["authority_compliance", "cognitive_overload"],
-        "description": "Two authoritative sources (visual instruction + audio prompt) give conflicting guidance. Measures which authority is followed.",
-        "ui_type": "conflict_resolution",
-        "instruction": "Follow the system instructions to proceed.",
+        "name": "fomo_choice",
+        "title": "Party Time",
+        "duration_ms": 3000,
+        "primary_traits": ["risk_tolerance", "urgency_susceptibility"],
+        "description": "Party starts in 10 mins. Friend needs a ride. Pick them up (Late) vs Go straight (On time).",
+        "ui_type": "fomo_choice",
+        "instruction": "Make a choice.",
     },
     {
         "id": "S4",
-        "name": "notification_temptation",
-        "title": "Focus Task",
-        "duration_ms": 25000,
-        "primary_traits": ["notification_fixation", "attention_control"],
-        "description": "User performs a primary task while a notification badge pulses 3 times. Measures distraction click rate and task-switching.",
-        "ui_type": "dual_task",
-        "instruction": "Complete the highlighted task below.",
-    },
-    {
-        "id": "S5",
-        "name": "passenger_urgency",
-        "title": "Social Calibration",
-        "duration_ms": 35000,
-        "primary_traits": ["authority_compliance", "emotional_reactivity", "urgency_susceptibility"],
-        "description": "Escalating social pressure messages from a passenger figure. Measures yield rate and escalation sensitivity.",
-        "ui_type": "social_pressure",
-        "instruction": "Respond to the messages as they come in.",
-    },
-    {
-        "id": "S6",
-        "name": "ambiguous_tradeoff",
-        "title": "Decision Point",
-        "duration_ms": 20000,
-        "primary_traits": ["impulsiveness", "risk_tolerance", "cognitive_patience"],
-        "description": "Two options with ambiguous risk/benefit descriptions. No clearly 'safe' choice. Measures decision time and deliberation.",
-        "ui_type": "tradeoff_choice",
-        "instruction": "Choose the option that feels right for the situation.",
+        "name": "phantom_buzz",
+        "title": "Screen Calibration",
+        "duration_ms": 15000,
+        "primary_traits": ["impulsiveness", "notification_fixation"],
+        "description": "User is asked to rapidly tap a target circle. Phone vibrates and fake Instagram DM drops down.",
+        "ui_type": "phantom_buzz",
+        "instruction": "Tap the circle repeatedly to calibrate.",
     },
 ]
 
@@ -374,8 +245,7 @@ class CalibrationScorer:
 
     # Scenario time limits (ms) — used to normalize response timing
     SCENARIO_DURATIONS = {
-        "S1": 20000, "S2": 12000, "S3": 30000,
-        "S4": 25000, "S5": 35000, "S6": 20000
+        "S1": 5000, "S2": 3000, "S3": 3000, "S4": 15000
     }
 
     def extract_from_event(self, scenario_id: str, telemetry: dict) -> dict:
@@ -384,12 +254,10 @@ class CalibrationScorer:
         Returns: dict of {evidence_dimension: 0.0–1.0}
         """
         extractors = {
-            "S1": self._score_navigation_interrupt,
-            "S2": self._score_countdown_clock,
-            "S3": self._score_conflicting_authority,
-            "S4": self._score_notification_temptation,
-            "S5": self._score_passenger_urgency,
-            "S6": self._score_ambiguous_tradeoff,
+            "S1": self._score_notification_storm,
+            "S2": self._score_conflicting_directions,
+            "S3": self._score_fomo_choice,
+            "S4": self._score_phantom_buzz,
         }
         extractor = extractors.get(scenario_id)
         if extractor is None:
@@ -464,214 +332,58 @@ class CalibrationScorer:
 
     # ── Per-Scenario Extractors ────────────────────────────────────────────────
 
-    def _score_navigation_interrupt(self, t: dict) -> dict:
-        """
-        S1: NavigationInterrupt
-        Key signals:
-          - distraction_clicks > 0 → high notification fixation
-          - first_response_ms < 2000 → high impulsiveness (touched notification immediately)
-          - time_to_choice_ms normalized → attention control (longer = more deliberate)
-        """
+    def _score_notification_storm(self, t: dict) -> dict:
         duration = self.SCENARIO_DURATIONS["S1"]
         first_ms = t.get("first_response_ms", duration)
-        distraction = t.get("distraction_clicks", 0)
-        time_to_choice = t.get("time_to_choice_ms", duration)
+        choice = t.get("choice_made", "timeout")
 
-        # Notification fixation: based on distraction click count
-        notif_fixation = min(1.0, distraction * 0.4)
-        if distraction == 0:
-            notif_fixation = 0.1
-
-        # Impulsiveness: first touch within 2 seconds = highly impulsive
-        speed_ratio = 1.0 - min(first_ms / 4000, 1.0)
-        impulsiveness = round(speed_ratio * 0.9, 3) if distraction > 0 else max(0.0, speed_ratio - 0.3)
-
-        # Attention control: inverse of distraction pull
-        att_control = max(0.0, 1.0 - (distraction * 0.35) - (notif_fixation * 0.3))
+        notif_fixation = 0.8 if choice == "read_chat" else 0.2 if choice == "swipe_away" else 0.5
+        att_control = 0.2 if choice == "read_chat" else 0.8 if choice == "swipe_away" else 0.3
 
         return {
-            "evidence_impulsiveness": round(impulsiveness, 3),
-            "evidence_attention_control": round(att_control, 3),
-            "evidence_notification_fixation": round(notif_fixation, 3),
+            "evidence_attention_control": att_control,
+            "evidence_notification_fixation": notif_fixation,
         }
 
-    def _score_countdown_clock(self, t: dict) -> dict:
-        """
-        S2: CountdownClock
-        Key signals:
-          - time_to_choice_ms < 3000 (50% of 6s) → high impulsiveness
-          - choice_changed = True → hesitation (reconsidered under pressure)
-          - abandoned = True → high stress, overload
-        """
+    def _score_conflicting_directions(self, t: dict) -> dict:
         duration = self.SCENARIO_DURATIONS["S2"]
-        time_to_choice = t.get("time_to_choice_ms", duration)
-        choice_changed = t.get("choice_changed", False)
-        abandoned = t.get("abandoned", False)
-
-        if abandoned:
-            return {
-                "evidence_impulsiveness": 0.2,
-                "evidence_urgency_susceptibility": 0.9,
-                "evidence_cognitive_overload": 0.85,
-            }
-
-        # Normalize: decision in <30% of allotted time = impulsive
-        time_ratio = time_to_choice / duration
-        impulsiveness = round(max(0.0, 1.0 - (time_ratio * 1.4)), 3)
-
-        # Urgency susceptibility: rushed because of timer (fast + no reconsideration)
-        urgency_susceptibility = round(impulsiveness * 0.85, 3)
-        if choice_changed:
-            urgency_susceptibility = max(urgency_susceptibility, 0.65)
-            impulsiveness = max(impulsiveness - 0.2, 0.1)  # hesitated = less impulsive
+        first_ms = t.get("first_response_ms", duration)
+        choice = t.get("choice_made", "timeout")
+        
+        # Audio = peer, Visual = rule
+        auth_compliance = 0.8 if choice == "audio" else 0.3 if choice == "visual" else 0.5
+        time_ratio = first_ms / duration
+        cognitive_overload = 0.9 if time_ratio > 0.8 or choice == "timeout" else time_ratio
 
         return {
-            "evidence_impulsiveness": impulsiveness,
-            "evidence_urgency_susceptibility": urgency_susceptibility,
-        }
-
-    def _score_conflicting_authority(self, t: dict) -> dict:
-        """
-        S3: ConflictingAuthority
-        Key signals:
-          - followed_audio_authority = True → high authority compliance to social cue
-          - followed_visual_rule = True → rule-following / lower authority compliance to persons
-          - time_to_choice_ms high → cognitive overload (took long to decide)
-          - interaction_count > 3 → overload (re-read, re-checked multiple times)
-        """
-        duration = self.SCENARIO_DURATIONS["S3"]
-        followed_audio = t.get("followed_audio_authority", False)
-        followed_visual = t.get("followed_visual_rule", False)
-        time_to_choice = t.get("time_to_choice_ms", duration)
-        interactions = t.get("interaction_count", 1)
-
-        # Authority compliance: followed the social/human authority (audio) over written rules
-        if followed_audio:
-            authority_compliance = 0.85
-        elif followed_visual:
-            authority_compliance = 0.25
-        else:
-            authority_compliance = 0.5  # no clear choice
-
-        # Cognitive overload: time + re-reads signal overwhelm
-        time_ratio = time_to_choice / duration
-        overload_from_time = min(time_ratio * 0.8, 0.7)
-        overload_from_interactions = min((interactions - 1) * 0.15, 0.4)
-        cognitive_overload = round(min(1.0, overload_from_time + overload_from_interactions), 3)
-
-        return {
-            "evidence_authority_compliance": round(authority_compliance, 3),
+            "evidence_authority_compliance": auth_compliance,
             "evidence_cognitive_overload": cognitive_overload,
         }
 
-    def _score_notification_temptation(self, t: dict) -> dict:
-        """
-        S4: NotificationTemptation
-        Key signals:
-          - distraction_clicks > 0 → actively fixated on notification
-          - distraction_clicks at pulse 1 vs pulse 3 → early vs late yielding
-          - primary_task_completed = True → maintained focus (attention control high)
-        """
+    def _score_fomo_choice(self, t: dict) -> dict:
+        duration = self.SCENARIO_DURATIONS["S3"]
+        first_ms = t.get("first_response_ms", duration)
+        choice = t.get("choice_made", "timeout")
+
+        # risk: picking them up (late) vs straight (on time)
+        risk_tolerance = 0.8 if choice == "pickup" else 0.2 if choice == "straight" else 0.5
+        time_ratio = first_ms / duration
+        urgency = 0.9 if time_ratio < 0.3 else 0.5
+
+        return {
+            "evidence_risk_tolerance": risk_tolerance,
+            "evidence_urgency_susceptibility": urgency,
+        }
+
+    def _score_phantom_buzz(self, t: dict) -> dict:
         distraction = t.get("distraction_clicks", 0)
-        primary_completed = t.get("primary_task_completed", True)
-        first_distraction_pulse = t.get("first_distraction_at_pulse", 4)  # 4=never yielded
-
-        # Notification fixation: clicks on notification despite primary task
-        if distraction == 0:
-            notif_fixation = 0.05
-        elif distraction == 1:
-            notif_fixation = 0.55
-        elif distraction == 2:
-            notif_fixation = 0.75
-        else:
-            notif_fixation = 0.95
-
-        # Early yielding (pulse 1) = more fixated
-        if first_distraction_pulse == 1 and distraction > 0:
-            notif_fixation = min(1.0, notif_fixation + 0.15)
-
-        # Attention control: inverse of fixation + task completion bonus
-        att_control = max(0.05, 1.0 - notif_fixation)
-        if primary_completed and distraction == 0:
-            att_control = min(1.0, att_control + 0.2)
-
+        
+        notif_fixation = min(1.0, distraction * 0.5 + 0.2) if distraction > 0 else 0.1
+        impulsiveness = 0.8 if distraction > 0 else 0.2
+        
         return {
-            "evidence_notification_fixation": round(notif_fixation, 3),
-            "evidence_attention_control": round(att_control, 3),
-        }
-
-    def _score_passenger_urgency(self, t: dict) -> dict:
-        """
-        S5: PassengerUrgency
-        Key signals:
-          - yielded_at_escalation_level: 0=never, 1=mild, 2=moderate, 3=high pressure
-          - response_speed_ms: how fast they responded to each message
-          - changed_decision_under_pressure: True = authority-driven pivot
-        """
-        yield_level = t.get("yielded_at_escalation_level", 0)
-        response_speed = t.get("avg_response_speed_ms", 8000)
-        changed_decision = t.get("changed_decision_under_pressure", False)
-
-        # Authority compliance from yield level
-        authority_map = {0: 0.1, 1: 0.55, 2: 0.75, 3: 0.95}
-        authority_compliance = authority_map.get(yield_level, 0.5)
-
-        # Emotional reactivity: changed decision late = high reactivity
-        if changed_decision and yield_level >= 2:
-            emotional_reactivity = 0.85
-        elif changed_decision:
-            emotional_reactivity = 0.65
-        else:
-            emotional_reactivity = 0.25 + (yield_level * 0.15)
-
-        # Urgency susceptibility: fast response to escalating messages
-        if response_speed < 1500:
-            urgency_susceptibility = 0.9
-        elif response_speed < 3000:
-            urgency_susceptibility = 0.65
-        elif response_speed < 5000:
-            urgency_susceptibility = 0.4
-        else:
-            urgency_susceptibility = 0.2
-
-        # Amplify by yield level
-        urgency_susceptibility = min(1.0, urgency_susceptibility * (1 + yield_level * 0.2))
-
-        return {
-            "evidence_authority_compliance": round(authority_compliance, 3),
-            "evidence_urgency_susceptibility": round(urgency_susceptibility, 3),
-        }
-
-    def _score_ambiguous_tradeoff(self, t: dict) -> dict:
-        """
-        S6: AmbiguousTradeoff
-        Key signals:
-          - time_to_choice_ms: fast = impulsive, slow = deliberate
-          - re_read_count: high = hesitant / cognitively patient
-          - choice_changed: changed mind = higher deliberation
-          - chose_higher_risk_option: risk orientation signal
-        """
-        duration = self.SCENARIO_DURATIONS["S6"]
-        time_to_choice = t.get("time_to_choice_ms", duration // 2)
-        re_reads = t.get("re_read_count", 0)
-        choice_changed = t.get("choice_changed", False)
-        chose_risk = t.get("chose_higher_risk_option", False)
-
-        # Impulsiveness: fast choice + no re-reads + no change
-        time_ratio = time_to_choice / duration
-        raw_impulsiveness = max(0.0, 1.0 - (time_ratio * 1.2) - (re_reads * 0.1))
-        if choice_changed:
-            raw_impulsiveness = max(0.0, raw_impulsiveness - 0.25)
-
-        # Cognitive patience: deliberation signals
-        cognitive_patience = min(1.0, (re_reads * 0.2) + (time_ratio * 0.6) + (0.2 if choice_changed else 0.0))
-
-        # Risk tolerance: chose the higher-risk option
-        risk_tolerance = 0.75 if chose_risk else 0.25
-
-        return {
-            "evidence_impulsiveness": round(raw_impulsiveness, 3),
-            "evidence_cognitive_overload": round(max(0.0, 0.5 - cognitive_patience * 0.5), 3),
+            "evidence_impulsiveness": impulsiveness,
+            "evidence_notification_fixation": notif_fixation,
         }
 
 
@@ -806,8 +518,30 @@ class PersonalityProfiler:
         if profile is None:
             # Edge case: calibration submitted without prior assessment
             logger.warning("Calibration without prior assessment: user=%s — creating profile", user_id)
-            profile = PersonalityProfile(user_id=user_id, prior_weight=0.0)
+            profile = PersonalityProfile(
+                user_id=user_id, 
+                prior_weight=0.0,
+                impulsiveness_score=0.5,
+                attention_control_score=0.5,
+                emotional_reactivity_score=0.5,
+                authority_compliance_score=0.5,
+                cognitive_patience_score=0.5,
+                risk_tolerance_score=0.5,
+                stress_resilience_score=0.5,
+                multitasking_tendency_score=0.5,
+                onboarding_profile_label="balanced"
+            )
             db.add(profile)
+        
+        # Ensure no NoneType scores if profile was created without layer 1
+        profile.impulsiveness_score = profile.impulsiveness_score or 0.5
+        profile.attention_control_score = profile.attention_control_score or 0.5
+        profile.emotional_reactivity_score = profile.emotional_reactivity_score or 0.5
+        profile.authority_compliance_score = profile.authority_compliance_score or 0.5
+        profile.cognitive_patience_score = profile.cognitive_patience_score or 0.5
+        profile.risk_tolerance_score = profile.risk_tolerance_score or 0.5
+        profile.stress_resilience_score = profile.stress_resilience_score or 0.5
+        profile.multitasking_tendency_score = profile.multitasking_tendency_score or 0.5
 
         # Store behavioral scores
         profile.behavioral_impulsiveness = calibration_result.behavioral_impulsiveness
