@@ -13,6 +13,7 @@ from app.database import Base
 from app.routes import auth, user, sessions, events, lessons, progress, ai, feedback
 from app.routes import onboarding, scenarios, cognitive_reports, settings as settings_router, admin, admin_users  # new: personality + AI scenario routes
 from app.routes import voice  # ElevenLabs voice narration routes
+from app.routes import gamification  # Gamification: XP, levels, streaks, friends
 # Ensure all models are imported so Base.metadata.create_all picks them up
 from app.models import user as _user_model  # noqa: F401
 from app.models import lesson as _lesson_model  # noqa: F401
@@ -158,6 +159,44 @@ async def lifespan(app: FastAPI):
                 session.add_all(lessons_to_add)
                 await session.commit()
                 logger.info("✅ Lessons seeded successfully!")
+
+            # 4. Seed Achievements
+            from app.models.gamification import Achievement
+            from app.services.gamification_service import SEED_ACHIEVEMENTS
+            ach_result = await session.execute(select(Achievement))
+            if not ach_result.scalars().first():
+                logger.info("🌱 Seeding achievements catalog...")
+                for ach_data in SEED_ACHIEVEMENTS:
+                    session.add(Achievement(**ach_data))
+                await session.commit()
+                logger.info("✅ Achievements seeded (%d total)!", len(SEED_ACHIEVEMENTS))
+
+            # 5. Ensure today's daily challenge exists
+            from app.models.gamification import DailyChallenge, ChallengeType
+            import datetime as dt
+            today = dt.date.today()
+            daily_result = await session.execute(
+                select(DailyChallenge).where(DailyChallenge.challenge_date == today)
+            )
+            if not daily_result.scalar_one_or_none():
+                logger.info("🌱 Creating today's daily challenge...")
+                challenges = [
+                    {"title": "Focus Sprint",  "description": "Complete 1 simulation session today.", "type": ChallengeType.COMPLETE_SESSIONS, "target": 1, "xp": 75},
+                    {"title": "Safety Star",   "description": "Achieve a score above 80% in a session.", "type": ChallengeType.ACHIEVE_SCORE, "target": 80, "xp": 100},
+                    {"title": "Daily Grind",   "description": "Log in and stay active today.", "type": ChallengeType.COMPLETE_SESSIONS, "target": 1, "xp": 50},
+                ]
+                import random
+                pick = random.choice(challenges)
+                session.add(DailyChallenge(
+                    challenge_date=today,
+                    title=pick["title"],
+                    description=pick["description"],
+                    challenge_type=pick["type"],
+                    target_value=pick["target"],
+                    xp_reward=pick["xp"],
+                ))
+                await session.commit()
+                logger.info("✅ Daily challenge created: %s", pick["title"])
                 
         except Exception as e:
             logger.error(f"❌ Error during automatic database seeding: {e}")
@@ -217,6 +256,7 @@ app.include_router(admin.router)
 app.include_router(admin_users.router)
 app.include_router(settings_router.router, prefix="/api/settings", tags=["Settings"])
 app.include_router(voice.router)
+app.include_router(gamification.router)
 
 
 # ─── Health Check ─────────────────────────────────────────────────────────────

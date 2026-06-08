@@ -1,5 +1,10 @@
 """Models package — import all models here so Base.metadata knows about them."""
 
+from app.models.gamification import (  # noqa: F401
+    UserProgression, Achievement, UserAchievement,
+    DailyChallenge, UserDailyChallengeProgress, Friendship
+)
+
 from app.models.user import User  # noqa: F401
 from app.models.user_settings import UserSettings  # noqa: F401
 from app.models.session import Session  # noqa: F401
@@ -22,5 +27,8 @@ __all__ = [
     "PersonalityProfile", "GeneratedScenario", "CognitiveReport", "CalibrationEvent",
     "BehavioralState", "InterventionLog", "UserLesson",
     "Feedback", "FeedbackAttachment", "FeedbackNote", "AIFeedbackInsightsCache",
-    "AdminPlatformInsightsCache"
+    "AdminPlatformInsightsCache",
+    # Gamification
+    "UserProgression", "Achievement", "UserAchievement",
+    "DailyChallenge", "UserDailyChallengeProgress", "Friendship",
 ]

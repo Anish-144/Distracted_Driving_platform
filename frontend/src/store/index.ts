@@ -5,6 +5,7 @@ import sessionReducer from './sessionSlice';
 import progressReducer from './progressSlice';
 import aiReducer from './aiSlice';
 import settingsReducer from './settingsSlice';
+import gamificationReducer from './gamificationSlice';
 
 const appReducer = combineReducers({
   auth: authReducer,
@@ -12,6 +13,7 @@ const appReducer = combineReducers({
   progress: progressReducer,
   ai: aiReducer,
   settings: settingsReducer,
+  gamification: gamificationReducer,
 });
 
 const rootReducer = (state: any, action: any) => {

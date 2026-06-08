@@ -202,6 +202,29 @@ async def end_session(
 
     clear_memory(session_id)
     clear_pool(session_id)
+
+    # ── Gamification: award XP + streak (fire-and-forget background task) ─────
+    async def _gamification_bg(sid: str, uid: str, final_score: float):
+        from app.database import AsyncSessionLocal
+        from app.services.gamification_service import on_session_complete
+        from app.models.event import Event as DBEvent, UserResponseType
+        async with AsyncSessionLocal() as gdb:
+            try:
+                # Count unsafe interactions from this session's events
+                ev_result = await gdb.execute(
+                    select(DBEvent).where(DBEvent.session_id == sid)
+                )
+                evs = ev_result.scalars().all()
+                unsafe = sum(1 for e in evs if e.user_response == UserResponseType.INTERACTED)
+                safe = sum(1 for e in evs if e.user_response == UserResponseType.IGNORED)
+                await on_session_complete(gdb, uid, final_score, safe, unsafe)
+                await gdb.commit()
+            except Exception as exc:
+                import logging as _log
+                _log.getLogger(__name__).warning("Gamification bg task failed: %s", exc)
+
+    background_tasks.add_task(_gamification_bg, updated.id, current_user.id, updated.score)
+
     return SessionResponse(
         id=updated.id,
         user_id=updated.user_id,
