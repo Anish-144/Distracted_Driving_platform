@@ -412,9 +412,23 @@ export default function OnboardingPage() {
       }, 1500); // Fake delay for dramatic effect
       
       try {
-        await updateProfile('rookie');
+        const label = res.data?.onboarding_profile_label || 'balanced';
+        let mappedProfile = 'rule_following';
+        if (label === 'impulsive') {
+          mappedProfile = 'impulsive';
+        } else if (label === 'notification_distracted' || label === 'distracted') {
+          mappedProfile = 'distractible';
+        } else if (label === 'risk_seeking') {
+          mappedProfile = 'overconfident';
+        } else if (label === 'emotionally_reactive' || label === 'hesitant') {
+          mappedProfile = 'anxious';
+        } else if (label === 'cautious' || label === 'authority_driven' || label === 'balanced') {
+          mappedProfile = 'rule_following';
+        }
+
+        await updateProfile(mappedProfile);
         if (user && token) {
-          dispatch(loginSuccess({ user: { ...user, profile_type: 'rookie' }, token }));
+          dispatch(loginSuccess({ user: { ...user, profile_type: mappedProfile }, token }));
         }
       } catch {}
     } catch (err) {
