@@ -6,6 +6,7 @@ import { ThemeProvider } from '@/context/ThemeContext';
 import '@/styles/globals.css';
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import FloatingFeedbackButton from '@/components/feedback/FloatingFeedbackButton';
+import EvolutionScreen from '@/components/gamification/EvolutionScreen';
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
   constructor(props: { children: ReactNode }) {
@@ -86,6 +87,7 @@ export default function App({ Component, pageProps }: AppProps) {
           }}
         />
         <FloatingFeedbackButton />
+        <EvolutionScreen />
         </ThemeProvider>
       </Provider>
     </ErrorBoundary>

@@ -75,20 +75,12 @@ def level_from_xp(xp: int) -> int:
 
 _RANK_THRESHOLDS = [
     (1,  "Rookie"),
-    (5,  "Focus Driver"),
-    (10, "Street Smart"),
-    (15, "Road Aware"),
-    (20, "Road Guardian"),
-    (25, "Sharp Instinct"),
-    (30, "Calm Navigator"),
-    (35, "Focus Master"),
-    (40, "Precision Thinker"),
-    (45, "Adaptive Driver"),
-    (50, "Elite Driver"),
-    (60, "Strategic Operator"),
-    (75, "Hazard Hunter"),
-    (90, "Reflex Sovereign"),
-    (100,"Road Legend"),
+    (10, "Iron"),
+    (25, "Silver"),
+    (40, "Gold"),
+    (55, "Platinum"),
+    (75, "Diamond"),
+    (100,"Phantom"),
 ]
 
 
@@ -134,6 +126,13 @@ async def award_xp(
 
     prog.xp += amount
     prog.total_xp_earned += amount
+    
+    # Evolve progression
+    if prog.class_tier < 3:
+        prog.class_xp_progress += amount
+        if prog.class_xp_progress > prog.class_evolution_at:
+            prog.class_xp_progress = prog.class_evolution_at
+            
     new_level = level_from_xp(prog.xp)
     prog.level = new_level
     prog.driver_rank = rank_from_level(new_level)

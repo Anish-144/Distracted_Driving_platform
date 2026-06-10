@@ -21,6 +21,8 @@ import DailyChallenge from '@/components/gamification/DailyChallenge';
 import WeeklyQuest from '@/components/gamification/WeeklyQuest';
 import LevelUpToast, { playSound } from '@/components/gamification/LevelUpToast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
+import DriverPersonaCard from '@/components/insights/DriverPersonaCard';
+import WeeklyBrainReport from '@/components/insights/WeeklyBrainReport';
 
 // ─── Animated counter ─────────────────────────────────────────────────────────
 function AnimatedNumber({ value, suffix = '' }: { value: number; suffix?: string }) {
@@ -199,10 +201,10 @@ export default function DashboardPage() {
   const sentPending = friends.filter(f => f.is_requester && f.status === 'pending');
 
   const quickActions = [
-    { label: 'Behavioral Report', icon: FileText, href: '/dashboard/report', desc: 'Your cognitive dossier' },
-    { label: 'Progress History', icon: BarChart2, href: '/dashboard/progress', desc: 'Session timeline' },
-    { label: 'Achievement Gallery', icon: Trophy, href: '/dashboard/achievements', desc: 'View all milestones' },
-    { label: 'Research Data', icon: Target, href: '/dashboard/research', desc: 'Behavioral analytics' },
+    { label: 'Today\'s Challenge', icon: Target, href: '/simulation', desc: 'Jump into the feed' },
+    { label: 'Reflex Card', icon: FileText, href: '/dashboard/report', desc: 'Your behavioral profile' },
+    { label: 'Skills Tree', icon: Zap, href: '/lessons', desc: 'Unlock new cognitive abilities' },
+    { label: 'Leaderboard', icon: Trophy, href: '#', desc: 'See where you stand' },
   ];
 
   // Tab bar items
@@ -243,7 +245,7 @@ export default function DashboardPage() {
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-xs font-bold uppercase tracking-widest mb-0.5" style={{ color: 'var(--color-text-muted)' }}>
-                SafeDrive AI
+                REFLEX
               </p>
               <h1 className="text-xl font-black tracking-tight" style={{ color: 'var(--color-text-primary)', lineHeight: 1.2 }}>
                 Hey, <span style={{
@@ -312,6 +314,9 @@ export default function DashboardPage() {
         {/* ══ HOME TAB ══════════════════════════════════════════════════════════ */}
         {activeTab === 'home' && (
           <div className="space-y-3">
+            {/* Driver Persona + Weekly Brain Report (Phase 2 Insights) */}
+            <DriverPersonaCard />
+            <WeeklyBrainReport />
             {/* XP + Streak row */}
             <div className="grid grid-cols-2 gap-3">
               {/* XP Card */}
@@ -378,7 +383,7 @@ export default function DashboardPage() {
             >
               {[
                 {
-                  label: 'Identity',
+                  label: 'Class',
                   value: gData?.driver_identity ?? '—',
                   color: '#a78bfa',
                   bg: 'rgba(167,139,250,0.08)',
@@ -386,7 +391,7 @@ export default function DashboardPage() {
                   isText: true,
                 },
                 {
-                  label: 'Focus Score',
+                  label: 'Reflex Score',
                   value: stats?.avg_score ?? 0,
                   suffix: '%',
                   color: '#34d399',
@@ -464,7 +469,7 @@ export default function DashboardPage() {
                   />
                   <PlayCircle className="w-6 h-6 text-white" />
                   <div>
-                    <p className="text-white font-black text-base leading-tight">Start Simulation</p>
+                    <p className="text-white font-black text-base leading-tight">PLAY NOW</p>
                     <p className="text-white/70 text-xs font-medium">+50 XP per session</p>
                   </div>
                 </motion.div>

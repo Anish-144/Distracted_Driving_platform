@@ -22,6 +22,8 @@ from app.services.ai_coach import ai_coach
 from app.services.behavior_analyzer import behavior_analyzer
 from app.services.tts_service import tts_service
 from app.services.intervention_observability import observability_engine
+from app.main import limiter
+from fastapi import Request
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/ai", tags=["AI Coaching"])
@@ -82,7 +84,9 @@ class SynthesizeRequest(BaseModel):
 
 # ── Routes ────────────────────────────────────────────────────────────────────
 @router.post("/feedback", response_model=FeedbackResponse)
+@limiter.limit("20/minute")
 async def generate_feedback(
+    request_obj: Request,
     request: FeedbackRequest,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -136,7 +140,9 @@ async def generate_feedback(
 
 
 @router.post("/synthesize")
+@limiter.limit("20/minute")
 async def synthesize_audio(
+    request_obj: Request,
     request: SynthesizeRequest,
     current_user: User = Depends(get_current_user),
 ):

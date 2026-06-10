@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import {
-  getMyGamification, dailyCheckin, getFriends, getXPLeaderboard,
+  getMyGamification, dailyCheckin, getFriends, getXPLeaderboard, evolveClass,
   GamificationData, FriendData, LeaderboardEntry, DailyCheckinResult,
 } from '@/api/gamification';
 
@@ -17,6 +17,8 @@ interface GamificationState {
   newlyUnlockedKeys: string[];
   // Last check-in result
   lastCheckin: DailyCheckinResult | null;
+  // Evolution trigger
+  evolutionEvent: { oldTier: number; newTier: number } | null;
 }
 
 const initialState: GamificationState = {
@@ -29,6 +31,7 @@ const initialState: GamificationState = {
   levelUpEvent: null,
   newlyUnlockedKeys: [],
   lastCheckin: null,
+  evolutionEvent: null,
 };
 
 // ─── Thunks ───────────────────────────────────────────────────────────────────
@@ -77,6 +80,17 @@ export const fetchXPLeaderboard = createAsyncThunk(
   }
 );
 
+export const performEvolution = createAsyncThunk(
+  'gamification/performEvolution',
+  async (_, { rejectWithValue }) => {
+    try {
+      return await evolveClass();
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data?.detail || 'Evolution failed');
+    }
+  }
+);
+
 // ─── Slice ────────────────────────────────────────────────────────────────────
 
 const gamificationSlice = createSlice({
@@ -91,6 +105,9 @@ const gamificationSlice = createSlice({
     },
     clearLastCheckin: (state) => {
       state.lastCheckin = null;
+    },
+    clearEvolutionEvent: (state) => {
+      state.evolutionEvent = null;
     },
   },
   extraReducers: (builder) => {
@@ -143,9 +160,21 @@ const gamificationSlice = createSlice({
       .addCase(fetchXPLeaderboard.fulfilled, (state, action) => {
         state.leaderboard = action.payload.entries;
         state.currentUserRank = action.payload.current_user_rank;
+      })
+      // performEvolution
+      .addCase(performEvolution.fulfilled, (state, action) => {
+        if (state.data) {
+          state.evolutionEvent = {
+            oldTier: state.data.class_tier,
+            newTier: action.payload.new_tier,
+          };
+          state.data.class_tier = action.payload.new_tier;
+          state.data.class_xp_progress = 0;
+          state.data.class_evolution_at = Math.floor(state.data.class_evolution_at * 2.5);
+        }
       });
   },
 });
 
-export const { clearLevelUpEvent, clearUnlockedKeys, clearLastCheckin } = gamificationSlice.actions;
+export const { clearLevelUpEvent, clearUnlockedKeys, clearLastCheckin, clearEvolutionEvent } = gamificationSlice.actions;
 export default gamificationSlice.reducer;

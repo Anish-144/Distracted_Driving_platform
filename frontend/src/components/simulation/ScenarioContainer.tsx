@@ -4,6 +4,9 @@ import { eventTriggered, eventResolved, sessionRestored } from '@/store/sessionS
 import { fetchProgressData, generateNewAILessonFromSession, generateSessionCognitiveReport } from '@/store/progressSlice';
 import { aiRequestStarted, aiMessageReceived, aiCleared, behaviorUpdated } from '@/store/aiSlice';
 import { fetchFeedback, b64ToAudioUrl, fetchNextScenario, GeneratedScenario } from '@/api/ai';
+
+import { useSoundEffects } from '@/hooks/useSoundEffects';
+import ReflexCardOverlay from './ReflexCardOverlay';
 import { postEvent } from '@/api/events';
 import { completeSession } from '@/api/sessions';
 import { audioMixer, AudioPriority } from '@/utils/AudioMixer';
@@ -345,58 +348,19 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
   };
 
   if (simState === 'SESSION_COMPLETE') {
-    const grade = finalScore >= 90 ? { label: 'Excellent', color: 'text-brand-400', icon: <Trophy className="w-16 h-16 mx-auto text-brand-400" /> }
-      : finalScore >= 70 ? { label: 'Good', color: 'text-accent-400', icon: <ThumbsUp className="w-16 h-16 mx-auto text-accent-400" /> }
-      : finalScore >= 50 ? { label: 'Fair', color: 'text-orange-400', icon: <Activity className="w-16 h-16 mx-auto text-orange-400" /> }
-      : { label: 'Needs Work', color: 'text-red-400', icon: <BookOpen className="w-16 h-16 mx-auto text-red-400" /> };
-
+    const isGood = finalScore >= 70;
+    const grade = finalScore >= 90 ? { label: 'Flawless', color: 'text-brand-400', icon: <Trophy className="w-16 h-16 mx-auto text-brand-400" /> }
+      : finalScore >= 70 ? { label: 'Solid Run', color: 'text-accent-400', icon: <ThumbsUp className="w-16 h-16 mx-auto text-accent-400" /> }
+      : finalScore >= 50 ? { label: 'Survived', color: 'text-orange-400', icon: <Activity className="w-16 h-16 mx-auto text-orange-400" /> }
+      : { label: 'Wrecked', color: 'text-red-400', icon: <BookOpen className="w-16 h-16 mx-auto text-red-400" /> };
 
     return (
-      <div className="max-w-md mx-auto animate-slide-up text-center">
-        <div className="card">
-          <div className="mb-4">{grade.icon}</div>
-          <h2 className="text-2xl font-bold text-primary mb-1">Session Complete!</h2>
-          <p className={`text-lg font-semibold ${grade.color} mb-2`}>{grade.label}</p>
-          <div className="w-32 h-32 mx-auto my-6 relative">
-            <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-              <circle cx="50" cy="50" r="40" fill="none" stroke="#1f2937" strokeWidth="8" />
-              <circle cx="50" cy="50" r="40" fill="none" stroke={finalScore >= 70 ? '#10b981' : finalScore >= 50 ? '#f59e0b' : '#ef4444'} strokeWidth="8" strokeDasharray={`${(finalScore / 100) * 251.2} 251.2`} strokeLinecap="round" />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className={`text-3xl font-bold ${grade.color}`}>{Math.round(finalScore)}</span>
-              <span className="text-muted text-xs">/ 100</span>
-            </div>
-          </div>
-          <p className="text-muted text-sm mb-6">You completed {TOTAL_EVENTS} distraction scenarios. {finalScore >= 70 ? ' Great safe driving instincts!' : ' Keep practicing to improve!'}</p>
-          
-          {/* Post-session voice coaching narration */}
-          <div className="mb-6 text-left">
-            <CoachingAudioCard
-              mode="post_session"
-              autoFetch={true}
-              autoplay={true}
-              postSessionPayload={{
-                session_id: sessionId,
-                session_score: finalScore,
-                with_audio: true,
-              }}
-            />
-          </div>
-          
-          <div className="flex flex-col gap-2.5 mb-6">
-            <button onClick={async () => {
-              try {
-                await dispatch(generateSessionCognitiveReport(sessionId)).unwrap();
-                toast.success('Cognitive Report generated successfully!');
-                setTimeout(() => router.push(`/dashboard/report?sessionId=${sessionId}`), 1200);
-              } catch (err: any) { toast.error(err || 'Failed to generate report.'); }
-            }} disabled={isGenerating} className="btn-primary w-full flex items-center justify-center gap-2 py-3">
-              {isGenerating ? 'Analyzing Session...' : 'Generate Cognitive Behavioral Report'}
-            </button>
-            <button onClick={() => window.location.reload()} className="btn-secondary w-full py-2 text-xs">Play Again</button>
-          </div>
-        </div>
-      </div>
+      <ReflexCardOverlay 
+        finalScore={finalScore} 
+        xpEarned={50} // Hardcoded for MVP logic here, but normally from completeSession response
+        onReplay={() => window.location.reload()}
+        onHome={() => router.push('/arena')}
+      />
     );
   }
 

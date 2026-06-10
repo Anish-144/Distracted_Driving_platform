@@ -33,6 +33,22 @@ docker compose up --build -d
 ```
 Access the platform at `http://localhost:3000`. Test credentials are `test@example.com` / `password123`.
 
+### 🎮 Gamification & Progression
+
+SafeDrive AI features a built-in gamification engine designed to engage teen and early-stage drivers:
+*   **Daily Missions:** Three rotating micro-tasks generated daily (e.g., ignoring distractions or completing speed reaction sprints) to earn XP.
+*   **Weekly Boss Challenges:** Mythic high-stakes challenges (such as the "Unbreakable" boss) that reset weekly to unlock special profile badges.
+*   **Driver Class & Evolution:** A progression tier (Iron, Silver, Gold, etc.) with evolution triggers when XP thresholds are met.
+*   **Streak Freeze:** Save your daily login streak using streak freeze tokens.
+
+### 🧪 Running Tests
+
+To verify that the API endpoints, token authentication, and protected routes are operating properly, execute the test suite from the root directory:
+
+```bash
+python tests/api/test_auth.py
+```
+
 ### 🔐 Admin Setup
 
 The platform does not create admin users by default. To bootstrap an admin account or grant admin privileges to an existing user, run the bootstrap script from the root directory:

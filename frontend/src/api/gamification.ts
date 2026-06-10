@@ -38,6 +38,9 @@ export interface GamificationData {
   achievements: AchievementData[];
   daily_challenge: DailyChallengeData | null;
   xp_to_next: number;
+  class_tier: number;
+  class_xp_progress: number;
+  class_evolution_at: number;
 }
 
 export interface FriendData {
@@ -69,12 +72,12 @@ export interface DailyCheckinResult {
 }
 
 export async function getMyGamification(): Promise<GamificationData> {
-  const res = await client.get('/api/gamification/me');
+  const res = await client.get('/gamification/me');
   return res.data;
 }
 
 export async function dailyCheckin(): Promise<DailyCheckinResult> {
-  const res = await client.post('/api/gamification/daily-checkin');
+  const res = await client.post('/gamification/daily-checkin');
   return res.data;
 }
 
@@ -83,31 +86,144 @@ export async function getXPLeaderboard(): Promise<{
   current_user_rank: number | null;
   total_participants: number;
 }> {
-  const res = await client.get('/api/gamification/leaderboard');
+  const res = await client.get('/gamification/leaderboard');
   return res.data;
 }
 
 export async function getFriends(): Promise<FriendData[]> {
-  const res = await client.get('/api/gamification/friends');
+  const res = await client.get('/gamification/friends');
   return res.data;
 }
 
 export async function sendFriendRequest(email: string): Promise<{ message: string; friendship_id: string }> {
-  const res = await client.post('/api/gamification/friends/request', { email });
+  const res = await client.post('/gamification/friends/request', { email });
   return res.data;
 }
 
 export async function acceptFriendRequest(friendship_id: string): Promise<{ message: string }> {
-  const res = await client.post('/api/gamification/friends/accept', { friendship_id });
+  const res = await client.post('/gamification/friends/accept', { friendship_id });
   return res.data;
 }
 
 export async function challengeFriend(friendship_id: string): Promise<{ message: string }> {
-  const res = await client.post('/api/gamification/friends/challenge', { friendship_id });
+  const res = await client.post('/gamification/friends/challenge', { friendship_id });
   return res.data;
 }
 
 export async function removeFriend(friendship_id: string): Promise<{ message: string }> {
-  const res = await client.delete(`/api/gamification/friends/${friendship_id}`);
+  const res = await client.delete(`/gamification/friends/${friendship_id}`);
+  return res.data;
+}
+
+export interface ChallengeFeedItem {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  duration_sec: number;
+  xp_reward: number;
+  difficulty: string;
+  bonus_multiplier: string;
+}
+
+export async function getChallengeFeed(): Promise<ChallengeFeedItem[]> {
+  const res = await client.get('/gamification/challenges/feed');
+  return res.data;
+}
+
+export async function getBlitzChallenges(): Promise<ChallengeFeedItem[]> {
+  const res = await client.get('/gamification/challenges/blitz');
+  return res.data;
+}
+
+export async function evolveClass(): Promise<{ message: string; new_tier: number }> {
+  const res = await client.post('/gamification/evolve');
+  return res.data;
+}
+
+export interface ActiveEventItem {
+  id: string;
+  title: string;
+  description: string;
+  event_type: string;
+  time_remaining_sec: number;
+  reward_multiplier: number;
+  difficulty_label: string;
+}
+
+export async function getActiveEvent(): Promise<ActiveEventItem | null> {
+  const res = await client.get('/gamification/events/active');
+  return res.data;
+}
+
+// ─── Daily Missions ──────────────────────────────────────────────────────────
+
+export interface DailyMissionData {
+  id: string;
+  slot: number;
+  title: string;
+  description: string;
+  mission_type: string;
+  target_value: number;
+  xp_reward: number;
+  emoji: string;
+  progress: number;
+  completed: boolean;
+}
+
+export interface DailyMissionsResponse {
+  missions: DailyMissionData[];
+  all_completed: boolean;
+  reset_at: string;
+}
+
+export async function getDailyMissions(): Promise<DailyMissionsResponse> {
+  const res = await client.get('/missions/daily');
+  return res.data;
+}
+
+export async function updateMissionProgress(missionId: string, increment: number = 1): Promise<{
+  progress: number;
+  completed: boolean;
+  xp_awarded: number;
+}> {
+  const res = await client.post(`/missions/daily/${missionId}/progress?increment=${increment}`);
+  return res.data;
+}
+
+// ─── Weekly Boss ─────────────────────────────────────────────────────────────
+
+export interface WeeklyBossData {
+  id: string;
+  title: string;
+  tagline: string;
+  description: string;
+  target_score: number;
+  xp_reward: number;
+  badge_key: string;
+  difficulty: string;
+  week_start: string;
+  user_beaten: boolean;
+  user_best_score: number;
+  time_remaining_sec: number;
+}
+
+export async function getWeeklyBoss(): Promise<WeeklyBossData> {
+  const res = await client.get('/missions/boss');
+  return res.data;
+}
+
+export async function submitBossAttempt(bossId: string, score: number): Promise<{
+  best_score: number;
+  beaten: boolean;
+  newly_beaten: boolean;
+  xp_awarded: number;
+}> {
+  const res = await client.post(`/missions/boss/${bossId}/attempt?score=${score}`);
+  return res.data;
+}
+
+export async function applyStreakFreeze(): Promise<{ message: string; tokens_remaining: number }> {
+  const res = await client.post('/missions/streak/freeze');
   return res.data;
 }

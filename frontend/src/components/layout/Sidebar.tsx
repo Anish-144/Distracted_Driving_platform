@@ -10,7 +10,11 @@ import {
   Microscope,
   Users,
   PieChart,
-  MessageSquare
+  MessageSquare,
+  Zap,
+  Target,
+  Trophy,
+  User
 } from 'lucide-react';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -91,11 +95,13 @@ export default function Sidebar() {
         { label: 'Research', href: '/admin/research', icon: Microscope },
       ]
     : [
-        { label: 'Dashboard',  href: '/dashboard',          icon: LayoutDashboard },
-        { label: 'Simulation', href: '/simulation',          icon: Car,       badge: 'Go' },
-        { label: 'Lessons',    href: '/lessons',             icon: BookOpen },
-        { label: 'Progress',   href: '/dashboard/progress',  icon: BarChart2 },
-        { label: 'Research',   href: '/dashboard/research',  icon: Microscope },
+        { label: 'Dashboard', href: '/dashboard',             icon: Zap,    badge: 'Go' },
+        { label: 'Arena',     href: '/arena',                 icon: Target, badge: 'NEW' },
+        { label: 'Simulation',href: '/simulation',            icon: Car },
+        { label: 'Lessons',   href: '/lessons',               icon: BookOpen },
+        { label: 'Progress',  href: '/dashboard/progress',    icon: BarChart2 },
+        { label: 'Profile',   href: '/profile',               icon: Trophy },
+        { label: 'Settings',  href: '/settings',              icon: User },
       ];
 
   return (
@@ -114,8 +120,8 @@ export default function Sidebar() {
             <ShieldCheck className="w-4 h-4 text-primary" />
           </div>
           <div className="min-w-0">
-            <p className="font-bold text-primary text-sm tracking-tight leading-none">SafeDrive AI</p>
-            <p className="text-[10px] text-muted font-medium mt-0.5">Training Platform</p>
+            <p className="font-bold text-primary text-sm tracking-tight leading-none">REFLEX</p>
+            <p className="text-[10px] text-muted font-medium mt-0.5">Challenge Game</p>
           </div>
         </div>
 

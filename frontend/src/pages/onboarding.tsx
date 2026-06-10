@@ -308,7 +308,12 @@ function CalibrationPhase({ scenarios, onComplete }: any) {
     <div className="h-[500px] w-full max-w-sm mx-auto relative">
       <AnimatePresence mode="wait">
         {Component ? (
-          <Component key={currentScenario.id} {...currentScenario} onComplete={handleScenarioComplete} />
+          <Component
+            key={currentScenario.id}
+            id={currentScenario.id}
+            durationMs={currentScenario.duration_ms}
+            onComplete={handleScenarioComplete}
+          />
         ) : (
           <div className="text-center py-20 text-muted">Unknown scenario</div>
         )}
@@ -339,18 +344,18 @@ function ResultPhase({ onContinue }: { onContinue: () => void }) {
         +500 XP EARNED
       </div>
 
-      <h2 className="text-4xl font-black text-primary uppercase italic">Rank: Rookie</h2>
+      <h2 className="text-4xl font-black text-primary uppercase italic">Class Unlocked</h2>
 
       <div className="grid grid-cols-2 gap-4 mt-8 mb-10">
         <div className="p-5 rounded-3xl bg-secondary border border-subtle">
           <Zap className="w-8 h-8 text-amber-500 mx-auto mb-2" />
-          <p className="text-xs text-muted font-bold mb-1">REACTION TIME</p>
-          <p className="text-2xl font-black text-primary">0.4s</p>
+          <p className="text-xs text-muted font-bold mb-1">STARTING RANK</p>
+          <p className="text-2xl font-black text-primary">Iron</p>
         </div>
         <div className="p-5 rounded-3xl bg-secondary border border-subtle">
-          <Brain className="w-8 h-8 text-violet-500 mx-auto mb-2" />
-          <p className="text-xs text-muted font-bold mb-1">FOCUS SCORE</p>
-          <p className="text-2xl font-black text-primary">82/100</p>
+          <Target className="w-8 h-8 text-violet-500 mx-auto mb-2" />
+          <p className="text-xs text-muted font-bold mb-1">FIRST MISSION</p>
+          <p className="text-sm font-black text-primary mt-1">Ready in Arena</p>
         </div>
       </div>
 
@@ -361,7 +366,7 @@ function ResultPhase({ onContinue }: { onContinue: () => void }) {
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.95 }}
       >
-        Start Daily Challenge
+        Enter the Arena
       </motion.button>
     </motion.div>
   );
@@ -413,17 +418,17 @@ export default function OnboardingPage() {
       
       try {
         const label = res.data?.onboarding_profile_label || 'balanced';
-        let mappedProfile = 'rule_following';
+        let mappedProfile = 'guardian';
         if (label === 'impulsive') {
-          mappedProfile = 'impulsive';
+          mappedProfile = 'bolt';
         } else if (label === 'notification_distracted' || label === 'distracted') {
-          mappedProfile = 'distractible';
+          mappedProfile = 'phantom';
         } else if (label === 'risk_seeking') {
-          mappedProfile = 'overconfident';
+          mappedProfile = 'viper';
         } else if (label === 'emotionally_reactive' || label === 'hesitant') {
-          mappedProfile = 'anxious';
+          mappedProfile = 'nova';
         } else if (label === 'cautious' || label === 'authority_driven' || label === 'balanced') {
-          mappedProfile = 'rule_following';
+          mappedProfile = 'guardian';
         }
 
         await updateProfile(mappedProfile);

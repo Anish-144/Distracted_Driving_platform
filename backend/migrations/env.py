@@ -19,11 +19,7 @@ from app.config import settings
 from app.database import Base
 
 # Ensure all models are imported so Alembic can see them
-from app.models import (  # noqa: F401 — all imports required for Base.metadata discovery
-    user, session, event, behavioral_log, scenario, lesson,
-    behavioral_state, intervention_log, user_lesson,
-    personality_profile, generated_scenario, cognitive_report # NEW: behavioral intelligence models
-)
+import app.models as _all_models  # noqa: F401
 
 config = context.config
 

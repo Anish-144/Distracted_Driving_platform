@@ -15,12 +15,13 @@ import { ArrowLeft, Info, PlayCircle, Loader2, Shield, Zap, Phone, MessageCircle
 import Link from 'next/link';
 
 import { useSoundEffects } from '@/hooks/useSoundEffects';
+import PassengerSelector from '@/components/simulation/PassengerSelector';
 
 const missionProfiles = [
-  { id: 'adaptive', name: 'Adaptive Mode', desc: 'AI dynamically tailors distractions to your specific weaknesses.', icon: <Zap className="w-6 h-6" />, color: '#8b5cf6', difficulty: 'Dynamic', xpBonus: '+20%' },
-  { id: 'highway', name: 'Highway Cruising', desc: 'High speed, long-form distractions like phone calls.', icon: <MapPinned className="w-6 h-6" />, color: '#3b82f6', difficulty: 'Standard', xpBonus: '+0%' },
-  { id: 'city', name: 'City Gridlock', desc: 'Rapid-fire notifications and high social pressure.', icon: <MessageCircle className="w-6 h-6" />, color: '#ef4444', difficulty: 'Hard', xpBonus: '+50%' },
-  { id: 'night', name: 'Night Drive', desc: 'Low visibility with sudden priority alerts.', icon: <Shield className="w-6 h-6" />, color: '#10b981', difficulty: 'Expert', xpBonus: '+100%' }
+  { id: 'adaptive', name: 'GHOST MODE', desc: 'AI dynamically tailors distractions to your specific weaknesses.', icon: <Zap className="w-6 h-6" />, color: '#8b5cf6', difficulty: 'Dynamic', xpBonus: '+20%' },
+  { id: 'highway', name: 'OPEN ROAD', desc: 'High speed, long-form distractions like phone calls.', icon: <MapPinned className="w-6 h-6" />, color: '#3b82f6', difficulty: 'Standard', xpBonus: '+0%' },
+  { id: 'city', name: 'THE GRID', desc: 'Rapid-fire notifications and high social pressure.', icon: <MessageCircle className="w-6 h-6" />, color: '#ef4444', difficulty: 'Hard', xpBonus: '+50%' },
+  { id: 'night', name: 'BLACKOUT', desc: 'Low visibility with sudden priority alerts.', icon: <Shield className="w-6 h-6" />, color: '#10b981', difficulty: 'Expert', xpBonus: '+100%' }
 ];
 
 const stagger = {
@@ -89,7 +90,7 @@ export default function SimulationPage() {
  </Link>
  <div className={`w-px h-6 bg-tertiary`} />
  <h1 className={`text-2xl font-bold tracking-tight text-primary`}>
- Driving Simulation
+ ARENA
  </h1>
  </div>
  {isSimulating && <ScoreDisplay score={score} />}
@@ -126,11 +127,18 @@ export default function SimulationPage() {
  </div>
  </FadeUp>
 
+  {/* Passenger Selector */}
+  <FadeUp delay={0.08}>
+  <div className="mb-7">
+    <PassengerSelector />
+  </div>
+  </FadeUp>
+
   {/* Mission Select Grid */}
   <FadeUp delay={0.1}>
   <p className={`${LABEL} mb-4 px-1 flex items-center justify-between`}>
   <span>Select Mission Profile</span>
-  <span className="text-brand-400">XP Bonus</span>
+  <span className="text-brand-400 flex items-center gap-1"><span className="text-sm">🔥</span> MULTIPLIER</span>
   </p>
   </FadeUp>
 
@@ -173,27 +181,14 @@ export default function SimulationPage() {
             </span>
           </div>
           <p className="text-muted text-sm leading-relaxed mb-3">{m.desc}</p>
-          <div className="text-xs font-bold" style={{ color: m.color }}>
-            {m.xpBonus} XP Multiplier
+          <div className="text-xs font-bold flex items-center gap-1" style={{ color: m.color }}>
+            <span className="text-sm">🔥</span> {m.xpBonus} BONUS MULTIPLIER
           </div>
         </div>
       </motion.div>
     );
   })}
   </motion.div>
-
-  {/* Rules */}
-  <FadeUp delay={0.25}>
-  <div className={`${CARD} p-5 mb-7 flex gap-3.5 items-start bg-blue-500/10 border-blue-500/20 rounded-2xl`}>
-  <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-  <div className="text-sm text-secondary leading-relaxed">
-  <span className="font-bold text-primary block mb-1">Scoring Rules</span>
-  Safe decisions earn <span className="text-brand-400 font-bold bg-brand-500/10 px-1 rounded">+10 pts</span>.
-  Risky interactions lose <span className="text-red-400 font-bold bg-red-500/10 px-1 rounded">-15 to -20 pts</span>.
-  Reaction time scaling applies.
-  </div>
-  </div>
-  </FadeUp>
 
   {/* Begin CTA */}
   <FadeUp delay={0.3}>

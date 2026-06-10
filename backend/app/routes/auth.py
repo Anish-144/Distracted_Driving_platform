@@ -7,7 +7,8 @@ Endpoints:
   GET  /api/auth/me        — Get current user info (protected)
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
+from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel, EmailStr, field_validator
@@ -15,6 +16,7 @@ from pydantic import BaseModel, EmailStr, field_validator
 from app.database import get_db
 from app.models.user import User
 from app.services import auth_service, user_service
+from app.main import limiter
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -91,10 +93,11 @@ async def get_current_admin(current_user: User = Depends(get_current_user)) -> U
 # ─── Routes ──────────────────────────────────────────────────────────────────
 
 @router.post("/register", response_model=LoginResponse, status_code=status.HTTP_201_CREATED)
-async def register(request: RegisterRequest, db: AsyncSession = Depends(get_db)):
+@limiter.limit("5/minute")
+async def register(request: Request, register_data: RegisterRequest, db: AsyncSession = Depends(get_db)):
     """Register a new user and return a JWT token immediately."""
     # Check for existing email
-    existing = await user_service.get_user_by_email(db, request.email)
+    existing = await user_service.get_user_by_email(db, register_data.email)
     if existing:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -102,11 +105,11 @@ async def register(request: RegisterRequest, db: AsyncSession = Depends(get_db))
         )
 
     user = await user_service.create_user(
-        db, name=request.name, email=request.email, plain_password=request.password
+        db, name=register_data.name, email=register_data.email, plain_password=register_data.password
     )
 
     token = auth_service.create_access_token({"sub": user.id})
-    return LoginResponse(
+    response_data = LoginResponse(
         access_token=token,
         user_id=user.id,
         name=user.name,
@@ -114,10 +117,24 @@ async def register(request: RegisterRequest, db: AsyncSession = Depends(get_db))
         profile_type=user.profile_type.value,
         is_admin=user.is_admin,
     )
+    
+    response = JSONResponse(content=response_data.model_dump(), status_code=status.HTTP_201_CREATED)
+    response.set_cookie(
+        key="access_token",
+        value=token,
+        httponly=True,
+        secure=False,
+        samesite="lax",
+        max_age=86400,
+        path="/",
+    )
+    return response
 
 
 @router.post("/login", response_model=LoginResponse)
+@limiter.limit("10/minute")
 async def login(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db),
 ):
@@ -131,7 +148,7 @@ async def login(
         )
 
     token = auth_service.create_access_token({"sub": user.id})
-    return LoginResponse(
+    response_data = LoginResponse(
         access_token=token,
         user_id=user.id,
         name=user.name,
@@ -139,7 +156,24 @@ async def login(
         profile_type=user.profile_type.value,
         is_admin=user.is_admin,
     )
+    
+    response = JSONResponse(content=response_data.model_dump())
+    response.set_cookie(
+        key="access_token",
+        value=token,
+        httponly=True,
+        secure=False,
+        samesite="lax",
+        max_age=86400,
+        path="/",
+    )
+    return response
 
+@router.post("/logout")
+async def logout():
+    response = JSONResponse(content={"message": "Logged out"})
+    response.delete_cookie("access_token")
+    return response
 
 @router.get("/me", response_model=UserResponse)
 async def get_me(current_user: User = Depends(get_current_user)):

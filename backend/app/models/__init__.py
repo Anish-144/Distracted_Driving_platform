@@ -2,7 +2,8 @@
 
 from app.models.gamification import (  # noqa: F401
     UserProgression, Achievement, UserAchievement,
-    DailyChallenge, UserDailyChallengeProgress, Friendship
+    DailyChallenge, UserDailyChallengeProgress, Friendship,
+    DailyMission, UserMissionProgress, WeeklyBossChallenge, UserBossAttempt
 )
 
 from app.models.user import User  # noqa: F401
@@ -31,4 +32,5 @@ __all__ = [
     # Gamification
     "UserProgression", "Achievement", "UserAchievement",
     "DailyChallenge", "UserDailyChallengeProgress", "Friendship",
+    "DailyMission", "UserMissionProgress", "WeeklyBossChallenge", "UserBossAttempt",
 ]

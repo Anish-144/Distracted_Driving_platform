@@ -6,6 +6,11 @@ Includes all routers, CORS middleware, and startup hooks.
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
+limiter = Limiter(key_func=get_remote_address)
 
 import logging
 from app.config import settings
@@ -14,16 +19,10 @@ from app.routes import auth, user, sessions, events, lessons, progress, ai, feed
 from app.routes import onboarding, scenarios, cognitive_reports, settings as settings_router, admin, admin_users  # new: personality + AI scenario routes
 from app.routes import voice  # ElevenLabs voice narration routes
 from app.routes import gamification  # Gamification: XP, levels, streaks, friends
+from app.routes import missions  # Phase 1: Daily missions + Weekly Boss + Streak Freeze
+from app.routes import insights  # Phase 2: Driver Persona + Weekly Brain Report
 # Ensure all models are imported so Base.metadata.create_all picks them up
-from app.models import user as _user_model  # noqa: F401
-from app.models import lesson as _lesson_model  # noqa: F401
-from app.models import user_lesson as _user_lesson_model  # noqa: F401
-from app.models import personality_profile as _personality_profile_model  # noqa: F401
-from app.models import generated_scenario as _generated_scenario_model  # noqa: F401
-from app.models import cognitive_report as _cognitive_report_model # noqa: F401
-from app.models import behavioral_state as _behavioral_state_model  # noqa: F401
-from app.models import calibration_event as _calibration_event_model  # noqa: F401
-from app.models import intervention_log as _intervention_log_model  # noqa: F401
+import app.models as _all_models  # noqa: F401
 
 # Setup structured logging
 logging.basicConfig(
@@ -92,11 +91,13 @@ async def lifespan(app: FastAPI):
     async with AsyncSessionLocal() as session:
         try:
             # 1. Seed Scenarios
-            scenarios_result = await session.execute(select(Scenario))
-            if not scenarios_result.scalars().first():
-                logger.info("🌱 Database empty. Seeding default scenarios...")
-                scenarios_to_add = [
-                    Scenario(
+            logger.info("🌱 Checking and upserting scenarios...")
+            for s in SEED_SCENARIOS:
+                existing = await session.execute(
+                    select(Scenario).where(Scenario.id == s["id"])
+                )
+                if not existing.scalar_one_or_none():
+                    session.add(Scenario(
                         id=s["id"],
                         name=s["name"],
                         description=s["description"],
@@ -104,12 +105,9 @@ async def lifespan(app: FastAPI):
                         difficulty_level=s["difficulty_level"],
                         is_active=s["is_active"],
                         instruction_text=s["instruction_text"]
-                    )
-                    for s in SEED_SCENARIOS
-                ]
-                session.add_all(scenarios_to_add)
-                await session.commit()
-                logger.info("✅ Scenarios seeded successfully!")
+                    ))
+            await session.commit()
+            logger.info("✅ Scenarios upserted (%d total)", len(SEED_SCENARIOS))
                 
             # 2. Seed Test User
             email = "test@example.com"
@@ -197,6 +195,20 @@ async def lifespan(app: FastAPI):
                 ))
                 await session.commit()
                 logger.info("✅ Daily challenge created: %s", pick["title"])
+
+            # 6. Ensure today's 3 daily missions exist
+            from app.models.gamification import DailyMission
+            from app.routes.missions import _ensure_today_missions, _ensure_this_week_boss
+            import datetime as dt
+            today = dt.date.today()
+            await _ensure_today_missions(session, today)
+            logger.info("✅ Daily missions ensured for %s", today)
+
+            # 7. Ensure this week's boss challenge exists
+            from datetime import timedelta
+            week_start = today - timedelta(days=today.weekday())
+            await _ensure_this_week_boss(session, week_start)
+            logger.info("✅ Weekly boss ensured for week starting %s", week_start)
                 
         except Exception as e:
             logger.error(f"❌ Error during automatic database seeding: {e}")
@@ -226,6 +238,9 @@ Core behavioral training loop:
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
 # ─── Middleware ───────────────────────────────────────────────────────────────
@@ -257,6 +272,8 @@ app.include_router(admin_users.router)
 app.include_router(settings_router.router, prefix="/api/settings", tags=["Settings"])
 app.include_router(voice.router)
 app.include_router(gamification.router)
+app.include_router(missions.router)
+app.include_router(insights.router)
 
 
 # ─── Health Check ─────────────────────────────────────────────────────────────

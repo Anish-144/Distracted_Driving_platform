@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 import { Settings, User, Shield, Bell, Lock, AlertTriangle, Trash2, Save, RefreshCw, Activity, Download, CheckCircle2, LogOut, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
+import DriverClassCard from '@/components/gamification/DriverClassCard';
 
 const CARD = 'bg-primary rounded-2xl border border-subtle ';
 const LABEL = 'text-[11px] font-bold uppercase tracking-[0.12em] text-muted';
@@ -221,8 +222,8 @@ export default function SettingsPage() {
   return (
     <>
       <Head>
-        <title>Settings — SafeDrive AI</title>
-        <meta name="description" content="Manage your SafeDrive AI account settings and preferences." />
+        <title>Profile — REFLEX</title>
+        <meta name="description" content="Manage your REFLEX account settings and preferences." />
       </Head>
 
       <AppShell>
@@ -232,13 +233,17 @@ export default function SettingsPage() {
             <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-brand-500/10 border border-brand-500/20">
               <Settings className="w-5 h-5 text-brand-600 dark:text-brand-400" />
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-primary">Settings</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-primary">Profile</h1>
           </div>
-          <p className="text-sm text-muted mt-2">Manage your account, privacy, and training preferences.</p>
+          <p className="text-sm text-muted mt-2">Manage your account, identity, and training preferences.</p>
         </FadeUp>
 
         <div className="max-w-3xl space-y-6 pb-24">
- {/* Account Info */}
+          {/* Driver Class Card */}
+          <FadeUp delay={0.05}>
+            <DriverClassCard />
+          </FadeUp>
+
           {/* Account Info Form */}
           <FadeUp delay={0.1}>
             <div className={`${CARD} overflow-hidden`}>

@@ -55,6 +55,9 @@ class ProgressionOut(BaseModel):
     achievements: List[AchievementOut]
     daily_challenge: Optional[dict] = None
     xp_to_next: int
+    class_tier: int
+    class_xp_progress: int
+    class_evolution_at: int
 
 
 class DailyCheckinOut(BaseModel):
@@ -173,6 +176,9 @@ async def get_my_gamification(
         achievements=achievements_out,
         daily_challenge=daily_out,
         xp_to_next=xp_to_next,
+        class_tier=prog.class_tier,
+        class_xp_progress=prog.class_xp_progress,
+        class_evolution_at=prog.class_evolution_at,
     )
 
 
@@ -411,4 +417,143 @@ async def get_xp_leaderboard(
         "entries": entries,
         "current_user_rank": current_rank,
         "total_participants": len(entries),
+    }
+
+# ─── Challenge Feed ──────────────────────────────────────────────────────────
+
+class ChallengeFeedItem(BaseModel):
+    id: str
+    type: str # 'adaptive', 'highway', 'city', 'night'
+    title: str
+    description: str
+    duration_sec: int
+    xp_reward: int
+    difficulty: str
+    bonus_multiplier: str
+
+@router.get("/challenges/feed", response_model=List[ChallengeFeedItem])
+async def get_challenge_feed(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Returns a dynamic feed of playable micro-challenges."""
+    return [
+        {
+            "id": "challenge-1",
+            "type": "city",
+            "title": "The Grid: Rush Hour",
+            "description": "Navigate a dense notification storm while holding your streak.",
+            "duration_sec": 45,
+            "xp_reward": 50,
+            "difficulty": "Hard",
+            "bonus_multiplier": "+50%"
+        },
+        {
+            "id": "challenge-2",
+            "type": "adaptive",
+            "title": "Ghost Mode: Impulsive Test",
+            "description": "A tailored test to check if you still flinch at texts.",
+            "duration_sec": 30,
+            "xp_reward": 75,
+            "difficulty": "Dynamic",
+            "bonus_multiplier": "+20%"
+        },
+        {
+            "id": "challenge-3",
+            "type": "night",
+            "title": "Blackout: Low Vis",
+            "description": "Audio only. React without looking.",
+            "duration_sec": 60,
+            "xp_reward": 100,
+            "difficulty": "Expert",
+            "bonus_multiplier": "+100%"
+        }
+    ]
+
+@router.get("/challenges/blitz", response_model=List[ChallengeFeedItem])
+async def get_blitz_challenges(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Returns 2 high-impact challenges optimized for <3 min play."""
+    return [
+        {
+            "id": "blitz-1",
+            "type": "highway",
+            "title": "Open Road: Hypnosis",
+            "description": "Stay awake. Don't touch the phone.",
+            "duration_sec": 90,
+            "xp_reward": 150,
+            "difficulty": "Standard",
+            "bonus_multiplier": "+0%"
+        },
+        {
+            "id": "blitz-2",
+            "type": "adaptive",
+            "title": "2-Minute Drill",
+            "description": "Max speed. Max alerts. Survive.",
+            "duration_sec": 120,
+            "xp_reward": 200,
+            "difficulty": "Hard",
+            "bonus_multiplier": "+50%"
+        }
+    ]
+
+# ─── Evolution ───────────────────────────────────────────────────────────────
+
+@router.post("/evolve")
+async def evolve_class(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Trigger an evolution if the user has reached the threshold."""
+    prog = await _get_or_create_progression(db, current_user.id)
+    if prog.class_xp_progress < prog.class_evolution_at:
+        raise HTTPException(status_code=400, detail="Not enough XP to evolve.")
+    if prog.class_tier >= 3:
+        raise HTTPException(status_code=400, detail="Already at maximum tier.")
+        
+    prog.class_tier += 1
+    prog.class_xp_progress = 0
+    prog.class_evolution_at = int(prog.class_evolution_at * 2.5) # scaling threshold
+    
+    db.add(prog)
+    await db.commit()
+    
+    # Award massive XP for evolution
+    await award_xp(db, current_user.id, 1000, "class_evolution")
+    await db.commit()
+    
+    return {"message": f"Class evolved to Tier {prog.class_tier}!", "new_tier": prog.class_tier}
+
+# ─── Events (Boss Battles) ───────────────────────────────────────────────────
+
+class ActiveEventItem(BaseModel):
+    id: str
+    title: str
+    description: str
+    event_type: str
+    time_remaining_sec: int
+    reward_multiplier: float
+    difficulty_label: str
+
+@router.get("/events/active", response_model=Optional[ActiveEventItem])
+async def get_active_event(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Returns the currently active global or personalized boss battle event."""
+    # Mocking a weekend 'Blackout' event for demonstration
+    # In a real app, this would query an Events table or check the date.
+    import datetime
+    now = datetime.datetime.now()
+    # Let's just always return an event for the sake of the MVP
+    return {
+        "id": "evt-blackout-weekend",
+        "title": "Weekend Blackout",
+        "description": "All visual indicators are disabled. Rely entirely on audio cues and instinct. High risk, extreme rewards.",
+        "event_type": "boss_battle",
+        "time_remaining_sec": 172800, # 48 hours
+        "reward_multiplier": 3.0,
+        "difficulty_label": "EXTREME"
     }

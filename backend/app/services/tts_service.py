@@ -45,7 +45,7 @@ VOICE_PROFILES = {
 
 # ── In-memory audio cache (text_hash → bytes) ─────────────────────────────────
 _audio_cache: dict[str, bytes] = {}
-_MAX_CACHE_SIZE = 200  # max cached audio clips
+_MAX_CACHE_SIZE = 500  # max cached audio clips
 
 
 def _cache_key(text: str, agent_type: str) -> str:
