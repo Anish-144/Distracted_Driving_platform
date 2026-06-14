@@ -9,13 +9,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import client from '@/api/client';
 import {
   Brain, ChevronRight, Loader2, CheckCircle2, Zap, Target,
-  MessageCircle, BellRing, Smartphone, Navigation, Clock, Flame
+  MessageCircle, BellRing, Smartphone, Navigation, Clock, Flame,
+  Music, AlertOctagon
 } from 'lucide-react';
 import ThemeToggle from '@/components/common/ThemeToggle';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type OnboardingPhase = 'WELCOME' | 'MODE_SELECTION' | 'CALIBRATION' | 'PROCESSING' | 'RESULT';
+type OnboardingPhase = 'WELCOME' | 'QUESTIONNAIRE' | 'MODE_SELECTION' | 'CALIBRATION' | 'PROCESSING' | 'RESULT';
 
 interface CalibrationScenario {
   id: string; title: string; duration_ms: number;
@@ -43,9 +44,9 @@ function WelcomePhase({ onBegin }: { onBegin: () => void }) {
       className="text-center space-y-10 py-10"
     >
       <div className="relative mx-auto w-32 h-32">
-        <div className="absolute inset-0 rounded-full blur-3xl opacity-30 bg-violet-600 animate-pulse" />
-        <div className="relative w-32 h-32 rounded-full flex items-center justify-center bg-secondary border-2 border-violet-500 shadow-2xl">
-          <Zap className="w-16 h-16 text-violet-400" />
+        <div className="absolute inset-0 rounded-full blur-3xl opacity-30 bg-blue-600 dark:bg-indigo-600 animate-pulse" />
+        <div className="relative w-32 h-32 rounded-full flex items-center justify-center bg-secondary border-2 border-blue-500 dark:border-indigo-500 shadow-2xl">
+          <Brain className="w-16 h-16 text-blue-500 dark:text-indigo-400" />
         </div>
       </div>
 
@@ -53,22 +54,149 @@ function WelcomePhase({ onBegin }: { onBegin: () => void }) {
         <motion.h1
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-5xl font-black text-primary tracking-tight mb-2"
+          className="text-4xl md:text-5xl font-black text-primary tracking-tight mb-2"
         >
-          Reflex Test
+          Driver AI Setup
         </motion.h1>
-        <p className="text-secondary text-lg font-medium">Fast. Instinctive. No overthinking.</p>
+        <p className="text-secondary text-lg font-medium">Let&apos;s personalize your coaching.</p>
       </div>
 
         <motion.button
         onClick={onBegin}
-        className="w-full py-5 rounded-3xl font-black text-white text-xl uppercase tracking-wider shadow-xl shadow-violet-500/20"
-        style={{ background: 'linear-gradient(135deg, #8b5cf6, #d946ef)' }}
+        className="w-full py-5 rounded-3xl font-black text-white text-xl uppercase tracking-wider shadow-lg shadow-blue-500/20"
+        style={{ background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))' }}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.95 }}
       >
-        Select Mode
+        Start Setup
       </motion.button>
+    </motion.div>
+  );
+}
+
+// ── Questionnaire Phase ───────────────────────────────────────────────────────
+
+function QuestionnairePhase({ onComplete }: { onComplete: (answers: any[], dynamicResponse: string) => void }) {
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [isDynamicPhase, setIsDynamicPhase] = useState(false);
+  const [dynamicQuestion, setDynamicQuestion] = useState('');
+  const [dynamicAnswer, setDynamicAnswer] = useState('');
+  const [isLoadingDynamic, setIsLoadingDynamic] = useState(false);
+
+  useEffect(() => {
+    client.get('/onboarding/questions').then(res => setQuestions(res.data)).catch(() => toast.error('Failed to load questions.'));
+  }, []);
+
+  if (questions.length === 0) {
+    return <div className="py-20 text-center"><Loader2 className="w-8 h-8 mx-auto animate-spin text-violet-500" /></div>;
+  }
+
+  const handleBaseAnswer = async (value: string) => {
+    const q = questions[currentIdx];
+    const newAnswers = { ...answers, [q.id]: value };
+    setAnswers(newAnswers);
+
+    if (currentIdx < questions.length - 1) {
+      setCurrentIdx(i => i + 1);
+    } else {
+      // Finished base questions, fetch dynamic question
+      setIsDynamicPhase(true);
+      setIsLoadingDynamic(true);
+      try {
+        const payload = Object.entries(newAnswers).map(([k, v]) => ({ question_id: k, answer_value: v }));
+        const res = await client.post('/onboarding/dynamic-question', { answers: payload });
+        setDynamicQuestion(res.data.question_text);
+      } catch (err) {
+        toast.error('Failed to load AI question.');
+        // Skip dynamic if it fails
+        onComplete(Object.entries(newAnswers).map(([k, v]) => ({ question_id: k, answer_value: v })), "");
+      } finally {
+        setIsLoadingDynamic(false);
+      }
+    }
+  };
+
+  const handleDynamicSubmit = () => {
+    const payload = Object.entries(answers).map(([k, v]) => ({ question_id: k, answer_value: v }));
+    // Append the dynamic answer text directly to the payload so it can be submitted
+    payload.push({ question_id: 'dynamic_q', answer_value: dynamicAnswer });
+    onComplete(payload, dynamicAnswer);
+  };
+
+  if (isDynamicPhase) {
+    return (
+      <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} className="py-8">
+        <div className="flex items-center gap-3 mb-6 justify-center text-violet-500">
+          <Brain className="w-6 h-6" />
+          <span className="font-bold text-sm uppercase tracking-wider">AI Coach Analysis</span>
+        </div>
+        {isLoadingDynamic ? (
+          <div className="text-center py-10 space-y-4">
+            <Loader2 className="w-10 h-10 mx-auto animate-spin text-violet-500" />
+            <p className="text-secondary font-medium animate-pulse">Analyzing your profile...</p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <span className="inline-block px-3 py-1 rounded-full bg-violet-500/10 text-violet-400 font-bold text-xs uppercase tracking-widest mb-3">
+                Reflection Challenge
+              </span>
+              <h2 className="text-2xl font-black text-primary leading-tight mb-2">
+                {dynamicQuestion}
+              </h2>
+              <p className="text-sm text-secondary font-medium mt-2">
+                Write a brief response to the AI Coach question above to customize your driving profile.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-violet-400 uppercase tracking-wider text-left pl-1">
+                Your Answer (1-2 sentences)
+              </label>
+              <textarea
+                value={dynamicAnswer}
+                onChange={e => setDynamicAnswer(e.target.value)}
+                placeholder="Describe how you handle this scenario (e.g., how you manage the distraction or pressure)..."
+                className="w-full bg-secondary border border-subtle rounded-3xl p-6 text-primary resize-none outline-none focus:border-blue-500 dark:focus:border-indigo-500 transition-colors"
+                rows={4}
+              />
+            </div>
+            <button
+              onClick={handleDynamicSubmit}
+              disabled={!dynamicAnswer.trim()}
+              className="w-full py-5 rounded-3xl font-black text-white text-xl uppercase tracking-wider shadow-lg shadow-blue-500/20 disabled:opacity-50"
+              style={{ background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))' }}
+            >
+              Continue
+            </button>
+          </div>
+        )}
+      </motion.div>
+    );
+  }
+
+  const q = questions[currentIdx];
+
+  return (
+    <motion.div key={q.id} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} className="py-8">
+      <div className="flex justify-center gap-2 mb-8">
+        {questions.map((_, i) => (
+          <div key={i} className={`h-1.5 rounded-full flex-1 ${i <= currentIdx ? 'bg-blue-500 dark:bg-indigo-500' : 'bg-secondary'}`} />
+        ))}
+      </div>
+      <h2 className="text-2xl font-black text-primary text-center leading-tight mb-10">{q.text}</h2>
+      <div className="space-y-3">
+        {q.options.map((opt: any) => (
+          <button
+            key={opt.value}
+            onClick={() => handleBaseAnswer(opt.value)}
+            className="w-full p-5 rounded-3xl bg-secondary border border-subtle font-bold text-primary active:scale-95 transition-all hover:border-blue-500 dark:hover:border-indigo-500 hover:bg-blue-500/5 dark:hover:bg-indigo-500/5 text-left"
+          >
+            {opt.text}
+          </button>
+        ))}
+      </div>
     </motion.div>
   );
 }
@@ -230,49 +358,155 @@ function FomoChoiceScenario({ id, durationMs, onComplete }: any) {
   );
 }
 
-// ── S4: Phantom Buzz ──────────────────────────────────────────────────────────
+// ── S4: Playlist Shuffle ────────────────────────────────────────────────────────
 
-function PhantomBuzzScenario({ id, durationMs, onComplete }: any) {
+function PlaylistShuffleScenario({ id, durationMs, onComplete }: any) {
   const startTime = useRef(Date.now());
-  const [taps, setTaps] = useState(0);
-  const [showDM, setShowDM] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [isBraked, setIsBraked] = useState(false);
+  const [isDistracted, setIsDistracted] = useState(false);
   const distClicks = useRef(0);
+  const alertTime = useRef<number | null>(null);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    const dmTimer = setTimeout(() => setShowDM(true), 3000);
-    const end = setTimeout(() => handleEnd(), durationMs);
-    return () => { clearTimeout(dmTimer); clearTimeout(end); };
+    // Show playlist switcher link notification after 1.5 seconds
+    const notifTimer = setTimeout(() => {
+      setShowNotification(true);
+    }, 1500);
+
+    // Show red street brake alert after 3.2 seconds
+    const alertTimer = setTimeout(() => {
+      setShowAlert(true);
+      alertTime.current = Date.now();
+    }, 3200);
+
+    const endTimer = setTimeout(() => {
+      handleEnd('timeout');
+    }, durationMs);
+
+    return () => {
+      clearTimeout(notifTimer);
+      clearTimeout(alertTimer);
+      clearTimeout(endTimer);
+    };
   }, [durationMs]);
 
-  const handleEnd = () => {
+  const handleEnd = (choice: string) => {
+    const elapsed = alertTime.current ? Date.now() - alertTime.current : Date.now() - startTime.current;
     onComplete({
-      scenario_id: id, first_response_ms: Date.now() - startTime.current, time_to_choice_ms: Date.now() - startTime.current,
-      interaction_count: taps, distraction_clicks: distClicks.current, re_read_count: 0, choice_made: 'completed', abandoned: false
+      scenario_id: id,
+      first_response_ms: elapsed,
+      time_to_choice_ms: elapsed,
+      interaction_count: distClicks.current + (choice === 'brake' ? 1 : 0),
+      distraction_clicks: distClicks.current,
+      re_read_count: 0,
+      choice_made: choice,
+      abandoned: choice === 'timeout'
     });
   };
 
-  return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full relative py-10">
-      <AnimatePresence>
-        {showDM && (
-          <motion.div initial={{ y: -100 }} animate={{ y: 0 }} className="absolute top-0 inset-x-0 mx-4 bg-zinc-900 border border-zinc-800 p-4 rounded-3xl shadow-2xl flex items-center gap-3 z-50 cursor-pointer" onClick={() => { distClicks.current++; setShowDM(false); }}>
-            <img src="https://ui-avatars.com/api/?name=Crush&background=random" className="w-10 h-10 rounded-full" alt="avatar" />
-            <div><p className="text-sm font-bold text-white">Crush sent a message</p><p className="text-xs text-zinc-400">Tap to view</p></div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+  const handleDistractionClick = () => {
+    distClicks.current++;
+    setIsDistracted(true);
+    setShowNotification(false);
+  };
 
-      <div className="text-center mt-20">
-        <h2 className="text-2xl font-black text-primary mb-10">TAP TO CALIBRATE</h2>
-        <motion.button 
-          whileTap={{ scale: 0.9 }} 
-          onClick={() => setTaps(t => t + 1)} 
-          className="w-40 h-40 rounded-full bg-violet-600/20 border-4 border-violet-500 flex items-center justify-center mx-auto"
+  const handleBrakeClick = () => {
+    setIsBraked(true);
+    handleEnd('brake');
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      exit={{ opacity: 0 }} 
+      className="h-full flex flex-col justify-between relative py-6"
+    >
+      {/* Visual Road Windshield mockup */}
+      <div className="flex-1 flex flex-col items-center justify-center bg-slate-950 border border-subtle rounded-3xl p-6 relative overflow-hidden mb-6 min-h-[220px] shadow-inner">
+        {/* Simulated lane lines */}
+        <div className="absolute inset-y-0 w-1 bg-dashed bg-slate-800/60 left-1/2 -translate-x-1/2" />
+        
+        {/* Visual elements */}
+        {showAlert ? (
+          <motion.div 
+            initial={{ scale: 0.5, opacity: 0 }} 
+            animate={{ scale: 1.1, opacity: 1 }} 
+            transition={{ type: "spring", stiffness: 300, damping: 15 }}
+            className="z-10 flex flex-col items-center justify-center bg-red-600/90 text-white px-6 py-4 rounded-2xl border border-red-500 shadow-2xl animate-pulse-soft"
+          >
+            <AlertOctagon className="w-12 h-12 text-white mb-2" />
+            <span className="font-black text-lg uppercase tracking-wider">⚠️ STREET ALERT</span>
+            <span className="text-xs font-bold uppercase opacity-90 mt-1">Obstacle Ahead! Brake Now!</span>
+          </motion.div>
+        ) : (
+          <div className="text-slate-500 text-xs font-bold uppercase tracking-widest z-10 flex flex-col items-center gap-2">
+            <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping" />
+            Cruising safely at 45 MPH...
+          </div>
+        )}
+
+        {/* Dynamic Warning Indicator when distracted */}
+        {isDistracted && (
+          <div className="absolute bottom-4 text-amber-500 text-xs font-black uppercase tracking-wider z-20 bg-slate-900/90 px-3 py-1 rounded-full border border-amber-500/20">
+            ⚠️ Distracted! Vision delay triggered!
+          </div>
+        )}
+      </div>
+
+      {/* Playlist / Music Player and Phone notifications overlay */}
+      <div className="w-full relative mb-6">
+        <AnimatePresence>
+          {showNotification && (
+            <motion.div 
+              initial={{ y: 30, opacity: 0 }} 
+              animate={{ y: 0, opacity: 1 }} 
+              exit={{ y: -30, opacity: 0 }}
+              onClick={handleDistractionClick}
+              className="bg-indigo-950/90 border border-indigo-500/40 p-4 rounded-2xl shadow-xl flex items-center gap-3 cursor-pointer hover:bg-indigo-900/60 transition-colors z-20"
+            >
+              <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center shrink-0">
+                <Music className="w-5 h-5 text-indigo-400" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-xs font-bold text-indigo-300">Incoming Notification</p>
+                <p className="text-xs text-secondary leading-snug">🎵 Squad Album shared. Tap to stream now!</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Main Music Widget playing in background if not distracted */}
+        {!showNotification && (
+          <div className="bg-secondary/40 border border-subtle p-4 rounded-2xl flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Music className="w-5 h-5 text-violet-400 animate-pulse" />
+              <div className="text-left">
+                <p className="text-xs font-bold text-primary">Cruising Beats</p>
+                <p className="text-[10px] text-muted font-medium">Song: Lofi Highway Driving</p>
+              </div>
+            </div>
+            <button 
+              onClick={handleDistractionClick}
+              className="px-3 py-1.5 rounded-xl bg-secondary hover:bg-violet-500/10 border border-subtle text-[10px] font-black text-violet-400 uppercase tracking-wider transition-all"
+            >
+              Skip Song
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Action Buttons */}
+      <div className="w-full">
+        <button 
+          onClick={handleBrakeClick} 
+          disabled={isBraked}
+          className="w-full py-5 rounded-3xl font-black text-white text-xl uppercase tracking-wider shadow-lg bg-red-600 hover:bg-red-700 active:scale-95 transition-transform"
         >
-          <Target className="w-16 h-16 text-violet-500" />
-        </motion.button>
-        <p className="mt-8 text-xl font-bold text-violet-400">{taps} TAPS</p>
+          {isBraked ? 'Braking...' : 'BRAKE'}
+        </button>
       </div>
     </motion.div>
   );
@@ -284,12 +518,13 @@ const SCENARIO_COMPONENTS: Record<string, React.ComponentType<any>> = {
   notification_storm: NotificationStormScenario,
   conflicting_directions: ConflictingDirectionsScenario,
   fomo_choice: FomoChoiceScenario,
-  phantom_buzz: PhantomBuzzScenario,
+  playlist_shuffle: PlaylistShuffleScenario,
 };
 
 // ── Calibration Orchestrator ──────────────────────────────────────────────────
 
 function CalibrationPhase({ scenarios, onComplete }: any) {
+  const [showBriefing, setShowBriefing] = useState(true);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [events, setEvents] = useState<CalibrationEventPayload[]>([]);
 
@@ -304,20 +539,101 @@ function CalibrationPhase({ scenarios, onComplete }: any) {
   if (!currentScenario) return null;
   const Component = SCENARIO_COMPONENTS[currentScenario.ui_type];
 
+  if (showBriefing) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="space-y-8 py-6 text-center"
+      >
+        <div className="relative mx-auto w-24 h-24">
+          <div className="absolute inset-0 rounded-full blur-2xl opacity-20 bg-blue-600 dark:bg-indigo-600 animate-pulse" />
+          <div className="relative w-24 h-24 rounded-full flex items-center justify-center bg-secondary border border-blue-500/30 dark:border-indigo-500/30">
+            <Zap className="w-12 h-12 text-blue-500 dark:text-indigo-400" />
+          </div>
+        </div>
+
+        <div>
+          <h2 className="text-3xl font-black text-primary mb-2 uppercase tracking-tight leading-tight">
+            Reflex &amp; Attention Test
+          </h2>
+          <p className="text-blue-500 dark:text-indigo-400 font-bold text-sm uppercase tracking-widest">
+            Onboarding Calibration
+          </p>
+        </div>
+
+        <div className="bg-secondary border border-subtle rounded-3xl p-6 text-left space-y-5 shadow-lg">
+          <div className="flex gap-4">
+            <div className="w-8 h-8 rounded-full bg-blue-500/10 dark:bg-indigo-500/10 flex items-center justify-center shrink-0">
+              <span className="text-blue-500 dark:text-indigo-400 font-black text-sm">1</span>
+            </div>
+            <div>
+              <p className="font-bold text-primary text-sm leading-snug">Follow the Primary Instructions</p>
+              <p className="text-xs text-muted mt-0.5">You will face 4 quick tests. Follow the exact guidance shown at the top of the screen (e.g. tap the target repeatedly).</p>
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <div className="w-8 h-8 rounded-full bg-blue-500/10 dark:bg-indigo-500/10 flex items-center justify-center shrink-0">
+              <span className="text-blue-500 dark:text-indigo-400 font-black text-sm">2</span>
+            </div>
+            <div>
+              <p className="font-bold text-primary text-sm leading-snug">Ignore Sudden Distractions</p>
+              <p className="text-xs text-muted mt-0.5">Sudden DMs, group chat popups, or voice directions will try to trick you. Stay focused on your primary task!</p>
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <div className="w-8 h-8 rounded-full bg-blue-500/10 dark:bg-indigo-500/10 flex items-center justify-center shrink-0">
+              <span className="text-blue-500 dark:text-indigo-400 font-black text-sm">3</span>
+            </div>
+            <div>
+              <p className="font-bold text-primary text-sm leading-snug">Calibrate Your AI Coach Profile</p>
+              <p className="text-xs text-muted mt-0.5">Your distraction-resistance and response speed will shape your driving profile label and unlock your dashboard.</p>
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={() => setShowBriefing(false)}
+          className="w-full py-5 rounded-3xl font-black text-white text-xl uppercase tracking-wider shadow-lg shadow-blue-500/20"
+          style={{ background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))' }}
+        >
+          Start Calibration
+        </button>
+      </motion.div>
+    );
+  }
+
   return (
-    <div className="h-[500px] w-full max-w-sm mx-auto relative">
-      <AnimatePresence mode="wait">
-        {Component ? (
-          <Component
-            key={currentScenario.id}
-            id={currentScenario.id}
-            durationMs={currentScenario.duration_ms}
-            onComplete={handleScenarioComplete}
-          />
-        ) : (
-          <div className="text-center py-20 text-muted">Unknown scenario</div>
-        )}
-      </AnimatePresence>
+    <div className="w-full max-w-sm mx-auto relative flex flex-col justify-between min-h-[580px] py-4">
+      {/* Instruction Banner at the Top to orient the user */}
+      <div className="text-center mb-6 border-b border-subtle pb-4">
+        <div className="flex justify-between items-center text-xs text-muted font-bold mb-2">
+          <span className="text-violet-500 uppercase tracking-widest">Behavioral Test</span>
+          <span>{currentIdx + 1} of {scenarios.length}</span>
+        </div>
+        <h3 className="text-xl font-black text-primary mb-1">
+          {currentScenario.title}
+        </h3>
+        <p className="text-sm text-secondary font-medium px-2">
+          {currentScenario.instruction}
+        </p>
+      </div>
+
+      {/* Scenario Component Container */}
+      <div className="flex-1 flex flex-col justify-center relative min-h-[420px]">
+        <AnimatePresence mode="wait">
+          {Component ? (
+            <Component
+              key={currentScenario.id}
+              id={currentScenario.id}
+              durationMs={currentScenario.duration_ms}
+              onComplete={handleScenarioComplete}
+            />
+          ) : (
+            <div className="text-center py-20 text-muted">Unknown scenario</div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
@@ -361,8 +677,8 @@ function ResultPhase({ onContinue }: { onContinue: () => void }) {
 
       <motion.button
         onClick={onContinue}
-        className="w-full py-5 rounded-3xl font-black text-white text-xl uppercase tracking-wider shadow-xl shadow-violet-500/20"
-        style={{ background: 'linear-gradient(135deg, #8b5cf6, #d946ef)' }}
+        className="w-full py-5 rounded-3xl font-black text-white text-xl uppercase tracking-wider shadow-lg shadow-blue-500/20"
+        style={{ background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))' }}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.95 }}
       >
@@ -383,6 +699,7 @@ export default function OnboardingPage() {
   const [selectedMode, setSelectedMode] = useState<string>('focus');
   const [scenarios, setScenarios] = useState<CalibrationScenario[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [questionnaireAnswers, setQuestionnaireAnswers] = useState<any[]>([]);
 
   useEffect(() => {
     if (!isAuthenticated) router.replace('/auth/login');
@@ -408,7 +725,12 @@ export default function OnboardingPage() {
   const handleCalibrationComplete = async (events: CalibrationEventPayload[]) => {
     setPhase('PROCESSING');
     try {
-      // Create user profile by submitting to the calibration endpoint
+      // First submit questionnaire answers
+      if (questionnaireAnswers.length > 0) {
+        await client.post('/onboarding/submit', { answers: questionnaireAnswers });
+      }
+
+      // Then submit calibration events
       const res = await client.post('/onboarding/calibration/submit', { events });
       
       // We don't care about the clinical report anymore, just gamification stats
@@ -445,14 +767,21 @@ export default function OnboardingPage() {
   return (
     <>
       <Head><title>Reflex Test — SafeDrive AI</title></Head>
-      <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 relative overflow-hidden bg-app-shell">
+      <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 relative overflow-hidden bg-app-shell bg-ambient-warm">
         <div className="absolute top-6 right-6 z-50"><ThemeToggle /></div>
-        <div className="w-full max-w-md relative z-10">
+        <div className="w-full max-w-md relative z-10 card-glass p-6 md:p-8 shadow-2xl border border-subtle">
           <AnimatePresence mode="wait">
             {isLoading ? (
-              <motion.div key="loading" className="flex justify-center"><Loader2 className="w-8 h-8 text-violet-400 animate-spin" /></motion.div>
+              <motion.div key="loading" className="flex justify-center"><Loader2 className="w-8 h-8 text-blue-500 dark:text-indigo-400 animate-spin" /></motion.div>
             ) : phase === 'WELCOME' ? (
-              <motion.div key="welcome"><WelcomePhase onBegin={() => setPhase('MODE_SELECTION')} /></motion.div>
+              <motion.div key="welcome"><WelcomePhase onBegin={() => setPhase('QUESTIONNAIRE')} /></motion.div>
+            ) : phase === 'QUESTIONNAIRE' ? (
+              <motion.div key="questionnaire">
+                <QuestionnairePhase onComplete={(answers) => {
+                  setQuestionnaireAnswers(answers);
+                  setPhase('MODE_SELECTION');
+                }} />
+              </motion.div>
             ) : phase === 'MODE_SELECTION' ? (
               <motion.div key="mode_selection"><ModeSelectionPhase onSelect={(mode) => { setSelectedMode(mode); setPhase('CALIBRATION'); }} /></motion.div>
             ) : phase === 'CALIBRATION' ? (

@@ -39,6 +39,7 @@ from app.services.personality_profiler import (
     TRAIT_DIMENSIONS,
 )
 from app.models.behavioral_state import BehavioralState
+from app.services.llm_provider import llm_provider
 # pyrefly: ignore [missing-import]
 from sqlalchemy import select, text
 
@@ -69,6 +70,14 @@ class AssessmentAnswer(BaseModel):
 
 class SubmitAssessmentRequest(BaseModel):
     answers: List[AssessmentAnswer]
+
+
+class DynamicQuestionRequest(BaseModel):
+    answers: List[AssessmentAnswer]
+
+
+class DynamicQuestionResponse(BaseModel):
+    question_text: str
 
 
 class CalibrationScenarioResponse(BaseModel):
@@ -289,6 +298,47 @@ async def get_calibration_scenarios(
         )
         for s in CALIBRATION_SCENARIOS
     ]
+
+
+@router.post("/dynamic-question", response_model=DynamicQuestionResponse)
+async def generate_dynamic_question(
+    request: DynamicQuestionRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Generate a customized open-ended follow-up question via LLM based on base answers."""
+    # Score answers temporarily to get preliminary label
+    answers_dicts = [{"question_id": a.question_id, "answer_value": a.answer_value} for a in request.answers]
+    scores = personality_profiler._score_answers(answers_dicts)
+    label = _derive_profile_label(scores)
+    
+    # Map their choices to text for the prompt context
+    context = []
+    q_lookup = {q["id"]: q for q in ASSESSMENT_QUESTIONS}
+    for a in request.answers:
+        q = q_lookup.get(a.question_id)
+        if q:
+            opt = next((o for o in q["options"] if o["value"] == a.answer_value), None)
+            if opt:
+                context.append(f"Q: {q['text']} A: {opt['text']}")
+    
+    prompt = (
+        f"You are an AI driver coach for teenagers. The user just answered some questions:\n"
+        f"{chr(10).join(context)}\n\n"
+        f"Their preliminary profile is '{label}'. Generate exactly ONE engaging, open-ended follow-up question "
+        f"to ask this teenager to dig deeper into their {label} nature regarding focus and driving. "
+        f"Rules:\n"
+        f"1. You MUST output ONLY the question itself.\n"
+        f"2. The response MUST end with a question mark (?).\n"
+        f"3. Do NOT make statements, comments, or summaries. ONLY output the question.\n"
+        f"Keep it casual, brief (1-2 sentences), and highly relatable for teenagers."
+    )
+    
+    llm_resp = await llm_provider.complete(
+        prompt,
+        agent_type=f"questionnaire_{label}",
+        max_tokens=100
+    )
+    return DynamicQuestionResponse(question_text=llm_resp.text)
 
 
 @router.post("/submit", response_model=PersonalityProfileResponse, status_code=status.HTTP_201_CREATED)

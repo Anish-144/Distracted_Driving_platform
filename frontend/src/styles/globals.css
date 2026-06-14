@@ -5,57 +5,57 @@
 @tailwind utilities;
 
 @layer base {
-  /* ── LIGHT MODE (Default) — Warm Ivory / Premium Mobility ──────────── */
+  /* ── LIGHT MODE (Default) — Premium Clean Tech Aesthetic ──────────── */
   :root {
-    /* Surfaces — warm off-white palette, never pure white as fill */
-    --bg-app-shell:  #F6F4EE; /* Warm paper — primary background */
-    --bg-primary:    #F6F4EE; /* Maps to body background */
-    --bg-card:       #FCFBF8; /* Ivory — card surfaces */
-    --bg-card-elevated: #FFFFFF; /* Brightest layer — modals only */
-    --bg-secondary:  #EFECE5; /* Anchored panels, sidebars */
-    --bg-tertiary:   #E4DFD6; /* Deep anchored surfaces */
+    /* Surfaces — clean slate-50 base with card surfaces */
+    --bg-app-shell:  #F8FAFC; /* Slate 50 — primary background */
+    --bg-primary:    #F8FAFC;
+    --bg-card:       #FFFFFF; /* White card surface */
+    --bg-card-elevated: #FFFFFF;
+    --bg-secondary:  #F1F5F9; /* Slate 100 — sidebar/anchored panels */
+    --bg-tertiary:   #E2E8F0; /* Slate 200 — deep elements */
 
-    --overlay-light: rgba(63, 66, 73, 0.04);
-    --overlay-heavy: rgba(63, 66, 73, 0.35);
+    --overlay-light: rgba(15, 23, 42, 0.04);
+    --overlay-heavy: rgba(15, 23, 42, 0.4);
     --input-bg:      #FFFFFF;
 
-    /* Typography — soft slate, never pure black */
-    --text-primary:      #3F4249; /* Soft Slate */
-    --text-secondary:    #646873; /* On-surface-variant */
-    --text-muted:        #9A8E85; /* Warm gray */
-    --text-accent:       #4A6D82; /* Maps to primary brand */
-    --text-success:      #6B8A6B; /* Maps to secondary brand */
-    --text-warning:      #B87A4F; /* Warm amber */
-    --text-destructive:  #A85C5C; /* Warm red */
-    --text-overlay:      #FFFFFF; /* Guaranteed contrast on dark overlays */
-    --input-text:        #3F4249;
+    /* Typography — maximum readability, slate-900 primary */
+    --text-primary:      #0F172A; /* Slate 900 */
+    --text-secondary:    #334155; /* Slate 700 */
+    --text-muted:        #64748B; /* Slate 500 */
+    --text-accent:       #2563EB; /* Vibrant Blue */
+    --text-success:      #16A34A; /* Emerald Green */
+    --text-warning:      #D97706; /* Amber Warning */
+    --text-destructive:  #DC2626; /* Crimson Red */
+    --text-overlay:      #FFFFFF;
+    --input-text:        #0F172A;
 
-    /* Borders — barely visible organizing lines */
-    --border-subtle:  #E4DFD6; /* Outline-variant */
-    --border-strong:  #D3CECC; /* Outline */
-    --card-border:    #E4DFD6;
-    --input-border:   #D3CECC;
-    --input-placeholder: #9A8E85;
+    /* Borders — clean, low-opacity dividing lines */
+    --border-subtle:  #E2E8F0; /* Slate 200 */
+    --border-strong:  #CBD5E1; /* Slate 300 */
+    --card-border:    rgba(226, 232, 240, 0.8);
+    --input-border:   #CBD5E1;
+    --input-placeholder: #94A3B8;
 
-    /* Brand Accent — calm desaturated blue (trust, clarity, automotive) */
-    --color-primary:           #4A6D82;
-    --color-primary-container: #E1EAF0;
+    /* Brand Accent — vibrant electric blue and violet gradients */
+    --color-primary:           #3B82F6; /* Blue 500 */
+    --color-primary-container: #EFF6FF; /* Blue 50 */
     --color-on-primary:        #FFFFFF;
-    --color-secondary:         #6B8A6B; /* Muted sage — wellness, safety */
-    --color-secondary-container: #E5EFE5;
+    --color-secondary:         #8B5CF6; /* Violet 500 */
+    --color-secondary-container: #F5F3FF;
     --color-on-secondary:      #FFFFFF;
-    --color-tertiary:          #8E7E74; /* Warm stone — grounded */
+    --color-tertiary:          #0D9488; /* Teal 600 */
 
     /* Semantic Components */
-    --btn-secondary-bg:     #EFECE5;
-    --btn-secondary-hover:  #E4DFD6;
-    --btn-secondary-text:   #3F4249;
-    --btn-secondary-border: #D3CECC;
-    --btn-ghost-text:       #646873;
-    --btn-ghost-hover-bg:   #EFECE5;
-    --btn-ghost-hover-text: #3F4249;
+    --btn-secondary-bg:     #F1F5F9;
+    --btn-secondary-hover:  #E2E8F0;
+    --btn-secondary-text:   #0F172A;
+    --btn-secondary-border: #E2E8F0;
+    --btn-ghost-text:       #475569;
+    --btn-ghost-hover-bg:   #F1F5F9;
+    --btn-ghost-hover-text: #0F172A;
 
-    /* Motion / Easing — human-feeling, not mechanical */
+    /* Motion / Easing */
     --ease-out:         cubic-bezier(0.25, 0.46, 0.45, 0.94);
     --ease-expo-out:    cubic-bezier(0.16, 1, 0.3, 1);
     --ease-expo-in-out: cubic-bezier(0.87, 0, 0.13, 1);
@@ -67,60 +67,59 @@
     --duration-enter:     0.6s;
     --duration-slow:      0.9s;
 
-    --blur-glass:    blur(16px) saturate(1.6);
-    --blur-glass-sm: blur(8px) saturate(1.4);
+    --blur-glass:    blur(20px) saturate(1.8);
+    --blur-glass-sm: blur(10px) saturate(1.5);
     --sidebar-width: 14rem;
   }
 
-  /* ── DARK MODE — Warm Deep Slate / Calm Night Drive ─────────────────── */
-  /* NOT obsidian/cyber black. Feels like a calm evening dashboard. */
+  /* ── DARK MODE — Deep Space & Cyber-Aesthetic cockpit ─────────────────── */
   .dark {
-    --bg-app-shell:  #1A1D22; /* Warm deep slate — base */
-    --bg-primary:    #1A1D22;
-    --bg-card:       rgba(255, 255, 255, 0.04); /* Subtle surface lift */
-    --bg-card-elevated: rgba(255, 255, 255, 0.08);
-    --bg-secondary:  #21252C; /* Panel backgrounds */
-    --bg-tertiary:   #2A2F37; /* Deeper panels */
+    --bg-app-shell:  #030712; /* Gray 950 — sleek dark void */
+    --bg-primary:    #030712;
+    --bg-card:       rgba(17, 24, 39, 0.7); /* Translucent Gray 900 card */
+    --bg-card-elevated: #111827; /* Gray 900 modals */
+    --bg-secondary:  #0B0F19; /* Deep indigo-tinted slate panel */
+    --bg-tertiary:   #1F2937; /* Gray 800 */
 
-    --overlay-light: rgba(0, 0, 0, 0.35);
-    --overlay-heavy: rgba(0, 0, 0, 0.65);
-    --input-bg:      #21252C;
+    --overlay-light: rgba(0, 0, 0, 0.5);
+    --overlay-heavy: rgba(0, 0, 0, 0.85);
+    --input-bg:      #0B0F19;
 
-    /* Warm ivory text — not harsh pure white */
-    --text-primary:      #EAE7E2; /* Warm ivory */
-    --text-secondary:    #9099A6; /* Cool-muted readable */
-    --text-muted:        #6B7280;
-    --text-accent:       #8AB0C4; /* Lifted primary brand */
-    --text-success:      #96B496; /* Lifted secondary brand */
-    --text-warning:      #D4A373; /* Lifted amber */
-    --text-destructive:  #C47A7A; /* Lifted red */
+    /* Crisp typography - maximum contrast */
+    --text-primary:      #F9FAFB; /* Gray 50 */
+    --text-secondary:    #E5E7EB; /* Gray 200 */
+    --text-muted:        #9CA3AF; /* Gray 400 */
+    --text-accent:       #6366F1; /* Indigo 500 */
+    --text-success:      #10B981; /* Emerald 500 */
+    --text-warning:      #F59E0B; /* Amber 500 */
+    --text-destructive:  #EF4444; /* Red 500 */
     --text-overlay:      #FFFFFF;
-    --input-text:        #EAE7E2;
+    --input-text:        #F9FAFB;
 
-    /* Warm dark borders */
-    --border-subtle:  #2E3340; /* Barely visible */
-    --border-strong:  #3E4550;
-    --card-border:    #2E3340;
-    --input-border:   #3E4550;
-    --input-placeholder: rgba(234, 231, 226, 0.35);
+    /* Sleek borders */
+    --border-subtle:  rgba(255, 255, 255, 0.08);
+    --border-strong:  rgba(255, 255, 255, 0.15);
+    --card-border:    rgba(255, 255, 255, 0.06);
+    --input-border:   rgba(255, 255, 255, 0.12);
+    --input-placeholder: rgba(249, 250, 251, 0.4);
 
-    /* Brand — lifted for dark mode legibility */
-    --color-primary:           #8AB0C4; /* Calm blue lifted */
-    --color-primary-container: #1E3344;
-    --color-on-primary:        #0D1F2B;
-    --color-secondary:         #96B496; /* Sage lifted */
-    --color-secondary-container: #1E3020;
-    --color-on-secondary:      #0D1E0D;
-    --color-tertiary:          #B09F95; /* Stone lifted */
+    /* Electric Neon Accents */
+    --color-primary:           #6366F1; /* Indigo 500 */
+    --color-primary-container: rgba(99, 102, 241, 0.15);
+    --color-on-primary:        #FFFFFF;
+    --color-secondary:         #06B6D4; /* Cyan 500 */
+    --color-secondary-container: rgba(6, 182, 212, 0.15);
+    --color-on-secondary:      #FFFFFF;
+    --color-tertiary:          #14B8A6; /* Teal 500 */
 
     /* Semantic Components */
-    --btn-secondary-bg:     rgba(255, 255, 255, 0.07);
+    --btn-secondary-bg:     rgba(255, 255, 255, 0.06);
     --btn-secondary-hover:  rgba(255, 255, 255, 0.12);
-    --btn-secondary-text:   #EAE7E2;
-    --btn-secondary-border: #3E4550;
-    --btn-ghost-text:       #9099A6;
-    --btn-ghost-hover-bg:   rgba(255, 255, 255, 0.07);
-    --btn-ghost-hover-text: #EAE7E2;
+    --btn-secondary-text:   #F9FAFB;
+    --btn-secondary-border: rgba(255, 255, 255, 0.08);
+    --btn-ghost-text:       #9CA3AF;
+    --btn-ghost-hover-bg:   rgba(255, 255, 255, 0.06);
+    --btn-ghost-hover-text: #F9FAFB;
   }
 }
 
@@ -237,17 +236,17 @@
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
   }
 
-  /* Warm glass card — light mode uses soft ivory glass */
+  /* Clean glass card — light mode uses soft white glass */
   .card-glass {
-    background: rgba(252, 251, 248, 0.72);
+    background: rgba(255, 255, 255, 0.75);
     backdrop-filter: var(--blur-glass);
     -webkit-backdrop-filter: var(--blur-glass);
-    border: 1px solid rgba(211, 206, 204, 0.6);
-    border-radius: 1rem;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 2rem;
   }
 
   .dark .card-glass {
-    background: rgba(33, 37, 44, 0.65);
+    background: rgba(17, 24, 39, 0.65);
     border: 1px solid rgba(255, 255, 255, 0.06);
   }
 
@@ -561,24 +560,22 @@
 /* ─── Timer Bar ──────────────────────────────────────────── */
 .timer-bar { animation: countdown linear forwards; }
 
-/* ─── Warm Glass Surfaces ────────────────────────────────── */
-/* Light mode: ivory glass — NOT dark cyber glass */
+/* ─── Clean Glass Surfaces ────────────────────────────────── */
 .glass {
-  background: rgba(252, 251, 248, 0.70);
+  background: rgba(255, 255, 255, 0.70);
   backdrop-filter: var(--blur-glass);
   -webkit-backdrop-filter: var(--blur-glass);
-  border: 1px solid rgba(211, 206, 204, 0.5);
+  border: 1px solid rgba(226, 232, 240, 0.6);
 }
 
 .dark .glass {
-  background: rgba(33, 37, 44, 0.70);
+  background: rgba(17, 24, 39, 0.70);
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 /* ─── Brand Typography ───────────────────────────────────── */
-/* Warm gradient — calm blue to sage, NOT neon green to cyan */
 .text-gradient-brand {
-  background: linear-gradient(135deg, #4A6D82, #6B8A6B);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

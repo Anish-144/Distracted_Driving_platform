@@ -54,7 +54,44 @@ logger = logging.getLogger(__name__)
 # All answer options are designed to appear equally reasonable.
 # The `dimension` field is server-side ONLY — never sent to frontend.
 
-ASSESSMENT_QUESTIONS = []
+ASSESSMENT_QUESTIONS = [
+    {
+        "id": "q1_fomo",
+        "text": "Your squad just dropped a crazy meme in the group chat, but you're studying for finals. What's your move?",
+        "options": [
+            {"value": "ignore", "text": "Ignore it. The grind never stops.", "scores": {"attention_control_score": 0.8, "impulsiveness_score": 0.2}},
+            {"value": "quick_peek", "text": "Just a quick peek to see what it is.", "scores": {"attention_control_score": 0.4, "impulsiveness_score": 0.6, "behavioral_notification_fixation_prior": 0.7}},
+            {"value": "reply", "text": "Reply immediately. Can't leave them hanging.", "scores": {"attention_control_score": 0.2, "impulsiveness_score": 0.9, "behavioral_notification_fixation_prior": 0.9}}
+        ]
+    },
+    {
+        "id": "q2_risk",
+        "text": "You're running 5 minutes late to a hangout, and the GPS says taking a 'sketchy shortcut' saves 2 minutes. Do you take it?",
+        "options": [
+            {"value": "no_way", "text": "No way, stick to the main road.", "scores": {"risk_tolerance_score": 0.2, "cognitive_patience_score": 0.8}},
+            {"value": "maybe", "text": "Only if I know the area well.", "scores": {"risk_tolerance_score": 0.5, "cognitive_patience_score": 0.5}},
+            {"value": "send_it", "text": "Send it. 2 minutes is 2 minutes.", "scores": {"risk_tolerance_score": 0.9, "cognitive_patience_score": 0.2, "behavioral_urgency_susceptibility_prior": 0.8}}
+        ]
+    },
+    {
+        "id": "q3_multitask",
+        "text": "How many tabs do you usually have open while watching a YouTube video?",
+        "options": [
+            {"value": "one", "text": "Just the video. I like to focus.", "scores": {"multitasking_tendency_score": 0.2, "attention_control_score": 0.8}},
+            {"value": "few", "text": "A couple for browsing.", "scores": {"multitasking_tendency_score": 0.6, "attention_control_score": 0.5}},
+            {"value": "million", "text": "Like 20. And I'm probably scrolling TikTok too.", "scores": {"multitasking_tendency_score": 0.9, "attention_control_score": 0.2, "behavioral_cognitive_overload_prior": 0.8}}
+        ]
+    },
+    {
+        "id": "q4_stress",
+        "text": "Your friend starts arguing with you about something silly while you're trying to figure out where to park. How do you react?",
+        "options": [
+            {"value": "calm", "text": "Tell them nicely to wait a sec so I can focus.", "scores": {"emotional_reactivity_score": 0.2, "stress_resilience_score": 0.8, "authority_compliance_score": 0.3}},
+            {"value": "stress", "text": "Get a little stressed but keep looking.", "scores": {"emotional_reactivity_score": 0.6, "stress_resilience_score": 0.5, "authority_compliance_score": 0.6}},
+            {"value": "argue", "text": "Argue back. Parking can wait.", "scores": {"emotional_reactivity_score": 0.9, "stress_resilience_score": 0.2, "authority_compliance_score": 0.8}}
+        ]
+    }
+]
 
 
 # ── Trait Dimensions ──────────────────────────────────────────────────────────
@@ -113,13 +150,13 @@ CALIBRATION_SCENARIOS = [
     },
     {
         "id": "S4",
-        "name": "phantom_buzz",
-        "title": "Screen Calibration",
-        "duration_ms": 15000,
+        "name": "playlist_shuffle",
+        "title": "Playlist Jam",
+        "duration_ms": 10000,
         "primary_traits": ["impulsiveness", "notification_fixation"],
-        "description": "User is asked to rapidly tap a target circle. Phone vibrates and fake Instagram DM drops down.",
-        "ui_type": "phantom_buzz",
-        "instruction": "Tap the circle repeatedly to calibrate.",
+        "description": "User is driving when a sudden street alert requires immediate braking, but a song skip notification pops up simultaneously.",
+        "ui_type": "playlist_shuffle",
+        "instruction": "Tap 'BRAKE' immediately when the red street alert flashes. Avoid getting distracted by the playlist tracker!",
     },
 ]
 
@@ -257,7 +294,7 @@ class CalibrationScorer:
             "S1": self._score_notification_storm,
             "S2": self._score_conflicting_directions,
             "S3": self._score_fomo_choice,
-            "S4": self._score_phantom_buzz,
+            "S4": self._score_playlist_shuffle,
         }
         extractor = extractors.get(scenario_id)
         if extractor is None:
@@ -375,7 +412,7 @@ class CalibrationScorer:
             "evidence_urgency_susceptibility": urgency,
         }
 
-    def _score_phantom_buzz(self, t: dict) -> dict:
+    def _score_playlist_shuffle(self, t: dict) -> dict:
         distraction = t.get("distraction_clicks", 0)
         
         notif_fixation = min(1.0, distraction * 0.5 + 0.2) if distraction > 0 else 0.1

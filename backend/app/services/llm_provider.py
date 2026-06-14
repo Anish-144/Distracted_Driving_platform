@@ -42,12 +42,45 @@ _FALLBACKS = {
         "That decision could cost you your licence.",
         "One distraction. One accident. Zero excuses.",
     ],
+    # Fallback questions for the dynamic questionnaire tailored by label
+    "questionnaire_emotionally_reactive": [
+        "When another driver cuts you off or behaves aggressively, how does that affect your focus, and what do you do to stay calm?",
+    ],
+    "questionnaire_impulsive": [
+        "If you hear a notification buzz while navigating a busy intersection, what goes through your mind, and how do you handle the urge to check it?",
+    ],
+    "questionnaire_notification_distracted": [
+        "How do you think your squad's chat activity affects your driving focus, and what's your strategy to keep your eyes on the road?",
+    ],
+    "questionnaire_risk_seeking": [
+        "When you're running late to a hangout, how do you handle the pressure to drive faster than the speed limit?",
+    ],
+    "questionnaire_distracted": [
+        "With so many things going on inside and outside the car, what is the biggest thing that distracts you, and how do you manage it?",
+    ],
+    "questionnaire_hesitant": [
+        "When you feel uncertain or stressed by busy traffic, how do you make quick driving decisions without getting overwhelmed?",
+    ],
+    "questionnaire_cautious": [
+        "You seem to prioritize safety, but how do you handle peer pressure from friends who want you to take risks or drive faster?",
+    ],
+    "questionnaire_authority_driven": [
+        "If a friend tells you to ignore a traffic rule or take a sketchy shortcut, how do you respond without causing tension?",
+    ],
+    "questionnaire_balanced": [
+        "What is the biggest distraction you face while driving, and how do you maintain a balance between staying connected and staying safe?",
+    ],
+    "questionnaire": [
+        "What is the biggest distraction you face while driving, and how do you maintain a balance between staying connected and staying safe?",
+    ],
 }
 _fallback_idx: dict[str, int] = {"passenger": 0, "instructor": 0, "authority": 0}
 
 
 def _get_fallback(agent_type: str) -> str:
-    pool = _FALLBACKS.get(agent_type, _FALLBACKS["instructor"])
+    # If a specific questionnaire key isn't found, try generic "questionnaire" before defaulting to "instructor"
+    default_fallback = _FALLBACKS["questionnaire"] if agent_type.startswith("questionnaire") else _FALLBACKS["instructor"]
+    pool = _FALLBACKS.get(agent_type, default_fallback)
     idx = _fallback_idx.get(agent_type, 0)
     text = pool[idx % len(pool)]
     _fallback_idx[agent_type] = (idx + 1) % len(pool)
