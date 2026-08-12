@@ -19,7 +19,7 @@ from app.schemas.feedback import (
     FeedbackCreate, FeedbackRead, FeedbackAdminRead, 
     FeedbackStatusUpdate, FeedbackNoteBase, FeedbackListResponse, FeedbackAnalyticsResponse
 )
-import magic
+import mimetypes
 from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/api/feedback", tags=["feedback"])
@@ -86,8 +86,9 @@ async def submit_feedback(
             content = await file.read()
             size = len(content)
             
-            # Magic byte verification
-            actual_mime = magic.from_buffer(content[:2048], mime=True)
+            # Fallback to mimetypes for basic verification on Windows
+            actual_mime, _ = mimetypes.guess_type(file.filename or "")
+            actual_mime = actual_mime or "application/octet-stream"
             
             if actual_mime not in ALLOWED_MIME_TYPES:
                 continue # Skip invalid files

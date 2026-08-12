@@ -25,15 +25,24 @@ export default function AppShell({ children, className = '', style, maxWidth = '
 
   return (
     <div
-      className={`h-screen overflow-hidden flex bg-app-shell font-sans ${className}`}
-      style={style}
+      className={`h-screen overflow-hidden flex font-sans relative ${className}`}
+      style={{ background: 'var(--bg-app-shell)', ...style }}
     >
-      {/* Sidebar: fixed-height, self-contained scroll */}
+      {/* Global ambient glow — subtle indigo orbs */}
+      <div
+        className="fixed inset-0 pointer-events-none z-0"
+        style={{
+          background:
+            'radial-gradient(ellipse 40% 30% at 15% 10%, rgba(108,99,255,0.05) 0%, transparent 60%), ' +
+            'radial-gradient(ellipse 30% 40% at 85% 80%, rgba(139,92,246,0.04) 0%, transparent 60%)',
+        }}
+      />
+
+      {/* Sidebar */}
       <Sidebar />
 
-      {/* Content column: flex col, takes remaining width, scrolls independently */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Navbar sticks to the top of this column, not the full page */}
+      {/* Content column */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10">
         <Navbar />
         <main className="flex-1 overflow-y-auto px-6 py-8 lg:px-10 lg:py-10">
           <div className={`${contentMaxWidth} mx-auto w-full`}>

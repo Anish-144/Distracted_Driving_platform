@@ -11,45 +11,67 @@ import { FadeUp } from '@/components/motion/ScrollReveal';
 import { motion } from 'framer-motion';
 import {
   Shield, TrendingUp, Clock, Car, PlayCircle, ChevronRight,
-  Activity, Phone, MessageCircle, MapPin, AlertTriangle, ArrowUpRight,
+  Activity, Phone, MessageCircle, MapPin, AlertTriangle,
   Zap, Brain, BarChart2, BookOpen, FileText, Target, CheckCircle2,
+  ArrowRight,
 } from 'lucide-react';
 
-// ── Shared micro-components ───────────────────────────────────────────────────
+// ── Shared primitives ────────────────────────────────────────────────────────
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="label-caps mb-3">
+    <p className="text-[10px] font-semibold uppercase tracking-[0.10em] mb-3" style={{ color: 'var(--text-muted)', fontFamily: 'Space Grotesk, sans-serif' }}>
       {children}
     </p>
   );
 }
 
-function CardHeader({
-  icon: Icon,
-  iconColor,
-  iconBg,
-  title,
-  right,
-}: {
+// ── KPI Stat Card ─────────────────────────────────────────────────────────────
+
+function StatCard({ label, value, sub, icon: Icon, isLoading, accent }: {
+  label: string;
+  value: any;
+  sub: string;
   icon: React.ElementType;
-  iconColor: string;
-  iconBg: string;
-  title: string;
-  right?: React.ReactNode;
+  isLoading: boolean;
+  accent?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center gap-2.5">
-        <div
-          className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-          style={{ background: iconBg }}
+    <div
+      className="p-4 flex flex-col gap-2"
+      style={{
+        background: accent ? '#C8FF00' : 'var(--bg-card)',
+        border: '1px solid var(--border-card)',
+        borderRadius: '4px',
+      }}
+    >
+      <div className="flex items-center justify-between">
+        <p
+          className="text-[10px] font-semibold uppercase tracking-[0.10em]"
+          style={{ color: accent ? '#1A1814' : 'var(--text-muted)' }}
         >
-          <Icon className="w-3.5 h-3.5" style={{ color: iconColor }} />
-        </div>
-        <h2 className="text-sm font-bold text-primary tracking-tight">{title}</h2>
+          {label}
+        </p>
+        <Icon
+          className="w-3.5 h-3.5"
+          style={{ color: accent ? '#1A1814' : 'var(--text-muted)' }}
+        />
       </div>
-      {right && <div className="flex-shrink-0">{right}</div>}
+      {isLoading && value === '—' ? (
+        <div className="h-6 w-16 skeleton rounded" />
+      ) : (
+        <p
+          className="text-2xl font-bold mono-data capitalize"
+          style={{
+            color: accent ? '#1A1814' : 'var(--text-primary)',
+            letterSpacing: '-0.03em',
+            fontFamily: 'Space Grotesk, sans-serif',
+          }}
+        >
+          {value}
+        </p>
+      )}
+      <p className="text-[10px] font-medium" style={{ color: accent ? '#1A1814' : 'var(--text-muted)' }}>{sub}</p>
     </div>
   );
 }
@@ -69,15 +91,6 @@ export default function DashboardPage() {
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => { setIsMounted(true); }, []);
 
-  const [localSessionData, setLocalSessionData] = useState<{
-    percentile: string | number | null;
-    best: string | number | null;
-    delta: { val: number; status: string } | null;
-    insights: string[] | null;
-    timestamp: string | null;
-  }>({ percentile: null, best: null, delta: null, insights: null, timestamp: null });
-
-  // ── Latest session fetch ─────────────────────────────────────────────────
   useEffect(() => {
     if (!isAuthenticated) return;
     const controller = new AbortController();
@@ -89,26 +102,21 @@ export default function DashboardPage() {
         if (isSessionCancelled(err)) return;
         const status = err?.response?.status;
         if (!status || status >= 500) return;
-        toast.error('Could not load your latest session data.');
       })
       .finally(() => { if (!controller.signal.aborted) setIsFetchingLatest(false); });
     return () => { controller.abort(); setIsFetchingLatest(false); };
   }, [isAuthenticated]);
 
-  // ── Progress fetch ───────────────────────────────────────────────────────
   useEffect(() => {
     if (!isAuthenticated) { router.replace('/auth/login'); return; }
     dispatch(fetchProgressData()).unwrap().catch(() => {});
   }, [isAuthenticated, router, dispatch]);
 
-  // ── No localStorage cache used (backend authoritative percentile now used) ──
-
-  // ── Auth guard ───────────────────────────────────────────────────────────
   if (!isMounted) return null;
   if (!isAuthenticated || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-app-shell">
-        <div className="w-7 h-7 rounded-full border-2 border-brand-500 border-t-transparent animate-spin" />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-canvas)' }}>
+        <div className="w-5 h-5 border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--text-primary)', borderTopColor: 'transparent', borderRadius: '50%' }} />
       </div>
     );
   }
@@ -119,163 +127,144 @@ export default function DashboardPage() {
   const displayReaction = hasSession ? `${latestData!.avg_reaction_time}s` : '—';
   const displayImprovement = stats ? `${stats.improvement_rate > 0 ? '+' : ''}${stats.improvement_rate}` : '—';
   const profileKnown = user.profile_type && user.profile_type !== 'unknown';
-  const displayDriverType = hasSession 
-    ? latestData!.driver_type 
-    : (profileKnown ? user.profile_type!.replace('_', ' ') : (stats?.driver_type ?? 'Unknown'));
+  const displayDriverType = hasSession
+    ? latestData!.driver_type
+    : (profileKnown ? user.profile_type!.replace('_', ' ') : (stats?.driver_type ?? '—'));
   const firstName = user.name?.split(' ')[0] || 'User';
 
   const statCards = [
-    {
-      label: 'Safety Score', value: displayScore, sub: 'session avg',
-      icon: Shield, color: '#34d399', tint: 'rgba(52,211,153,0.08)', border: 'rgba(52,211,153,0.18)',
-    },
-    {
-      label: 'Reaction Time', value: displayReaction, sub: 'last session',
-      icon: Clock, color: '#60a5fa', tint: 'rgba(96,165,250,0.08)', border: 'rgba(96,165,250,0.18)',
-    },
-    {
-      label: 'Improvement', value: displayImprovement, sub: 'overall trend',
-      icon: TrendingUp, color: '#fbbf24', tint: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.18)',
-    },
-    {
-      label: 'Driver Profile', value: displayDriverType, sub: 'behavioral type',
-      icon: Brain, color: '#a78bfa', tint: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.18)',
-    },
+    { label: 'Safety Score', value: displayScore, sub: 'session avg', icon: Shield, accent: true },
+    { label: 'Reaction Time', value: displayReaction, sub: 'last session', icon: Clock },
+    { label: 'Improvement', value: displayImprovement, sub: 'overall trend', icon: TrendingUp },
+    { label: 'Driver Profile', value: displayDriverType, sub: 'behavioral type', icon: Brain },
   ];
 
   const scenarios = [
-    { icon: Phone,         name: 'Phone Call',   difficulty: 'Medium', color: '#f59e0b' },
-    { icon: MessageCircle, name: 'WhatsApp',      difficulty: 'Easy',   color: '#10b981' },
-    { icon: MapPin,        name: 'GPS Alert',     difficulty: 'Hard',   color: '#ef4444' },
+    { icon: Phone,         name: 'Phone Call',  difficulty: 'Medium' },
+    { icon: MessageCircle, name: 'WhatsApp',     difficulty: 'Easy' },
+    { icon: MapPin,        name: 'GPS Alert',    difficulty: 'Hard' },
   ];
 
   const quickActions = [
-    { label: 'Behavioral Dossier',  icon: FileText,   href: '/dashboard/report',    desc: 'Full profile breakdown' },
-    { label: 'Training Progress',   icon: BarChart2,  href: '/dashboard/progress',  desc: 'Session history' },
-    { label: 'Learning Center',     icon: BookOpen,   href: '/lessons',             desc: 'Adaptive lessons' },
-    { label: 'Research Analytics',  icon: Target,     href: '/dashboard/research',  desc: 'Behavioral data' },
+    { label: 'Behavioral Report', icon: FileText,  href: '/dashboard/report',   desc: 'Full profile breakdown' },
+    { label: 'Session History',   icon: BarChart2, href: '/dashboard/progress', desc: 'Training history' },
+    { label: 'Lessons',           icon: BookOpen,  href: '/lessons',            desc: 'Adaptive curriculum' },
+    { label: 'Research Data',     icon: Target,    href: '/dashboard/research', desc: 'Behavioral analytics' },
   ];
 
   return (
     <>
       <Head>
         <title>Dashboard — SafeDrive AI</title>
-        <meta name="description" content="Track your distracted driving training progress and behavioral intelligence." />
+        <meta name="description" content="Track your driving behavior training and progress." />
       </Head>
 
       <AppShell>
 
-        {/* ── Welcome header ─────────────────────────────────────────────── */}
+        {/* ── Welcome bar ────────────────────────────────────────────── */}
         <FadeUp className="mb-6">
-          <div className="flex items-start justify-between gap-4">
+          <div
+            className="flex items-center justify-between py-4 px-5"
+            style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-card)',
+              borderRadius: '4px',
+            }}
+          >
             <div>
-              <p className="label-caps mb-1">
-                Behavioral Intelligence Platform
+              <p
+                className="text-[10px] font-semibold uppercase tracking-[0.10em] mb-0.5"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                Behavioral Training
               </p>
-              <h1 className="text-xl font-bold text-primary tracking-tight">
-                Welcome back, <span className="text-accent">{firstName}</span>
+              <h1
+                className="text-xl font-bold"
+                style={{ color: 'var(--text-primary)', letterSpacing: '-0.025em', fontFamily: 'Space Grotesk, sans-serif' }}
+              >
+                Hello, {firstName}.
               </h1>
-              <p className="text-sm text-muted mt-0.5">
+              <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>
                 {profileKnown
                   ? `Profile: ${user.profile_type?.replace('_', ' ')} · Training active`
-                  : 'Complete a calibration session to unlock your behavioral profile.'}
+                  : 'Complete a calibration session to get started.'}
               </p>
             </div>
-            {/* Primary CTA — anchored top right on welcome */}
             <Link
               href="/simulation"
               id="start-simulation-btn"
-              className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-on-primary bg-primary transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
-              style={{ background: '#F4F4F5', color: '#09090B' }}
+              className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-all duration-150 flex-shrink-0 group"
+              style={{
+                background: '#1A1814',
+                color: '#C8FF00',
+                borderRadius: '4px',
+                fontFamily: 'Space Grotesk, sans-serif',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = '#2D2A24')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = '#1A1814')}
             >
-              <PlayCircle className="w-4 h-4" />
-              <span className="hidden sm:inline">Start Session</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
+              <PlayCircle className="w-3.5 h-3.5" />
+              START SESSION
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </FadeUp>
 
-        {/* ── KPI strip ──────────────────────────────────────────────────── */}
-        <FadeUp delay={0.05} className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        {/* ── KPI row ────────────────────────────────────────────────── */}
+        <FadeUp delay={0.04} className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           {statCards.map((s, i) => (
-            <motion.div
-              key={i}
-              className="bg-secondary rounded-xl border border-subtle p-4 flex flex-col gap-2 cursor-default"
-              whileHover={{ y: -2, transition: { duration: 0.2 } }}
-            >
-              <div className="flex items-center justify-between">
-                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">{s.label}</p>
-                <div
-                  className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                  style={{ background: s.tint, border: `1px solid ${s.border}` }}
-                >
-                  <s.icon className="w-3.5 h-3.5" style={{ color: s.color }} />
-                </div>
-              </div>
-              {isLoading && s.value === '—' ? (
-                <div className="h-6 w-16 rounded-md bg-secondary animate-pulse" />
-              ) : (
-                <p className="text-xl font-bold tracking-tight capitalize mono-data" style={{ color: s.color }}>
-                  {s.value}
-                </p>
-              )}
-              <p className="text-[10px] text-muted font-medium">{s.sub}</p>
-            </motion.div>
+            <StatCard key={i} {...s} isLoading={isLoading} />
           ))}
         </FadeUp>
 
-        {/* ── Body grid ─────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* ── Body grid ─────────────────────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
           {/* ── Left column (2/3) ── */}
           <div className="lg:col-span-2 flex flex-col gap-4">
 
-            {/* Simulation readiness card */}
+            {/* Simulation Card */}
             <FadeUp delay={0.08}>
-              <div className="bg-primary rounded-xl border border-subtle overflow-hidden">
-                {/* Colored accent strip */}
-                <div className="h-0.5 w-full bg-primary" />
+              <div
+                className="overflow-hidden"
+                style={{ background: 'var(--bg-card)', border: '1px solid var(--border-card)', borderRadius: '4px' }}
+              >
+                {/* Chartreuse top bar */}
+                <div className="h-1 w-full" style={{ background: '#C8FF00' }} />
                 <div className="p-5">
-                  <div className="flex items-start gap-3 mb-4">
-                    <div
-                      className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-                      style={{ background: 'rgba(5,150,105,0.1)', border: '1px solid rgba(5,150,105,0.2)' }}
-                    >
-                      <Car className="w-4.5 h-4.5 text-accent" />
-                    </div>
-                    <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <h2 className="text-sm font-bold text-primary">Driving Simulation</h2>
+                        <SectionLabel>Driving Simulation</SectionLabel>
                         <span
-                          className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-                          style={{ background: 'rgba(5,150,105,0.1)', color: '#059669', border: '1px solid rgba(5,150,105,0.2)' }}
+                          className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 mb-3"
+                          style={{ background: 'var(--bg-surface-raised)', color: 'var(--text-muted)', borderRadius: '3px' }}
                         >
                           <Activity className="w-2.5 h-2.5" />
                           Week 1
                         </span>
                       </div>
-                      <p className="text-xs text-muted leading-relaxed">
-                        Face real-world distraction scenarios — phone calls, messages, navigation alerts — and train your split-second decision-making.
+                      <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                        Face real-world distraction scenarios — phone calls, navigation alerts, messages — and build split-second decision making.
                       </p>
                     </div>
                   </div>
 
                   {/* Scenario chips */}
-                  <div className="grid grid-cols-3 gap-2 pt-4 border-t border-subtle">
+                  <div
+                    className="grid grid-cols-3 gap-2 pt-4"
+                    style={{ borderTop: '1px solid var(--border-subtle)' }}
+                  >
                     {scenarios.map((s) => (
                       <div
                         key={s.name}
-                        className="flex items-center gap-2 p-2.5 rounded-lg border border-subtle bg-secondary"
+                        className="flex items-center gap-2 p-2.5"
+                        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: '4px' }}
                       >
-                        <div
-                          className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0"
-                          style={{ background: `${s.color}12`, border: `1px solid ${s.color}25` }}
-                        >
-                          <s.icon className="w-3 h-3" style={{ color: s.color }} />
-                        </div>
+                        <s.icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
                         <div className="min-w-0">
-                          <p className="text-[11px] font-semibold text-primary leading-none truncate">{s.name}</p>
-                          <p className="text-[10px] text-muted mt-0.5">{s.difficulty}</p>
+                          <p className="text-[11px] font-semibold leading-none truncate" style={{ color: 'var(--text-primary)' }}>{s.name}</p>
+                          <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>{s.difficulty}</p>
                         </div>
                       </div>
                     ))}
@@ -284,78 +273,43 @@ export default function DashboardPage() {
               </div>
             </FadeUp>
 
-            {/* Last Session Intelligence — always shown, conditionally filled */}
-            <FadeUp delay={0.13}>
-              <div className="bg-primary rounded-xl border border-card p-5">
-                <CardHeader
-                  icon={BarChart2}
-                  iconColor="#60a5fa"
-                  iconBg="rgba(96,165,250,0.1)"
-                  title="Last Session Intelligence"
-                  right={
-                    localSessionData.timestamp && (
-                      <span className="text-[10px] text-muted font-medium">{localSessionData.timestamp}</span>
-                    )
-                  }
-                />
-
+            {/* Session Intelligence */}
+            <FadeUp delay={0.12}>
+              <div className="p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-card)', borderRadius: '4px' }}>
+                <SectionLabel>Last Session Intelligence</SectionLabel>
                 {stats?.percentile !== undefined ? (
-                  <div className="space-y-4">
-                    {/* Metric row */}
+                  <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="p-3 rounded-lg bg-secondary border border-subtle">
-                        <p className="label-caps mb-1.5">Population Rank</p>
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-2xl font-bold mono-data text-primary">
-                            {stats.percentile}%
-                          </span>
+                      {[
+                        { label: 'Population Rank', value: `${stats.percentile}%`, sub: 'global percentile' },
+                        { label: 'Personal Avg', value: `${stats.avg_score}%`, sub: 'safety score' },
+                      ].map((m) => (
+                        <div key={m.label} className="p-3" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: '4px' }}>
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.10em] mb-1.5" style={{ color: 'var(--text-muted)' }}>{m.label}</p>
+                          <p className="text-2xl font-bold mono-data" style={{ color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>{m.value}</p>
+                          <p className="text-[10px] mt-1" style={{ color: 'var(--text-muted)' }}>{m.sub}</p>
                         </div>
-                        <p className="text-[10px] text-muted mt-1">global percentile</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-secondary border border-subtle">
-                        <p className="label-caps mb-1.5">Personal Avg</p>
-                        <p className="text-2xl font-bold mono-data text-primary">{stats.avg_score}%</p>
-                        <p className="text-[10px] text-muted mt-1">safety score</p>
-                      </div>
+                      ))}
                     </div>
-
-                    {/* Insights */}
-                    {localSessionData.insights && localSessionData.insights.length > 0 && (
-                      <div className="space-y-1.5">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">Session Insights</p>
-                        {localSessionData.insights.map((ins, i) => (
-                          <div key={i} className="flex items-start gap-2 text-xs text-secondary">
-                            <CheckCircle2 className="w-3 h-3 text-brand-500 mt-0.5 shrink-0" />
-                            {ins}
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 ) : (
-                  <div className="rounded-lg bg-secondary border border-subtle p-4 text-center">
-                    <Activity className="w-5 h-5 text-muted mx-auto mb-2" />
-                    <p className="text-xs text-muted">No session data yet.</p>
-                    <p className="text-[11px] text-muted mt-0.5">Complete your first simulation to see intelligence here.</p>
+                  <div className="py-6 text-center" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: '4px' }}>
+                    <Activity className="w-4 h-4 mx-auto mb-2" style={{ color: 'var(--text-muted)' }} />
+                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>No session data yet.</p>
                   </div>
                 )}
               </div>
             </FadeUp>
 
             {/* AI Coaching Feedback */}
-            <FadeUp delay={0.18}>
-              <div className="bg-primary rounded-xl border border-card p-5">
-                <CardHeader
-                  icon={Zap}
-                  iconColor="#a78bfa"
-                  iconBg="rgba(167,139,250,0.1)"
-                  title="AI Coaching Feedback"
-                />
-                <div className="rounded-lg bg-secondary border border-subtle p-4">
-                  <p className="text-sm text-secondary leading-relaxed">
+            <FadeUp delay={0.16}>
+              <div className="p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-card)', borderRadius: '4px' }}>
+                <SectionLabel>AI Coaching Feedback</SectionLabel>
+                <div className="p-4" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: '4px', borderLeft: '3px solid #C8FF00' }}>
+                  <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                     {isLoading
                       ? 'Analyzing your driving behavior…'
-                      : (stats?.ai_feedback || 'Complete a session to receive personalized AI driver coaching based on your behavioral profile.')}
+                      : (stats?.ai_feedback || 'Complete a session to receive personalized coaching based on your behavioral profile.')}
                   </p>
                 </div>
               </div>
@@ -365,74 +319,88 @@ export default function DashboardPage() {
           {/* ── Right column (1/3) ── */}
           <div className="flex flex-col gap-4">
 
-            {/* Behavioral Profile card */}
-            <FadeUp delay={0.1}>
-              <div className="bg-primary rounded-xl border border-card p-5">
+            {/* Behavioral Profile */}
+            <FadeUp delay={0.09}>
+              <div className="p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-card)', borderRadius: '4px' }}>
                 <SectionLabel>Behavioral Profile</SectionLabel>
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary border border-subtle">
+                <div
+                  className="flex items-center gap-3 p-3"
+                  style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: '4px' }}
+                >
                   <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.2)' }}
+                    className="w-8 h-8 flex items-center justify-center flex-shrink-0"
+                    style={{ background: '#C8FF00', borderRadius: '4px' }}
                   >
-                    <Brain className="w-4.5 h-4.5 text-accent" />
+                    <Brain className="w-4 h-4" style={{ color: '#1A1814' }} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-bold text-primary capitalize truncate">
+                    <p className="text-sm font-bold capitalize" style={{ color: 'var(--text-primary)' }}>
                       {profileKnown ? user.profile_type?.replace('_', ' ') : 'Not Assessed'}
                     </p>
-                    <p className="text-[11px] text-muted mt-0.5">
-                      {profileKnown ? 'Behavioral profile active' : 'Complete a calibration session'}
+                    <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                      {profileKnown ? 'Profile active' : 'Run a calibration session'}
                     </p>
                   </div>
                 </div>
                 {!profileKnown && (
                   <Link
                     href="/onboarding"
-                    className="mt-3 flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-xs font-semibold text-primary border border-subtle bg-secondary hover:bg-tertiary transition-colors duration-150"
+                    className="mt-2 flex items-center justify-center gap-1.5 w-full py-2 text-xs font-semibold transition-colors duration-100"
+                    style={{
+                      background: '#1A1814',
+                      color: '#C8FF00',
+                      borderRadius: '4px',
+                      marginTop: '8px',
+                    }}
                   >
-                    <Zap className="w-3 h-3" />
-                    Start Calibration
+                    START CALIBRATION →
                   </Link>
                 )}
               </div>
             </FadeUp>
 
             {/* Learning Metrics */}
-            <FadeUp delay={0.12}>
-              <div className="bg-primary rounded-xl border border-card p-5">
+            <FadeUp delay={0.11}>
+              <div className="p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-card)', borderRadius: '4px' }}>
                 <SectionLabel>Learning Metrics</SectionLabel>
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="p-2.5 rounded-lg bg-secondary border border-subtle text-center">
-                    <p className="text-lg font-bold text-primary mono-data">{stats?.lessons_completed ?? 0}</p>
-                    <p className="text-[10px] text-muted font-medium mt-0.5">Completed</p>
-                  </div>
-                  <div className="p-2.5 rounded-lg bg-secondary border border-subtle text-center">
-                    <p className="text-lg font-bold text-brand-500 mono-data">{stats?.lesson_streak ?? 0}</p>
-                    <p className="text-[10px] text-muted font-medium mt-0.5">Day Streak</p>
-                  </div>
-                  <div className="p-2.5 rounded-lg bg-secondary border border-subtle text-center">
-                    <p className="text-lg font-bold text-accent mono-data">{stats?.lesson_completion_rate ?? 0}%</p>
-                    <p className="text-[10px] text-muted font-medium mt-0.5">Win Rate</p>
-                  </div>
+                  {[
+                    { value: stats?.lessons_completed ?? 0, label: 'Done' },
+                    { value: stats?.lesson_streak ?? 0,     label: 'Streak' },
+                    { value: `${stats?.lesson_completion_rate ?? 0}%`, label: 'Rate' },
+                  ].map((m) => (
+                    <div
+                      key={m.label}
+                      className="p-2.5 text-center"
+                      style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: '4px' }}
+                    >
+                      <p className="text-lg font-bold mono-data" style={{ color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>{m.value}</p>
+                      <p className="text-[10px] font-medium mt-0.5" style={{ color: 'var(--text-muted)' }}>{m.label}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </FadeUp>
 
-            {/* Quick Actions */}
-
-            <FadeUp delay={0.15}>
-              <div className="bg-primary rounded-xl border border-card p-5">
+            {/* Quick Navigation */}
+            <FadeUp delay={0.14}>
+              <div className="p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-card)', borderRadius: '4px' }}>
                 <SectionLabel>Quick Navigation</SectionLabel>
-                <div className="space-y-0.5">
+                <div className="border-t" style={{ borderColor: 'var(--border-subtle)' }}>
                   {quickActions.map((a) => (
                     <Link key={a.label} href={a.href}>
-                      <div className="flex items-center gap-3 px-2.5 py-2.5 rounded-lg hover:bg-secondary transition-colors duration-150 group cursor-pointer">
-                        <a.icon className="w-3.5 h-3.5 text-muted group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors flex-shrink-0" />
+                      <div
+                        className="flex items-center gap-3 py-2.5 border-b transition-colors duration-100 cursor-pointer"
+                        style={{ borderColor: 'var(--border-subtle)' }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                      >
+                        <a.icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-secondary group-hover:text-primary transition-colors leading-none">{a.label}</p>
-                          <p className="text-[10px] text-muted mt-0.5">{a.desc}</p>
+                          <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{a.label}</p>
+                          <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{a.desc}</p>
                         </div>
-                        <ChevronRight className="w-3 h-3 text-muted group-hover:text-brand-500 transition-colors flex-shrink-0" />
+                        <ChevronRight className="w-3 h-3 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
                       </div>
                     </Link>
                   ))}
@@ -441,38 +409,36 @@ export default function DashboardPage() {
             </FadeUp>
 
             {/* Recommended Lessons */}
-            <FadeUp delay={0.2}>
-              <div className="bg-primary rounded-xl border border-card p-5">
+            <FadeUp delay={0.17}>
+              <div className="p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-card)', borderRadius: '4px' }}>
                 <div className="flex items-center justify-between mb-3">
-                  <SectionLabel>Recommended Lessons</SectionLabel>
-                  <Link href="/lessons" className="text-[10px] font-semibold text-accent hover:underline">
-                    View all
+                  <SectionLabel>Lessons</SectionLabel>
+                  <Link href="/lessons" className="text-[10px] font-semibold uppercase tracking-wide hover:underline" style={{ color: 'var(--text-muted)' }}>
+                    View all →
                   </Link>
                 </div>
                 <div className="space-y-2">
-                  {lessons.length === 0 && !isLoading && (
-                    <div className="rounded-lg bg-secondary border border-subtle p-3 text-center">
-                      <p className="text-xs text-muted">No recommendations yet. Complete a session first.</p>
-                    </div>
-                  )}
                   {isLoading && (
-                    <>
-                      <div className="h-14 rounded-lg bg-secondary animate-pulse" />
-                      <div className="h-14 rounded-lg bg-secondary animate-pulse opacity-60" />
-                    </>
+                    <><div className="h-12 skeleton" /><div className="h-12 skeleton opacity-60" /></>
+                  )}
+                  {!isLoading && lessons.length === 0 && (
+                    <p className="text-xs py-4 text-center" style={{ color: 'var(--text-muted)' }}>Complete a session to unlock lessons.</p>
                   )}
                   {lessons.slice(0, 2).map((lesson) => (
                     <Link key={lesson.id} href="/lessons">
-                      <div className="p-3 rounded-lg border border-subtle bg-secondary hover:border-brand-500/40 hover:bg-tertiary transition-all duration-150 cursor-pointer group">
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                          <h4 className="text-xs font-semibold text-primary group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors leading-snug truncate">
-                            {lesson.title}
-                          </h4>
-                          <span className="text-[9px] uppercase font-bold text-muted px-1.5 py-0.5 rounded bg-tertiary border border-subtle shrink-0">
+                      <div
+                        className="p-3 border transition-colors duration-100 cursor-pointer"
+                        style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)', borderRadius: '4px' }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)'; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-subtle)'; }}
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-0.5">
+                          <h4 className="text-xs font-bold truncate" style={{ color: 'var(--text-primary)' }}>{lesson.title}</h4>
+                          <span className="text-[9px] uppercase font-bold px-1.5 py-0.5 shrink-0" style={{ background: 'var(--bg-surface-raised)', color: 'var(--text-muted)', borderRadius: '3px' }}>
                             {lesson.difficulty}
                           </span>
                         </div>
-                        <p className="text-[11px] text-muted line-clamp-2 leading-relaxed">{lesson.description}</p>
+                        <p className="text-[11px] line-clamp-2 leading-relaxed" style={{ color: 'var(--text-muted)' }}>{lesson.description}</p>
                       </div>
                     </Link>
                   ))}
@@ -481,44 +447,35 @@ export default function DashboardPage() {
             </FadeUp>
 
             {/* Recent Mistakes */}
-            <FadeUp delay={0.25}>
-              <div className="bg-primary rounded-xl border border-card p-5">
-                <CardHeader
-                  icon={AlertTriangle}
-                  iconColor="#fbbf24"
-                  iconBg="rgba(251,191,36,0.1)"
-                  title="Recent Mistakes"
-                />
-                <div className="space-y-2">
-                  {isFetchingLatest ? (
-                    <>
-                      <div className="h-10 rounded-lg bg-secondary animate-pulse" />
-                      <div className="h-10 rounded-lg bg-secondary animate-pulse opacity-60" />
-                    </>
-                  ) : !latestData || latestData.mistakes.length === 0 ? (
-                    <div className="flex items-center gap-2 p-3 rounded-lg bg-secondary border border-subtle">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-brand-500 flex-shrink-0" />
-                      <p className="text-xs text-secondary">No recent mistakes. Keep it up!</p>
-                    </div>
-                  ) : (
-                    latestData.mistakes.map((m, i) => (
+            <FadeUp delay={0.2}>
+              <div className="p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-card)', borderRadius: '4px' }}>
+                <SectionLabel>Recent Mistakes</SectionLabel>
+                {isFetchingLatest ? (
+                  <><div className="h-10 skeleton mb-2" /><div className="h-10 skeleton opacity-60" /></>
+                ) : !latestData || latestData.mistakes.length === 0 ? (
+                  <div className="flex items-center gap-2 p-3" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: '4px' }}>
+                    <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#3D6B3D' }} />
+                    <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>No recent mistakes. Keep it up!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {latestData.mistakes.map((m, i) => (
                       <div
                         key={i}
-                        className="p-3 rounded-lg text-xs"
+                        className="p-3 text-xs"
                         style={{
-                          background: 'rgba(251,191,36,0.04)',
-                          border: '1px solid rgba(251,191,36,0.15)',
-                          borderLeft: '2px solid #fbbf24',
+                          background: 'var(--bg-surface)',
+                          border: '1px solid var(--border-card)',
+                          borderLeft: '3px solid var(--text-warning)',
+                          borderRadius: '4px',
                         }}
                       >
-                        <p className="font-semibold text-primary capitalize">{m.scenario.replace('_', ' ')}</p>
-                        <p className={`mt-0.5 font-medium ${(m.response || '').includes('Unsafe') ? 'text-destructive' : 'text-warning'}`}>
-                          {m.response}
-                        </p>
+                        <p className="font-semibold capitalize" style={{ color: 'var(--text-primary)' }}>{m.scenario.replace('_', ' ')}</p>
+                        <p className="mt-0.5" style={{ color: 'var(--text-secondary)' }}>{m.response}</p>
                       </div>
-                    ))
-                  )}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </FadeUp>
           </div>

@@ -11,7 +11,7 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('dark'); // Default for SSR matching, but updated immediately on mount
+  const [theme, setTheme] = useState<Theme>('light'); // Default light — warm parchment canvas
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -28,9 +28,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     
     if (newTheme === 'dark') {
       document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
       document.documentElement.setAttribute('data-theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
       document.documentElement.setAttribute('data-theme', 'light');
     }
   };

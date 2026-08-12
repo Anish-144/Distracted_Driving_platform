@@ -25,7 +25,7 @@ def upgrade() -> None:
     sa.Column('insights_text', sa.Text(), nullable=False),
     sa.Column('analyzed_users_count', sa.Integer(), nullable=False),
     sa.Column('analyzed_sessions_count', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('expires_at', sa.DateTime(timezone=True), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
@@ -33,7 +33,7 @@ def upgrade() -> None:
     sa.Column('id', sa.String(length=36), nullable=False),
     sa.Column('insights_text', sa.Text(), nullable=False),
     sa.Column('analyzed_count', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('expires_at', sa.DateTime(timezone=True), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
@@ -54,8 +54,8 @@ def upgrade() -> None:
     sa.Column('dominant_fail_scenario', sa.String(length=64), nullable=False),
     sa.Column('pressure_yield_count', sa.Integer(), nullable=False),
     sa.Column('pressure_resist_count', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_behavioral_states_user_id'), 'behavioral_states', ['user_id'], unique=True)
@@ -78,7 +78,7 @@ def upgrade() -> None:
     sa.Column('evidence_authority_compliance', sa.Float(), nullable=False, comment='0=resists authority, 1=complies — inferred from conflicting-authority scenario'),
     sa.Column('evidence_cognitive_overload', sa.Float(), nullable=False, comment='0=handles complexity, 1=overloaded — inferred from performance under complexity'),
     sa.Column('raw_telemetry', sa.Text(), nullable=True, comment='JSON blob of full interaction event stream for auditability and re-scoring'),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_calibration_events_user_id'), 'calibration_events', ['user_id'], unique=False)
@@ -121,8 +121,8 @@ def upgrade() -> None:
     sa.Column('mismatch_flags', sa.Text(), nullable=True, comment='JSON array of human-readable mismatch descriptions from Layer 3 analysis'),
     sa.Column('onboarding_telemetry', sa.Text(), nullable=True, comment='JSON blob of aggregated calibration scenario telemetry for re-scoring'),
     sa.Column('total_simulations_since_assessment', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_personality_profiles_user_id'), 'personality_profiles', ['user_id'], unique=True)
@@ -144,8 +144,8 @@ def upgrade() -> None:
     sa.Column('hashed_password', sa.String(length=255), nullable=False),
     sa.Column('is_admin', sa.Boolean(), nullable=False),
     sa.Column('profile_type', sa.Enum('unknown', 'impulsive', 'overconfident', 'anxious', 'distractible', 'rule_following', name='profiletype'), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
@@ -153,9 +153,9 @@ def upgrade() -> None:
     sa.Column('id', sa.String(length=36), nullable=False),
     sa.Column('user_id', sa.String(length=36), nullable=False),
     sa.Column('score', sa.Float(), nullable=False),
-    sa.Column('start_time', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('start_time', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('end_time', sa.DateTime(timezone=True), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
@@ -172,7 +172,7 @@ def upgrade() -> None:
     sa.Column('audio_guidance', sa.Boolean(), server_default='true', nullable=False),
     sa.Column('phone', sa.String(length=20), nullable=True),
     sa.Column('emergency_contact', sa.String(length=20), nullable=True),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('user_id')
     )
@@ -182,7 +182,7 @@ def upgrade() -> None:
     sa.Column('decision_type', sa.Enum('impulsive_unsafe', 'acceptable', 'delayed_hesitant', 'safe_ignore', 'risky', name='decisiontype'), nullable=False),
     sa.Column('pattern_flags', sa.Text(), nullable=True, comment='Comma-separated pattern tags (e.g., quick_reactor, frequent_distraction)'),
     sa.Column('is_risky', sa.Boolean(), nullable=False),
-    sa.Column('logged_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('logged_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['session_id'], ['sessions.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
@@ -214,7 +214,7 @@ def upgrade() -> None:
     sa.Column('personality_label_at_time', sa.String(length=50), nullable=False),
     sa.Column('ai_provider', sa.String(length=50), nullable=False),
     sa.Column('generation_stage', sa.String(length=20), nullable=False, comment='complete | partial | fallback'),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['session_id'], ['sessions.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
@@ -228,7 +228,7 @@ def upgrade() -> None:
     sa.Column('user_response', sa.Enum('ignored', 'interacted', 'voice_command', 'no_response', name='userresponsetype'), nullable=True),
     sa.Column('response_time', sa.Float(), nullable=True, comment='Reaction time in seconds'),
     sa.Column('notes', sa.Text(), nullable=True),
-    sa.Column('triggered_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('triggered_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('responded_at', sa.DateTime(timezone=True), nullable=True),
     sa.ForeignKeyConstraint(['session_id'], ['sessions.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
@@ -249,8 +249,8 @@ def upgrade() -> None:
     sa.Column('user_agent', sa.Text(), nullable=True),
     sa.Column('app_version', sa.String(length=50), nullable=True),
     sa.Column('session_id', sa.String(length=36), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['session_id'], ['sessions.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id')
@@ -273,7 +273,7 @@ def upgrade() -> None:
     sa.Column('response_choices', sa.Text(), nullable=False, comment='JSON array of 4 contextual choices generated by LLM'),
     sa.Column('ai_provider', sa.String(length=50), nullable=False),
     sa.Column('was_used', sa.Boolean(), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['session_id'], ['sessions.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
@@ -306,7 +306,7 @@ def upgrade() -> None:
     sa.Column('completed', sa.Boolean(), nullable=False),
     sa.Column('review_count', sa.Integer(), server_default='0', nullable=False, comment='Number of times this lesson was reviewed/retaken'),
     sa.Column('completed_at', sa.DateTime(timezone=True), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['session_id'], ['sessions.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
@@ -317,7 +317,7 @@ def upgrade() -> None:
     sa.Column('feedback_id', sa.String(length=36), nullable=False),
     sa.Column('file_path', sa.String(length=1000), nullable=False),
     sa.Column('file_type', sa.String(length=50), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['feedback_id'], ['feedbacks.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
@@ -326,7 +326,7 @@ def upgrade() -> None:
     sa.Column('feedback_id', sa.String(length=36), nullable=False),
     sa.Column('admin_id', sa.String(length=36), nullable=True),
     sa.Column('content', sa.Text(), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['admin_id'], ['users.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['feedback_id'], ['feedbacks.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')

@@ -9,201 +9,144 @@ module.exports = {
   theme: {
     extend: {
       backgroundColor: {
-        primary: 'var(--bg-primary)',
-        secondary: 'var(--bg-secondary)',
-        tertiary: 'var(--bg-tertiary)',
+        primary:     'var(--bg-primary)',
+        secondary:   'var(--bg-secondary)',
+        tertiary:    'var(--bg-tertiary)',
         'app-shell': 'var(--bg-app-shell)',
-        overlay: 'var(--overlay-light)',
-        'overlay-heavy': 'var(--overlay-heavy)',
-        input: 'var(--input-bg)',
+        canvas:      'var(--bg-canvas)',
+        surface:     'var(--bg-surface)',
+        card:        'var(--bg-card)',
+        elevated:    'var(--bg-card-elevated)',
+        panel:       'var(--bg-panel)',
+        input:       'var(--bg-input)',
+        hover:       'var(--bg-hover)',
+        overlay:     'var(--overlay-light)',
+        accent:      'var(--color-primary)',
       },
       textColor: {
-        primary: 'var(--text-primary)',
-        secondary: 'var(--text-secondary)',
-        muted: 'var(--text-muted)',
-        input: 'var(--input-text)',
-        accent: 'var(--text-accent)',
-        success: 'var(--text-success)',
-        warning: 'var(--text-warning)',
-        destructive: 'var(--text-destructive)',
-        overlay: 'var(--text-overlay)',
+        primary:       'var(--text-primary)',
+        secondary:     'var(--text-secondary)',
+        muted:         'var(--text-muted)',
+        input:         'var(--input-text)',
+        accent:        'var(--color-primary)',
+        'on-accent':   'var(--color-primary-text)',
+        success:       'var(--text-success)',
+        warning:       'var(--text-warning)',
+        destructive:   'var(--text-destructive)',
+        overlay:       'var(--text-overlay)',
       },
       borderColor: {
-        subtle: 'var(--border-subtle)',
-        strong: 'var(--border-strong)',
-        card: 'var(--card-border)',
-        input: 'var(--input-border)',
+        subtle:  'var(--border-subtle)',
+        card:    'var(--border-card)',
+        strong:  'var(--border-strong)',
+        input:   'var(--input-border)',
+        brand:   'var(--color-primary)',
+        focus:   'var(--border-focus)',
       },
       placeholderColor: {
         input: 'var(--input-placeholder)',
       },
       colors: {
-        // Brand — calm desaturated blue (trust, automotive, clarity)
+        // ── Electric Chartreuse — the ONLY accent ──────────────────────
         brand: {
-          50:  '#EDF3F7',
-          100: '#D4E4ED',
-          200: '#B8CFDA',
-          300: '#93B3C5',
-          400: '#6B93A8',
-          500: '#4A6D82', // Primary
-          600: '#3A5769',
-          700: '#2C4455',
-          800: '#1E2E3A',
-          900: '#111C24',
+          50:  '#F7FFD6',
+          100: '#EEFFAD',
+          200: '#DAFF40',
+          300: '#C8FF00',  // PRIMARY
+          400: '#B4E800',
+          500: '#9FCC00',
+          600: '#7DA300',
+          700: '#5C7A00',
+          800: '#3D5200',
+          900: '#1F2900',
         },
-        // Secondary — muted sage (wellness, safety)
-        sage: {
-          50:  '#EFF5EF',
-          100: '#D8EAD8',
-          200: '#B8D4B8',
-          300: '#96B996',
-          400: '#7DA17D',
-          500: '#6B8A6B', // Secondary
-          600: '#536B53',
-          700: '#3D5A3D',
-          800: '#294029',
-          900: '#172717',
+        // ── Warm Parchment surfaces ─────────────────────────────────────
+        parchment: {
+          50:  '#F8F6F0',
+          100: '#F0EDE6',  // canvas
+          200: '#E8E4DC',  // surface
+          300: '#DEDAD1',  // raised
+          400: '#D4D0C8',
+          500: '#C8C4BC',
+          600: '#B8B4AC',
+          700: '#9A9690',
+          800: '#7A7670',
+          900: '#5A5650',
         },
-        // Tertiary — warm stone (grounded, human)
-        stone: {
-          50:  '#F5F2F0',
-          100: '#EDE6E1',
-          200: '#D9CEC7',
-          300: '#C0B0A7',
-          400: '#A89088',
-          500: '#8E7E74', // Tertiary
-          600: '#6F625A',
-          700: '#534740',
-          800: '#3A312C',
-          900: '#241E1A',
+        // ── Near-black warm ─────────────────────────────────────────────
+        ink: {
+          50:  '#F0EDE6',
+          100: '#D8D4CC',
+          200: '#9A9690',
+          300: '#5A5650',
+          400: '#3A3830',
+          500: '#2D2A24',
+          600: '#1A1814',  // PRIMARY TEXT
+          700: '#141210',
+          800: '#0E0D0A',
+          900: '#080706',
         },
-        danger: {
-          400: '#C47A7A',
-          500: '#A85C5C',
-          600: '#8B4444',
-        },
-        // Design system palette — matches DESIGN.md exactly
-        design: {
-          'ivory':              '#FCFBF8',
-          'warm-off-white':     '#F6F4EE',
-          'paper':              '#F3F0E9',
-          'surface-dim':        '#F4F2EC',
-          'surface-container':  '#EFECE5',
-          'soft-slate':         '#3F4249',
-          'on-surface-variant': '#646873',
-          'warm-gray':          '#9A8E85',
-          'outline':            '#D3CECC',
-          'outline-variant':    '#E4DFD6',
-          // Dark mode warm slate
-          'dark-base':          '#1A1D22',
-          'dark-panel':         '#21252C',
-          'dark-elevated':      '#2A2F37',
-          'dark-outline':       '#3E4550',
-          'warm-ivory-text':    '#EAE7E2',
-          'cool-muted':         '#9099A6',
-        }
       },
       fontFamily: {
-        // Inter is the human-centered primary. Geist/JetBrains are NOT used for UI labels.
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
-        mono: ['ui-monospace', 'monospace'], // Reserved for literal code blocks only
+        sans:      ['Space Grotesk', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display:   ['Space Grotesk', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        editorial: ['Space Grotesk', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono:      ['JetBrains Mono', 'ui-monospace', 'monospace'],
       },
       fontSize: {
         '2xs': ['0.625rem', { lineHeight: '1rem' }],
+        '3xl': ['1.875rem', { lineHeight: '2.25rem', letterSpacing: '-0.02em' }],
+        '4xl': ['2.25rem', { lineHeight: '2.5rem', letterSpacing: '-0.03em' }],
+        '5xl': ['3rem', { lineHeight: '1', letterSpacing: '-0.04em' }],
+        '6xl': ['3.75rem', { lineHeight: '1', letterSpacing: '-0.04em' }],
+        '7xl': ['4.5rem', { lineHeight: '1', letterSpacing: '-0.04em' }],
+        '8xl': ['6rem', { lineHeight: '1', letterSpacing: '-0.04em' }],
       },
       letterSpacing: {
-        'label-wide': '0.06em',   // Inter label-caps style
-        'label-xl':   '0.10em',   // For extra-wide label treatment
+        'label':     '0.08em',
+        'label-xl':  '0.12em',
+        'editorial': '-0.04em',
+        'tight':     '-0.02em',
+        'tighter':   '-0.03em',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        // Premium mobility — calm blue to sage, NOT neon cyber gradients
-        'brand-gradient': 'linear-gradient(135deg, #4A6D82 0%, #6B8A6B 100%)',
-        'brand-gradient-subtle': 'linear-gradient(135deg, rgba(74,109,130,0.08) 0%, rgba(107,138,107,0.06) 100%)',
-        // Warm ambient mesh — replaces dark-gradient and cyber mesh
-        'ambient-warm': 'radial-gradient(ellipse at 20% 30%, rgba(74,109,130,0.08) 0px, transparent 60%), radial-gradient(ellipse at 80% 70%, rgba(107,138,107,0.06) 0px, transparent 60%)',
-        'ambient-warm-dark': 'radial-gradient(ellipse at 20% 30%, rgba(138,176,196,0.06) 0px, transparent 60%), radial-gradient(ellipse at 80% 70%, rgba(150,180,150,0.05) 0px, transparent 60%)',
+        'stripe-subtle':   'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(26,24,20,0.015) 4px, rgba(26,24,20,0.015) 5px)',
       },
       animation: {
-        // Entrance
-        'fade-in':    'fadeIn 0.6s cubic-bezier(0.25,0.46,0.45,0.94) both',
-        'slide-up':   'slideUp 0.6s cubic-bezier(0.25,0.46,0.45,0.94) both',
-        'scale-in':   'scaleIn 0.6s cubic-bezier(0.25,0.46,0.45,0.94) both',
-        // Ambient — human-feeling, gentle
-        'float-slow':   'float-slow 10s ease-in-out infinite',
-        'float-medium': 'float-medium 7s ease-in-out infinite',
-        'float-fast':   'float-fast 4s ease-in-out infinite',
-        'drift':        'drift 15s ease-in-out infinite',
-        'gradient':     'gradient-shift 8s ease infinite',
-        'pulse-soft':   'pulse-soft 3s ease-in-out infinite',
-        'shimmer':      'shimmer-sweep 2.5s linear infinite',
-        // Micro
-        'bounce-soft':  'bounceSoft 0.6s cubic-bezier(0.34,1.56,0.64,1)',
-        'ping-once':    'ping 0.8s cubic-bezier(0,0,0.2,1)',
+        'fade-in':       'fadeIn 0.3s cubic-bezier(0.16,1,0.3,1) both',
+        'slide-in-left': 'slideInLeft 0.3s cubic-bezier(0.16,1,0.3,1) both',
+        'scale-in':      'scaleIn 0.25s cubic-bezier(0.16,1,0.3,1) both',
+        'skeleton':      'skeletonPulse 1.6s ease-in-out infinite',
       },
       keyframes: {
-        fadeIn:  { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
-        slideUp: { '0%': { opacity: '0', transform: 'translateY(24px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
-        scaleIn: { '0%': { opacity: '0', transform: 'scale(0.94)' }, '100%': { opacity: '1', transform: 'scale(1)' } },
-        'float-slow': {
-          '0%, 100%': { transform: 'translateY(0) translateX(0) scale(1)' },
-          '33%':  { transform: 'translateY(-30px) translateX(15px) scale(1.02)' },
-          '66%':  { transform: 'translateY(-15px) translateX(-10px) scale(0.98)' },
-        },
-        'float-medium': {
-          '0%, 100%': { transform: 'translateY(0) translateX(0)' },
-          '50%':  { transform: 'translateY(-20px) translateX(-20px)' },
-        },
-        'float-fast': {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%':  { transform: 'translateY(-12px)' },
-        },
-        'drift': {
-          '0%':   { transform: 'rotate(0deg) scale(1)' },
-          '50%':  { transform: 'rotate(2deg) scale(1.04)' },
-          '100%': { transform: 'rotate(0deg) scale(1)' },
-        },
-        'gradient-shift': {
-          '0%, 100%': { backgroundPosition: '0% 50%' },
-          '50%': { backgroundPosition: '100% 50%' },
-        },
-        // Calm ambient pulse — warm blue, NOT neon cyber green
-        'pulse-soft': {
-          '0%, 100%': { boxShadow: '0 4px 16px rgba(74,109,130,0.12)' },
-          '50%':       { boxShadow: '0 8px 32px rgba(74,109,130,0.22)' },
-        },
-        'shimmer-sweep': {
-          '0%':   { backgroundPosition: '-200% 0' },
-          '100%': { backgroundPosition: '200% 0' },
-        },
-        'particle-drift': {
-          '0%':   { transform: 'translateY(0) translateX(0) rotate(0deg)', opacity: '0' },
-          '10%':  { opacity: '1' },
-          '90%':  { opacity: '0.6' },
-          '100%': { transform: 'translateY(-120vh) translateX(30px) rotate(360deg)', opacity: '0' },
-        },
-        bounceSoft: {
-          '0%, 100%': { transform: 'scale(1)' },
-          '50%': { transform: 'scale(1.05)' },
-        },
+        fadeIn:        { from: { opacity: '0', transform: 'translateY(8px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+        slideInLeft:   { from: { opacity: '0', transform: 'translateX(-8px)' }, to: { opacity: '1', transform: 'translateX(0)' } },
+        scaleIn:       { from: { opacity: '0', transform: 'scale(0.97)' }, to: { opacity: '1', transform: 'scale(1)' } },
+        skeletonPulse: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.5' } },
+      },
+      borderRadius: {
+        DEFAULT: '4px',
+        sm: '3px',
+        md: '4px',
+        lg: '6px',
+        xl: '8px',
+        '2xl': '10px',
+        full: '9999px',
       },
       boxShadow: {
-        'none': 'none',
-      },
-      backdropBlur: {
-        xs: '2px',
-        '2xl': '40px',
+        // NO glow shadows. Only structural shadows.
+        card:     '0 1px 3px rgba(26,24,20,0.06)',
+        'card-sm': '0 1px 2px rgba(26,24,20,0.04)',
+        modal:    '0 8px 32px rgba(26,24,20,0.12)',
       },
       transitionTimingFunction: {
-        'expo-out':    'cubic-bezier(0.16, 1, 0.3, 1)',
-        'expo-in-out': 'cubic-bezier(0.87, 0, 0.13, 1)',
-        'elastic':     'cubic-bezier(0.34, 1.56, 0.64, 1)',
+        'expo-out': 'cubic-bezier(0.16, 1, 0.3, 1)',
+        'smooth':   'cubic-bezier(0.4, 0, 0.2, 1)',
       },
       transitionDuration: {
         '400': '400ms',
         '600': '600ms',
-        '800': '800ms',
-        '1200': '1200ms',
       },
     },
   },

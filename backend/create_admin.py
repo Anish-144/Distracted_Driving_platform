@@ -2,36 +2,46 @@ import sys
 import os
 import asyncio
 import getpass
+import argparse
 from sqlalchemy import select
 
 # Add backend directory to sys.path so we can import app modules
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'backend'))
+sys.path.append(os.path.dirname(__file__))
 
 from app.database import AsyncSessionLocal
 from app.models.user import User
 from app.services.auth_service import hash_password
 
 async def create_admin():
+    parser = argparse.ArgumentParser(description="SafeDrive AI Admin Bootstrap")
+    parser.add_argument("--email", help="Admin email address")
+    parser.add_argument("--name", help="Admin name")
+    parser.add_argument("--password", help="Admin password")
+    args = parser.parse_args()
+
     print("--- SafeDrive AI Admin Bootstrap ---")
     
-    email = input("Admin Email: ").strip()
+    email = args.email or input("Admin Email: ").strip()
     if not email:
         print("Error: Email is required.")
         return
         
-    name = input("Admin Name: ").strip()
+    name = args.name or input("Admin Name: ").strip()
     if not name:
         print("Error: Name is required.")
         return
         
-    password = getpass.getpass("Admin Password: ").strip()
+    if args.password:
+        password = args.password.strip()
+    else:
+        password = getpass.getpass("Admin Password: ").strip()
+        confirm_password = getpass.getpass("Confirm Password: ").strip()
+        if password != confirm_password:
+            print("Error: Passwords do not match.")
+            return
+
     if not password:
         print("Error: Password is required.")
-        return
-        
-    confirm_password = getpass.getpass("Confirm Password: ").strip()
-    if password != confirm_password:
-        print("Error: Passwords do not match.")
         return
 
     async with AsyncSessionLocal() as db:
@@ -42,8 +52,6 @@ async def create_admin():
         if user:
             print(f"User {email} already exists. Updating to admin...")
             user.is_admin = True
-            # Optional: update password if needed, but the prompt just says "If user already exists: update is_admin = true"
-            # We'll also update the password since they provided one.
             user.hashed_password = hash_password(password)
             user.name = name
         else:

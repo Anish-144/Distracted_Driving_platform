@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SafeDrive AI Platform — Report Figures Catalog</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0f1729;
+      color: #e2e8f0;
+      padding: 40px 20px;
+    }
+
+    .page-title {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .page-title h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #60a5fa;
+      letter-spacing: -0.5px;
+    }
+
+    .page-title p {
+      margin-top: 8px;
+      color: #94a3b8;
+      font-size: 0.95rem;
+    }
+
+    .chapter-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #f8fafc;
+      background: linear-gradient(90deg, #1e3a5f, #0f1729);
+      border-left: 4px solid #3b82f6;
+      padding: 14px 20px;
+      margin: 48px 0 24px;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .figure-card {
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: 12px;
+      padding: 28px;
+      margin-bottom: 32px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .figure-label {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      background: #3b82f6;
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+
+    .figure-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 20px;
+    }
+
+    .mermaid {
+      background: #1e2d45;
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      overflow-x: auto;
+    }
+
+    .caption-box {
+      margin-top: 16px;
+      background: rgba(15, 23, 42, 0.6);
+      border-left: 3px solid #60a5fa;
+      padding: 12px 16px;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .caption-box .caption-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #60a5fa;
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 4px;
+    }
+
+    .caption-box .caption-text {
+      font-size: 0.88rem;
+      color: #94a3b8;
+      line-height: 1.6;
+    }
+
+    .ascii-figure {
+      background: #0d1929;
+      border-radius: 8px;
+      padding: 20px;
+      overflow-x: auto;
+    }
+
+    .ascii-figure pre {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: #7dd3fc;
+      line-height: 1.5;
+      white-space: pre;
+    }
+
+    .code-figure {
+      background: #0d1929;
+      border-radius: 8px;
+      padding: 20px;
+      overflow-x: auto;
+    }
+
+    .code-figure pre {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: #86efac;
+      line-height: 1.6;
+    }
+
+    @media print {
+      body {
+        background: white;
+        color: black;
+      }
+
+      .chapter-title {
+        background: #e2e8f0;
+        color: black;
+        border-color: #3b82f6;
+      }
+
+      .figure-card {
+        border: 1px solid #cbd5e1;
+        box-shadow: none;
+        background: white;
+        page-break-inside: avoid;
+      }
+
+      .caption-box {
+        background: #f8fafc;
+      }
+
+      .ascii-figure,
+      .code-figure {
+        background: #f1f5f9;
+      }
+
+      .ascii-figure pre,
+      .code-figure pre {
+        color: #1e293b;
+      }
+
+      .mermaid {
+        background: white;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="page-title">
+    <h1>SafeDrive AI Platform</h1>
+    <p>Internship Final Report — Figures &amp; Captions Catalog</p>
+    <p style="margin-top:8px; font-size:0.85rem; color:#60a5fa;">Press <b>Ctrl + P</b> to Save as PDF | Right-click
+      diagram to save image</p>
+  </div>
+
+  <!-- CHAPTER 1 -->
+  <div class="chapter-title">Chapter 1: About the Industry</div>
+
+  <div class="figure-card">
+    <span class="figure-label">Figure 1.1</span>
+    <div class="figure-title">SafeDrive AI Platform Logo and Branding</div>
+    <div class="ascii-figure">
+      <pre>
++------------------------------------------------------------------+
+|                                                                  |
+|   (S)  S A F E D R I V E   A I   P L A T F O R M               |
+|        -------------------------------------------               |
+|        Cognitive Distracted Driving Prevention & Analytics       |
+|        In Partnership with the Shreya Dixit Foundation           |
+|                                                                  |
++------------------------------------------------------------------+
+    </pre>
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">Fig. 1.1: SafeDrive AI Platform Logo and Branding</div>
+      <div class="caption-text">This figure illustrates the official brand identity for the SafeDrive AI Platform,
+        highlighting the initiative's focus on cognitive distraction monitoring and safety research in partnership with
+        the Shreya Dixit Foundation.</div>
+    </div>
+  </div>
+
+  <div class="figure-card">
+    <span class="figure-label">Figure 1.2</span>
+    <div class="figure-title">Shreya Dixit Foundation Mission &amp; Technology Integration</div>
+    <div class="mermaid">
+      flowchart LR
+      A[Shreya Dixit Foundation] --> B[Distracted Driving Awareness]
+      A --> C[Adaptive Cognitive Research]
+      A --> D[Youth and Driver Safety Education]
+      B --> E[SafeDrive AI Platform Integration]
+      C --> E
+      D --> E
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">Fig. 1.2: Shreya Dixit Foundation Mission & Technology Integration</div>
+      <div class="caption-text">This diagram depicts the core mission pillars of the Shreya Dixit Foundation—advocacy,
+        cognitive research, and driver safety education—and how they directly inform the architecture of the SafeDrive
+        AI platform.</div>
+    </div>
+  </div>
+
+  <div class="figure-card">
+    <span class="figure-label">Figure 1.3</span>
+    <div class="figure-title">SafeDrive AI High-Level Project Overview</div>
+    <div class="mermaid">
+      flowchart TD
+      subgraph Drivers["Driver / Research Subject"]
+      D1[Real-Time Video / Telemetry]
+      D2[Eye Tracking and Head Pose]
+      end
+      subgraph CorePlatform["SafeDrive AI Platform Engine"]
+      CP1[Web-Based Interactive Simulator]
+      CP2[Real-Time Cognitive Load Evaluator]
+      CP3[Adaptive AI Intervention Dispatcher]
+      end
+      subgraph Insights["Analytics and Observability"]
+      IN1[Real-Time Metric Dashboard]
+      IN2[Cognitive PDF Safety Report]
+      IN3[Research Observability Portal]
+      end
+      D1 & D2 --> CP1
+      CP1 --> CP2 --> CP3
+      CP3 --> IN1 & IN2 & IN3
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">Fig. 1.3: SafeDrive AI High-Level Project Overview</div>
+      <div class="caption-text">A comprehensive overview showing driver interaction inputs (head pose, gaze metrics),
+        processing by the core engine, and output analytics across dashboards and PDF reports.</div>
+    </div>
+  </div>
+
+  <!-- CHAPTER 3 -->
+  <div class="chapter-title">Chapter 3: Work Progress &amp; Timeline</div>
+
+  <div class="figure-card">
+    <span class="figure-label">Figure 3.1</span>
+    <div class="figure-title">System Architecture Diagram — Three-Tier Design</div>
+    <div class="mermaid">
+      flowchart TB
+      subgraph Tier1["Tier 1: Presentation (Frontend)"]
+      UI[Next.js 14 Web Application]
+      Dashboard[Real-Time Dashboards]
+      SimUI[Simulation Canvas UI]
+      end
+      subgraph Tier2["Tier 2: Application (Backend Services)"]
+      API[FastAPI REST API Server]
+      WS[WebSocket Telemetry Server]
+      SimEngine[Cognitive Load Engine]
+      Auth[JWT Security and Auth Service]
+      end
+      subgraph Tier3["Tier 3: Data Storage and AI Services"]
+      DB[(PostgreSQL 15 Database)]
+      LLM[OpenAI GPT API Integration]
+      end
+      Tier1 <-->|HTTP / WebSocket| Tier2
+        Tier2 <-->|AsyncPG / SQLAlchemy| DB
+          Tier2 <-->|REST API| LLM
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">Fig. 3.1: System Architecture Diagram - Three-Tier Design</div>
+      <div class="caption-text">This diagram displays the high-level 3-tier architecture: Next.js frontend presentation
+        layer, FastAPI backend microservices application layer, and PostgreSQL 15 / OpenAI data and AI services tier.
+      </div>
+    </div>
+  </div>
+
+  <div class="figure-card">
+    <span class="figure-label">Figure 3.2</span>
+    <div class="figure-title">Technology Stack Visual Diagram</div>
+    <div class="mermaid">
+      flowchart TB
+      subgraph Frontend["Frontend Layer"]
+      direction LR
+      F1["Next.js 14 - React Framework"]
+      F2["Tailwind CSS - Styling"]
+      F3["Canvas API - Simulation UI"]
+      F4["Recharts - Analytics Charts"]
+      end
+      subgraph Backend["Backend Layer"]
+      direction LR
+      B1["FastAPI - REST API"]
+      B2["WebSockets - Real-Time Stream"]
+      B3["SQLAlchemy - ORM"]
+      B4["Pydantic - Validation"]
+      end
+      subgraph Security["Security and Auth"]
+      direction LR
+      S1["JWT Tokens - Authentication"]
+      S2["bcrypt - Password Hashing"]
+      S3["CORS Middleware - Access Control"]
+      end
+      subgraph DataAI["Data and AI Layer"]
+      direction LR
+      D1["PostgreSQL 15 - Primary Database"]
+      D2["AsyncPG - Async Driver"]
+      D3["OpenAI GPT API - AI Integration"]
+      end
+      subgraph DevOps["DevOps and Deployment"]
+      direction LR
+      DO1["Docker Compose - Orchestration"]
+      DO2["Git / GitHub - Version Control"]
+      DO3["Alembic - DB Migrations"]
+      end
+      Frontend --> Backend
+      Backend --> Security
+      Backend --> DataAI
+      DataAI --> DevOps
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">Fig. 3.2: Technology Stack Visual Diagram</div>
+      <div class="caption-text">A visual mapping of technology stack components organized by architectural layer, from
+        frontend presentation through backend services, security, data/AI, and DevOps deployment.</div>
+    </div>
+  </div>
+
+  <div class="figure-card">
+    <span class="figure-label">Figure 3.3</span>
+    <div class="figure-title">Development Workflow and Git Branching Strategy</div>
+    <div class="mermaid">
+      gitGraph
+      commit id: "Initial Project Setup"
+      branch feature/auth
+      checkout feature/auth
+      commit id: "JWT Auth API and Routes"
+      commit id: "Login and Signup UI"
+      checkout main
+      merge feature/auth
+      branch feature/simulation
+      checkout feature/simulation
+      commit id: "Canvas Engine and WebSockets"
+      commit id: "Distraction Triggers"
+      checkout main
+      merge feature/simulation
+      branch feature/observability
+      checkout feature/observability
+      commit id: "Cognitive Reports and Charts"
+      checkout main
+      merge feature/observability
+      commit id: "v1.0 MVP Release" tag: "v1.0"
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">Fig. 3.3: Development Workflow and Git Branching Strategy</div>
+      <div class="caption-text">The Git branching model utilized during internship development, showing feature branch
+        isolation (feature/auth, feature/simulation, feature/observability) merging into main for release tags.</div>
+    </div>
+  </div>
+
+  <!-- CHAPTER 5 -->
+  <div class="chapter-title">Chapter 5: Methodology &amp; Activities</div>
+
+  <div class="figure-card">
+    <span class="figure-label">Figure 5.1</span>
+    <div class="figure-title">Database Schema Design — Entity Relationship Diagram</div>
+    <div class="mermaid">
+      erDiagram
+      USERS ||--o{ SESSIONS : conducts
+      USERS ||--o| PERSONALITY_PROFILES : possesses
+      USERS ||--o{ COGNITIVE_REPORTS : owns
+      SESSIONS ||--o{ BEHAVIORAL_STATES : records
+      SESSIONS ||--o{ CALIBRATION_EVENTS : captures
+      SESSIONS ||--o{ INTERVENTION_LOGS : triggers
+      SESSIONS ||--o{ GENERATED_SCENARIOS : executes
+
+      USERS {
+      uuid id PK
+      string email
+      string password_hash
+      string role
+      boolean is_active
+      timestamp created_at
+      }
+      PERSONALITY_PROFILES {
+      uuid id PK
+      uuid user_id FK
+      float risk_tolerance
+      float distraction_susceptibility
+      float cognitive_load_threshold
+      }
+      SESSIONS {
+      uuid id PK
+      uuid user_id FK
+      timestamp start_time
+      timestamp end_time
+      string mode
+      int total_distractions
+      }
+      BEHAVIORAL_STATES {
+      uuid id PK
+      uuid session_id FK
+      timestamp timestamp
+      string glance_location
+      float eye_closure_duration
+      float fatigue_index
+      float distraction_score
+      }
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">Fig. 5.1: Database Schema Design - Entity Relationship Diagram (ERD)</div>
+      <div class="caption-text">Complete database entity-relationship diagram illustrating core entities (Users,
+        Sessions, BehavioralStates, PersonalityProfiles, CognitiveReports) and their foreign-key relational
+        cardinalities.</div>
+    </div>
+  </div>
+
+  <div class="figure-card">
+    <span class="figure-label">Figure 5.2</span>
+    <div class="figure-title">Backend API Architecture and Pipeline</div>
+    <div class="mermaid">
+      flowchart TD
+      Client[Client Requests / WebSocket Connection] --> Router[FastAPI APIRouter Pipeline]
+      subgraph Middleware["Security and Validation Layer"]
+      M1[CORSMiddleware]
+      M2[JWT Auth Dependency: get_current_user]
+      M3[Pydantic Schema Validation]
+      end
+      Router --> Middleware
+      subgraph ServiceLayer["Service Layer Modules"]
+      S1[AuthService]
+      S2[SimulationEngineService]
+      S3[CognitiveReportService]
+      S4[AdminService]
+      end
+      Middleware --> ServiceLayer
+      ServiceLayer --> DB[(PostgreSQL Database via AsyncPG)]
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">Fig. 5.2: Backend API Architecture and Pipeline</div>
+      <div class="caption-text">FastAPI microservice request pipeline demonstrating CORS filtering, JWT dependency
+        validation, Pydantic data schemas, service modules, and asynchronous database queries.</div>
+    </div>
+  </div>
+
+  <div class="figure-card">
+    <span class="figure-label">Figure 5.3</span>
+    <div class="figure-title">WebSocket Real-Time Communication Flow</div>
+    <div class="mermaid">
+      sequenceDiagram
+      autonumber
+      participant Client as Frontend Simulator
+      participant WS as WebSocket Endpoint
+      participant Engine as Cognitive Engine
+      participant DB as Postgres Storage
+
+      Client->>WS: Establish WS Connection (Bearer JWT Token)
+      WS-->>Client: Connection Accepted (Session Initialized)
+
+      loop Every 50ms - 20 Hz Telemetry Stream
+      Client->>WS: Send Frame Metrics (gaze_x, gaze_y, head_pitch, speed)
+      WS->>Engine: Evaluate Gaze Shift and Cognitive Threshold
+      Engine-->>WS: Return Distraction Alert (State DISTRACTED, Delay 420ms)
+      WS-->>Client: Push Real-Time Audio/Visual Intervention Alert
+      WS->>DB: Asynchronously Log Behavioral State
+      end
+
+      Client->>WS: Close Connection (Session End)
+      WS->>DB: Trigger Final Cognitive Report Compilation
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">Fig. 5.3: WebSocket Real-Time Communication Flow</div>
+      <div class="caption-text">Sequence diagram highlighting bidirectional 20Hz telemetry transmission, real-time
+        cognitive evaluation, intervention push alerts, and asynchronous data persistence to PostgreSQL.</div>
+    </div>
+  </div>
+
+  <div class="figure-card">
+    <span class="figure-label">Figure 5.4</span>
+    <div class="figure-title">Simulation Engine Processing Workflow</div>
+    <div class="mermaid">
+      flowchart TD
+      Start([Start Simulation Session]) --> Init[Load User Profile and Scenario Parameters]
+      Init --> Telemetry[Receive Driver Telemetry Stream]
+      Telemetry --> Gaze[Analyze Eye Gaze and Head Orientation]
+      Gaze --> Check{Off-Road Glance over 1.8s?}
+      Check -- Yes --> Trigger[Trigger Visual/Audio Interventions]
+      Trigger --> LogInt[Log Intervention and Efficacy Metric]
+      LogInt --> Feedback[Deliver Haptic / Voice Prompt]
+      Check -- No --> State[Maintain Normal Driving State]
+      State --> UpdateUI[Update Real-Time Metric Display]
+      Feedback & UpdateUI --> CheckEnd{Session Complete?}
+      CheckEnd -- No --> Telemetry
+      CheckEnd -- Yes --> GenerateReport[Compile Cognitive PDF and Dashboard Data] --> End([End Session])
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">Fig. 5.4: Simulation Engine Processing Workflow</div>
+      <div class="caption-text">Flowchart showing the step-by-step logic of the simulation engine, from telemetry
+        ingestion and distraction threshold detection to adaptive safety interventions and report generation.</div>
+    </div>
+  </div>
+
+  <!-- CHAPTER 6 -->
+  <div class="chapter-title">Chapter 6: Results &amp; Discussions</div>
+
+  <div class="figure-card">
+    <span class="figure-label">Figure 6.1</span>
+    <div class="figure-title">SafeDrive AI Platform Dashboard — Main Interface</div>
+    <div class="ascii-figure">
+      <pre>
+ __________________________________________________________________________________
+| SafeDrive AI | [Dashboard]  [Simulation]  [Reports]  [Research] | Admin | Profile|
+|==================================================================================|
+|  REAL-TIME DRIVER MONITORING                                                     |
+|  [ Current Session: Active ]   [ Risk Score: 18% (LOW) ]   [ Fatigue: Normal ]  |
+|                                                                                  |
+|  +-------------------------------------+  +-----------------------------------+  |
+|  | Cognitive Attention Graph           |  | Distraction Breakdown (Pie)       |  |
+|  |  100| ----/\----/\---------------- |  |  - Phone Interaction:  45%        |  |
+|  |   50| ---/  \--/  \--------------- |  |  - Off-Road Glances:   35%        |  |
+|  |    0|_____________________________  |  |  - In-Vehicle Controls: 20%       |  |
+|  +-------------------------------------+  +-----------------------------------+  |
+|                                                                                  |
+|  RECENT INTERVENTIONS LOG                                                        |
+|  * 10:42 AM - Auditory Warning (Eye Gaze Shift > 2.1s)  - Successful            |
+|  * 10:35 AM - Visual Flash Alert (Mobile Distraction)   - Resolved              |
+|__________________________________________________________________________________|
+    </pre>
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">Fig. 6.1: SafeDrive AI Platform Dashboard Main Interface</div>
+      <div class="caption-text">Main operational dashboard showing live session status, real-time cognitive attention
+        graphs, distraction breakdown pie chart, and recent safety intervention logs with modern glassmorphism styling.
+      </div>
+    </div>
+  </div>
+
+  <div class="figure-card">
+    <span class="figure-label">Figure 6.2</span>
+    <div class="figure-title">Simulation Engine User Interface</div>
+    <div class="ascii-figure">
+      <pre>
+ __________________________________________________________________________________
+|  SIMULATION ENGINE - URBAN SCENARIO #4                                          |
+|==================================================================================|
+|  +------------------------------------------+  +------------------------------+  |
+|  |                                          |  | DRIVER METRICS OVERLAY       |  |
+|  |    [ ROAD VIEW INTERACTIVE CANVAS ]      |  | Vehicle Speed:  45 mph       |  |
+|  |                                          |  | Eye Gaze:  Center Road       |  |
+|  |        |   |     ^     |   |             |  | Cognitive Load: 32% (Good)   |  |
+|  |        |   |    / \    |   |             |  | Reaction Time:  280 ms       |  |
+|  |        |   |   /   \   |   |             |  +------------------------------+  |
+|  |                                          |  | CONTROLS & TRIGGERS          |  |
+|  | [ ALERT: PEDESTRIAN CROSSING DETECTED ]  |  | [ Simulate Distraction    ]  |  |
+|  +------------------------------------------+  | [ Trigger Emergency Hazard]  |  |
+|                                                | [ Toggle Night Driving    ]  |  |
+|  [ || Pause ]       [ [] End Session ]         +------------------------------+  |
+|__________________________________________________________________________________|
+    </pre>
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">Fig. 6.2: Simulation Engine User Interface</div>
+      <div class="caption-text">Interactive Canvas simulation viewport displaying real-time driving environment,
+        telemetry overlay, cognitive load indicators, safety alerts, and scenario control toggles.</div>
+    </div>
+  </div>
+
+  <div class="figure-card">
+    <span class="figure-label">Figure 6.3</span>
+    <div class="figure-title">Admin Panel — User Management Interface</div>
+    <div class="ascii-figure">
+      <pre>
+ __________________________________________________________________________________
+| Admin Panel - System Management & User Oversight                                 |
+|==================================================================================|
+|  Active Users: 142 | Running Simulations: 8 | Database Health: 99.9%             |
+|                                                                                  |
+|  User Directory              Role          Status      Risk Level    Actions     |
+|  ------------------------------------------------------------------------------  |
+|  driver_01@safedrive.org     Driver        Active      Low (12%)     [ View ]    |
+|  researcher_02@safedrive.org Admin         Active      N/A           [ Edit ]    |
+|  subject_88@safedrive.org    Participant   In Session  High (78%)    [ Alert ]   |
+|__________________________________________________________________________________|
+    </pre>
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">Fig. 6.3: Admin Panel User Management Interface</div>
+      <div class="caption-text">Administrative control panel displaying real-time platform statistics, user roles,
+        active simulation session monitoring, and risk level overrides for researcher access.</div>
+    </div>
+  </div>
+
+  <!-- CHAPTER 7 -->
+  <div class="chapter-title">Chapter 7: Skill Development</div>
+
+  <div class="figure-card">
+    <span class="figure-label">Figure 7.1</span>
+    <div class="figure-title">Production Async FastAPI Authentication Code Snippet</div>
+    <div class="code-figure">
+      <pre>
+# File: backend/app/routes/auth.py
+
+@router.post("/login", response_model=Token)
+async def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: AsyncSession = Depends(get_db)
+):
+    """Authenticates user credentials and generates JWT Access Token."""
+    user = await authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+        )
+    access_token = create_access_token(data={"sub": str(user.id)})
+    return {"access_token": access_token, "token_type": "bearer"}
+    </pre>
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">Fig. 7.1: Production Async FastAPI Authentication Endpoint Code Snippet</div>
+      <div class="caption-text">Asynchronous Python code demonstrating clean dependency injection, OAuth2 form parsing,
+        and secure JWT token creation used in the SafeDrive AI backend authentication service.</div>
+    </div>
+  </div>
+
+  <div class="figure-card">
+    <span class="figure-label">Figure 7.2</span>
+    <div class="figure-title">Version Control &amp; Development Git Workflow</div>
+    <div class="mermaid">
+      flowchart LR
+      Dev[Developer Workstation] -->|git commit| Local[Local Feature Branch]
+      Local -->|git push| Origin[Remote GitHub Repository]
+      Origin -->|PR Review| MainBranch[Main Release Branch]
+      MainBranch -->|Auto Build| DockerBuild[Docker Image Build and Test]
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">Fig. 7.2: Version Control & Development Git Workflow</div>
+      <div class="caption-text">Structured Git development workflow from local feature branch creation to pull request
+        code review and Docker-based continuous delivery pipeline.</div>
+    </div>
+  </div>
+
+  <div class="figure-card">
+    <span class="figure-label">Figure 7.3</span>
+    <div class="figure-title">Containerized Multi-Service Docker Architecture</div>
+    <div class="mermaid">
+      flowchart TB
+      subgraph Host["Docker Host Infrastructure"]
+      subgraph Net["Docker Virtual Bridge Network: distracted_driving_default"]
+      F["Frontend Container\nNext.js 14 / Node.js\nPort 3000"]
+      B["Backend Container\nFastAPI / Python 3.11\nPort 9000"]
+      D[("PostgreSQL Container\nPostgres 15\nPort 6432")]
+      end
+      end
+      User[External User / Browser] -->|Port 3000| F
+      F -->|Port 8000 Internal| B
+      B -->|Port 5432 Internal| D
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">Fig. 7.3: Containerized Multi-Service Docker Architecture</div>
+      <div class="caption-text">Isolated multi-container deployment architecture showing container network bindings
+        between Next.js frontend, FastAPI backend, and PostgreSQL database with port mappings.</div>
+    </div>
+  </div>
+
+  <!-- CHAPTER 8 -->
+  <div class="chapter-title">Chapter 8: Conclusion</div>
+
+  <div class="figure-card">
+    <span class="figure-label">Figure 8.1</span>
+    <div class="figure-title">Platform Statistics — 85% Completion Breakdown</div>
+    <div class="mermaid">
+      pie title SafeDrive AI Platform Milestone Completion
+      "Completed Core Features" : 85
+      "Phase 2 Enhancements" : 15
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">Fig. 8.1: Platform Statistics Visual (85% Completion Breakdown)</div>
+      <div class="caption-text">Visual breakdown of project milestone achievements, highlighting 85% full implementation
+        of core MVP features including real-time simulation, JWT auth, WebSocket telemetry, and PDF report generation.
+      </div>
+    </div>
+  </div>
+
+  <!-- APPENDIX -->
+  <div class="chapter-title">Appendix: A.1 Architecture Overview</div>
+
+  <div class="figure-card">
+    <span class="figure-label">Figure A.1</span>
+    <div class="figure-title">Comprehensive System Architecture Overview</div>
+    <div class="mermaid">
+      flowchart TD
+      subgraph ClientLayer["Presentation and Interaction Layer"]
+      Browser[Web Browser - Next.js UI]
+      Cam[Webcam and Biometric Sensors]
+      Audio[Audio Output / Alert Synthesizer]
+      end
+      subgraph TransportLayer["Communication and Network Protocols"]
+      REST[HTTPS REST Endpoints]
+      WSProtocol[WSS WebSockets Telemetry Stream]
+      end
+      subgraph ServiceLayer["Core Microservices and Engines"]
+      AuthSvc[JWT Authentication Service]
+      SimEngine[Real-Time Simulation Engine]
+      CogEvaluator[Cognitive Load Analyzer]
+      ReportGen[PDF Report Generation Engine]
+      end
+      subgraph PersistenceLayer["Storage and Data Pipeline"]
+      PG[(PostgreSQL 15 Operational DB)]
+      AsyncPGDriver[AsyncPG Connection Pool]
+      end
+      ClientLayer <--> TransportLayer
+        TransportLayer <--> ServiceLayer
+          ServiceLayer <--> AsyncPGDriver <--> PG
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">Fig. A.1: Comprehensive System Architecture Overview Diagram</div>
+      <div class="caption-text">Detailed architectural breakdown illustrating data flows from client sensors through
+        REST/WebSocket transport layers to specialized microservice engines and PostgreSQL persistent storage.</div>
+    </div>
+  </div>
+
+  <div class="figure-card">
+    <span class="figure-label">Figure A.2</span>
+    <div class="figure-title">End-to-End Three-Tier Integration Architecture Flow</div>
+    <div class="mermaid">
+      sequenceDiagram
+      participant UI as Tier 1: Next.js Frontend
+      participant API as Tier 2: FastAPI Microservices
+      participant DB as Tier 3: PostgreSQL 15
+
+      UI->>API: POST /api/v1/auth/login (Credentials)
+      API->>DB: SELECT FROM users WHERE email
+      DB-->>API: Return User Record
+      API-->>UI: 200 OK + JWT Bearer Token
+
+      UI->>API: WS Connect /ws/simulation/session_id with JWT
+      API->>DB: INSERT INTO sessions (user_id, start_time)
+
+      loop Real-Time Telemetry Processing
+      UI->>API: Push Eye Gaze Telemetry at 20 Hz
+      API->>DB: Async Batch Insert into behavioral_states
+      API-->>UI: Return Real-Time Intervention Command
+      end
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">Fig. A.2: End-to-End Three-Tier Integration Architecture Flow</div>
+      <div class="caption-text">Integration sequence showing authentication verification, session initialization, 20Hz
+        telemetry logging, and asynchronous database batching across all three architectural tiers.</div>
+    </div>
+  </div>
+
+  <div class="figure-card">
+    <span class="figure-label">Figure A.3</span>
+    <div class="figure-title">Docker Compose Container Relationships and Network Topology</div>
+    <div class="mermaid">
+      graph TD
+      subgraph DockerHost["Host OS Environment"]
+      subgraph BridgeNet["Virtual Bridge Network (distracted_driving_default)"]
+      DBNode["db\npostgres:15\nInternal Port 5432 / Host Port 6432"]
+      BackendNode["backend\nFastAPI Python 3.11\nInternal Port 8000 / Host Port 9000"]
+      FrontendNode["frontend\nNext.js 14\nInternal Port 3000 / Host Port 3000"]
+      end
+      end
+      BackendNode -->|Depends on Health Check| DBNode
+      FrontendNode -->|Proxies API Requests| BackendNode
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">Fig. A.3: Docker Compose Container Relationships and Network Topology</div>
+      <div class="caption-text">Container orchestration diagram showing dependency chains (backend waits for db
+        healthcheck), internal port routing, and exposed host ports within the Docker bridge network.</div>
+    </div>
+  </div>
+
+  <div class="figure-card">
+    <span class="figure-label">Figure A.4</span>
+    <div class="figure-title">API Endpoint Structure and Service Organization</div>
+    <div class="mermaid">
+      flowchart LR
+      subgraph AuthGroup["auth: /api/v1/auth"]
+      A1[POST /login]
+      A2[POST /register]
+      A3[GET /me]
+      end
+      subgraph SimGroup["simulation: /api/v1/simulation"]
+      S1[WS /ws/simulation]
+      S2[GET /scenarios]
+      S3[POST /calibrate]
+      end
+      subgraph ReportGroup["reports: /api/v1/reports"]
+      R1[GET /cognitive]
+      R2[POST /export-pdf]
+      end
+      subgraph AdminGroup["admin: /api/v1/admin"]
+      AD1[GET /users]
+      AD2[GET /metrics]
+      end
+    </div>
+    <div class="caption-box">
+      <div class="caption-label">Fig. A.4: API Endpoint Structure and Service Organization</div>
+      <div class="caption-text">Modular API endpoint hierarchy organized into authentication, simulation/WebSockets,
+        cognitive report export, and administrative management route handlers in the FastAPI backend.</div>
+    </div>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        background: '#1e2d45',
+        primaryColor: '#3b82f6',
+        primaryTextColor: '#f1f5f9',
+        primaryBorderColor: '#60a5fa',
+        lineColor: '#60a5fa',
+        secondaryColor: '#1e3a5f',
+        tertiaryColor: '#0f1729',
+        edgeLabelBackground: '#1e2d45',
+        clusterBkg: '#1e3a5f',
+        clusterBorder: '#3b82f6',
+        titleColor: '#f1f5f9',
+        nodeTextColor: '#f1f5f9',
+        fontFamily: 'Inter, sans-serif'
+      },
+      flowchart: { curve: 'basis', useMaxWidth: true },
+      sequence: { useMaxWidth: true },
+      er: { useMaxWidth: true }
+    });
+  </script>
+</body>
+
+</html>

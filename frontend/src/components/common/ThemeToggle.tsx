@@ -1,63 +1,53 @@
 import { useTheme } from '@/context/ThemeContext';
 import { Sun, Moon } from 'lucide-react';
-import { motion } from 'framer-motion';
-import clsx from 'clsx';
+import { motion, AnimatePresence } from 'framer-motion';
 
-interface ThemeToggleProps {
-  className?: string;
-}
+interface ThemeToggleProps { className?: string; }
 
 export default function ThemeToggle({ className }: ThemeToggleProps) {
   const { theme, toggleTheme, isMounted } = useTheme();
 
-  // Return a stable placeholder to avoid hydration mismatch
-  if (!isMounted) {
-    return (
-      <div className={clsx("w-9 h-9 rounded-xl", className)} />
-    );
-  }
+  if (!isMounted) return <div className={`w-8 h-8 ${className ?? ''}`} style={{ borderRadius: '4px' }} />;
 
   const isDark = theme === 'dark';
 
   return (
     <motion.button
       onClick={toggleTheme}
-      className={clsx(
-        "relative w-9 h-9 rounded-xl flex items-center justify-center transition-colors duration-200",
-        "border focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-1 focus:ring-offset-bg-app-shell",
-        isDark 
-          ? "bg-white/5 border-white/10 hover:bg-white/10 text-yellow-300"
-          : "bg-gray-100 border-gray-200 hover:bg-gray-200 text-brand-600",
-        className
-      )}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      aria-label="Toggle theme"
+      className={`relative flex items-center justify-center w-8 h-8 transition-all duration-150 focus:outline-none ${className ?? ''}`}
+      style={{
+        background: 'var(--bg-hover)',
+        border: '1px solid var(--border-card)',
+        borderRadius: '4px',
+        color: 'var(--text-secondary)',
+      }}
+      aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+      whileHover={{ background: 'var(--bg-surface-raised)' }}
+      whileTap={{ scale: 0.96 }}
     >
-      <motion.div
-        initial={false}
-        animate={{ 
-          rotate: isDark ? 0 : -90,
-          scale: isDark ? 1 : 0,
-          opacity: isDark ? 1 : 0
-        }}
-        transition={{ duration: 0.4, ease: "backOut" }}
-        className="absolute inset-0 flex items-center justify-center"
-      >
-        <Moon className="w-5 h-5" />
-      </motion.div>
-      <motion.div
-        initial={false}
-        animate={{ 
-          rotate: isDark ? 90 : 0,
-          scale: isDark ? 0 : 1,
-          opacity: isDark ? 0 : 1
-        }}
-        transition={{ duration: 0.4, ease: "backOut" }}
-        className="absolute inset-0 flex items-center justify-center"
-      >
-        <Sun className="w-5 h-5" />
-      </motion.div>
+      <AnimatePresence mode="wait" initial={false}>
+        {isDark ? (
+          <motion.div
+            key="moon"
+            initial={{ opacity: 0, rotate: -20 }}
+            animate={{ opacity: 1, rotate: 0 }}
+            exit={{ opacity: 0, rotate: 20 }}
+            transition={{ duration: 0.15 }}
+          >
+            <Moon className="w-3.5 h-3.5" />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="sun"
+            initial={{ opacity: 0, rotate: 20 }}
+            animate={{ opacity: 1, rotate: 0 }}
+            exit={{ opacity: 0, rotate: -20 }}
+            transition={{ duration: 0.15 }}
+          >
+            <Sun className="w-3.5 h-3.5" />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.button>
   );
 }

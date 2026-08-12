@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Sun, Moon } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 
@@ -8,35 +8,42 @@ export default function ThemeToggle() {
   const isDark = theme === 'dark';
 
   return (
-    <button
+    <motion.button
       onClick={toggleTheme}
-      className="relative flex items-center justify-center w-10 h-10 rounded-full bg-input border border-input transition-colors duration-300 hover:bg-tertiary focus:outline-none focus:ring-2 focus:ring-brand-500"
+      className="relative flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50"
+      style={{
+        background: 'var(--bg-hover)',
+        border: '1px solid var(--border-subtle)',
+      }}
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
     >
-      <motion.div
-        initial={false}
-        animate={{
-          scale: isDark ? 1 : 0,
-          opacity: isDark ? 1 : 0,
-          rotate: isDark ? 0 : 90,
-        }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="absolute text-brand-400"
-      >
-        <Moon className="w-5 h-5" />
-      </motion.div>
-      <motion.div
-        initial={false}
-        animate={{
-          scale: isDark ? 0 : 1,
-          opacity: isDark ? 0 : 1,
-          rotate: isDark ? -90 : 0,
-        }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="absolute text-amber-500"
-      >
-        <Sun className="w-5 h-5" />
-      </motion.div>
-    </button>
+      <AnimatePresence mode="wait" initial={false}>
+        {isDark ? (
+          <motion.div
+            key="moon"
+            initial={{ scale: 0.5, opacity: 0, rotate: -30 }}
+            animate={{ scale: 1, opacity: 1, rotate: 0 }}
+            exit={{ scale: 0.5, opacity: 0, rotate: 30 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            style={{ color: 'var(--color-tertiary)' }}
+          >
+            <Moon className="w-3.5 h-3.5" />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="sun"
+            initial={{ scale: 0.5, opacity: 0, rotate: 30 }}
+            animate={{ scale: 1, opacity: 1, rotate: 0 }}
+            exit={{ scale: 0.5, opacity: 0, rotate: -30 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="text-amber-500"
+          >
+            <Sun className="w-3.5 h-3.5" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.button>
   );
 }

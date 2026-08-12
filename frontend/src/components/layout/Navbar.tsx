@@ -7,9 +7,7 @@ import toast from 'react-hot-toast';
 import { LogOut, User, ChevronDown, ChevronRight, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ThemeToggle from '@/components/common/ThemeToggle';
-import clsx from 'clsx';
 
-// Map route paths → human-readable page names + breadcrumb trails
 const ROUTE_MAP: Record<string, { title: string; breadcrumb?: string[] }> = {
   '/dashboard':          { title: 'Dashboard' },
   '/simulation':         { title: 'Simulation', breadcrumb: ['Training'] },
@@ -32,156 +30,153 @@ export default function Navbar() {
   const { user } = useAppSelector((state) => state.auth);
   const [showDropdown, setShowDropdown] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-
   const pageMeta = usePageMeta(pathname);
 
-  // Scroll-aware glass effect on the content scroll container
   useEffect(() => {
-    // Listen on the main scroll container rather than window
     const mainEl = document.querySelector('main');
     if (!mainEl) return;
-    const onScroll = () => setScrolled(mainEl.scrollTop > 12);
+    const onScroll = () => setScrolled(mainEl.scrollTop > 8);
     mainEl.addEventListener('scroll', onScroll, { passive: true });
     return () => mainEl.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Close dropdown on route change
-  useEffect(() => {
-    setShowDropdown(false);
-  }, [pathname]);
+  useEffect(() => { setShowDropdown(false); }, [pathname]);
 
   const handleLogout = () => {
     dispatch(logout());
-    toast.success('Logged out successfully.');
+    toast.success('Logged out.');
     router.push('/auth/login');
   };
 
   const userInitial = user?.name?.[0]?.toUpperCase() || 'U';
 
   return (
-    <motion.header
-      className={clsx(
-        'h-16 px-6 flex items-center justify-between sticky top-0 z-40 flex-shrink-0 transition-all duration-300',
-        scrolled
-          ? 'bg-app-shell/90 backdrop-blur-xl border-b border-subtle shadow-sm'
-          : 'bg-transparent border-b border-transparent'
-      )}
-      initial={false}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+    <header
+      className="h-14 px-6 flex items-center justify-between sticky top-0 z-40 flex-shrink-0 transition-all duration-200"
+      style={{
+        background: scrolled ? 'var(--bg-canvas)' : 'transparent',
+        borderBottom: `1px solid ${scrolled ? 'var(--border-subtle)' : 'var(--border-subtle)'}`,
+        fontFamily: 'Space Grotesk, sans-serif',
+      }}
     >
-      {/* Left: Contextual page title + breadcrumb */}
-      <div className="flex items-center gap-2 min-w-0">
-        {pageMeta.breadcrumb && pageMeta.breadcrumb.length > 0 && (
-          <>
-            {pageMeta.breadcrumb.map((crumb, i) => (
-              <span key={i} className="flex items-center gap-1.5">
-                <span className="text-sm text-muted font-medium hidden sm:block truncate">{crumb}</span>
-                <ChevronRight className="w-3.5 h-3.5 text-muted flex-shrink-0 hidden sm:block" />
-              </span>
-            ))}
-          </>
-        )}
-        <h1 className="text-base font-bold text-primary tracking-tight truncate">
+      {/* Left: breadcrumb */}
+      <div className="flex items-center gap-2">
+        {pageMeta.breadcrumb?.map((crumb, i) => (
+          <span key={i} className="flex items-center gap-1.5">
+            <span className="text-xs font-medium hidden sm:block" style={{ color: 'var(--text-muted)' }}>
+              {crumb}
+            </span>
+            <ChevronRight className="w-3 h-3 hidden sm:block" style={{ color: 'var(--text-muted)' }} />
+          </span>
+        ))}
+        <h1
+          className="text-sm font-bold tracking-tight"
+          style={{ color: 'var(--text-primary)', letterSpacing: '-0.01em' }}
+        >
           {pageMeta.title}
         </h1>
       </div>
 
-      {/* Right: Theme toggle + user menu */}
-      <div className="flex items-center gap-3 flex-shrink-0">
+      {/* Right: controls */}
+      <div className="flex items-center gap-2 flex-shrink-0">
         <ThemeToggle />
 
         <div className="relative">
-          <motion.button
+          <button
             id="user-menu-btn"
             onClick={() => setShowDropdown(!showDropdown)}
-            className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-secondary focus:bg-secondary focus:outline-none focus:ring-2 focus:ring-brand-500/50
-                       transition-colors duration-200 border border-transparent hover:border-subtle"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            transition={{ duration: 0.15 }}
+            className="flex items-center gap-2 px-2.5 py-1.5 transition-all duration-150 focus:outline-none"
+            style={{
+              background: showDropdown ? 'var(--bg-hover)' : 'transparent',
+              border: `1px solid ${showDropdown ? 'var(--border-card)' : 'transparent'}`,
+              borderRadius: '4px',
+            }}
           >
-            {/* Avatar */}
-            <motion.div
-              className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-overlay relative flex-shrink-0"
-              style={{ background: 'var(--color-primary)' }}
+            {/* Avatar — chartreuse square */}
+            <div
+              className="w-6 h-6 flex items-center justify-center flex-shrink-0 text-[11px] font-bold"
+              style={{
+                background: '#C8FF00',
+                color: '#1A1814',
+                borderRadius: '3px',
+              }}
             >
-              {/* Pulsing ring */}
-              <motion.div
-                className="absolute inset-0 rounded-full"
-                style={{ border: '2px solid var(--color-primary-container)' }}
-                animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0, 0.5] }}
-                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-              />
               {userInitial}
-            </motion.div>
+            </div>
 
-            <div className="hidden sm:block text-left min-w-0">
-              <p className="text-sm font-semibold text-primary leading-none truncate max-w-[120px]">{user?.name}</p>
-              <p className="text-[10px] text-muted leading-none mt-0.5 capitalize">
-                {user?.profile_type === 'unknown' ? 'New Driver' : user?.profile_type}
+            <div className="hidden sm:block text-left">
+              <p className="text-[12px] font-semibold leading-none truncate max-w-[90px]" style={{ color: 'var(--text-primary)' }}>
+                {user?.name}
               </p>
             </div>
+
             <ChevronDown
-              className="w-3.5 h-3.5 text-muted transition-transform duration-200 flex-shrink-0"
-              style={{ transform: showDropdown ? 'rotate(180deg)' : 'rotate(0deg)' }}
+              className="w-3 h-3 flex-shrink-0 transition-transform duration-200"
+              style={{
+                color: 'var(--text-muted)',
+                transform: showDropdown ? 'rotate(180deg)' : 'rotate(0deg)',
+              }}
             />
-          </motion.button>
+          </button>
 
           {/* Dropdown */}
           <AnimatePresence>
             {showDropdown && (
               <>
-                {/* Backdrop */}
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setShowDropdown(false)}
-                />
+                <div className="fixed inset-0 z-40" onClick={() => setShowDropdown(false)} />
                 <motion.div
-                  className="absolute right-0 top-full mt-2 w-52 rounded-2xl z-50 overflow-hidden bg-primary/95 backdrop-blur-xl border border-subtle shadow-xl"
-                  initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                  className="absolute right-0 top-full mt-1.5 w-48 z-50 overflow-hidden"
+                  style={{
+                    background: 'var(--bg-card-elevated)',
+                    border: '1px solid var(--border-card)',
+                    borderRadius: '4px',
+                    boxShadow: '0 8px 24px rgba(26,24,20,0.10)',
+                  }}
+                  initial={{ opacity: 0, y: -6, scale: 0.97 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -8, scale: 0.95 }}
-                  transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                  exit={{ opacity: 0, y: -6, scale: 0.97 }}
+                  transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
                 >
                   {/* User info */}
-                  <div className="px-4 py-3.5 border-b border-subtle">
-                    <p className="text-sm font-semibold text-primary leading-none">{user?.name}</p>
-                    <p className="text-xs text-muted truncate mt-1">{user?.email}</p>
+                  <div
+                    className="px-4 py-3"
+                    style={{ borderBottom: '1px solid var(--border-subtle)' }}
+                  >
+                    <p className="text-xs font-bold leading-none" style={{ color: 'var(--text-primary)' }}>{user?.name}</p>
+                    <p className="text-[10px] truncate mt-1" style={{ color: 'var(--text-muted)' }}>{user?.email}</p>
                   </div>
 
                   {/* Actions */}
-                  <div className="py-1.5">
-                    <Link 
-                      href="/settings"
-                      onClick={() => setShowDropdown(false)}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-secondary
-                                 hover:bg-secondary hover:text-accent focus:bg-secondary focus:outline-none 
-                                 active:scale-[0.98] transition-all duration-150 group"
-                    >
-                      <User className="w-4 h-4 text-muted group-hover:text-accent transition-colors flex-shrink-0" />
-                      Profile Settings
-                    </Link>
-                    {user?.is_admin && (
-                      <Link 
-                        href="/admin/feedback"
+                  <div className="py-1">
+                    {[
+                      { href: '/settings', icon: User, label: 'Profile Settings' },
+                      ...(user?.is_admin ? [{ href: '/admin/feedback', icon: Shield, label: 'Admin Feedback' }] : []),
+                    ].map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
                         onClick={() => setShowDropdown(false)}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-secondary
-                                   hover:bg-secondary hover:text-accent focus:bg-secondary focus:outline-none 
-                                   active:scale-[0.98] transition-all duration-150 group"
+                        className="w-full flex items-center gap-3 px-4 py-2 text-xs transition-colors duration-100"
+                        style={{ color: 'var(--text-secondary)' }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                       >
-                        <Shield className="w-4 h-4 text-muted group-hover:text-accent transition-colors flex-shrink-0" />
-                        Admin Feedback
+                        <item.icon className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
+                        {item.label}
                       </Link>
-                    )}
+                    ))}
+
+                    <div className="my-1 mx-3 h-px" style={{ background: 'var(--border-subtle)' }} />
+
                     <button
                       id="logout-btn"
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-destructive
-                                 hover:bg-red-500/10 focus:bg-red-500/10 focus:outline-none 
-                                 active:scale-[0.98] transition-all duration-150 group"
+                      className="w-full flex items-center gap-3 px-4 py-2 text-xs transition-colors duration-100"
+                      style={{ color: 'var(--text-destructive)' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                     >
-                      <LogOut className="w-4 h-4 flex-shrink-0" />
+                      <LogOut className="w-3 h-3" />
                       Sign Out
                     </button>
                   </div>
@@ -191,6 +186,6 @@ export default function Navbar() {
           </AnimatePresence>
         </div>
       </div>
-    </motion.header>
+    </header>
   );
 }
