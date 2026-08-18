@@ -10,7 +10,8 @@ import { FadeUp } from '@/components/motion/ScrollReveal';
 import {
   BookOpen, ChevronRight, PlayCircle, Star, Sparkles,
   Brain, Target, Zap, CheckCircle2, RefreshCw, Clock,
-  TrendingUp, Shield, AlertTriangle, X, RotateCcw, Award, BarChart3
+  TrendingUp, Shield, AlertTriangle, X, RotateCcw, Award, BarChart3,
+  Filter, Phone, MessageCircle, MapPin, Wifi, Eye, Heart, Cloud
 } from 'lucide-react';
 import { AILesson } from '@/api/lessons';
 
@@ -354,6 +355,7 @@ export default function LessonsPage() {
   const [selectedLesson, setSelectedLesson] = useState<SelectedLessonState | null>(null);
   const [completing, setCompleting] = useState(false);
   const [completedStaticIds, setCompletedStaticIds] = useState<string[]>([]);
+  const [activeCategory, setActiveCategory] = useState<string>('All');
 
   useEffect(() => { setIsMounted(true); }, []);
 
@@ -390,6 +392,26 @@ export default function LessonsPage() {
 
   const activeStaticLessons = lessons.filter(l => !completedStaticIds.includes(l.id));
   const completedStaticLessons = lessons.filter(l => completedStaticIds.includes(l.id));
+
+  // Category filter logic
+  const LESSON_CATEGORIES = [
+    { id: 'All', label: 'All Lessons', icon: BookOpen },
+    { id: 'Phone', label: 'Phone Calls', icon: Phone },
+    { id: 'Message', label: 'Messages', icon: MessageCircle },
+    { id: 'GPS', label: 'GPS & Nav', icon: MapPin },
+    { id: 'Social', label: 'Social Media', icon: Wifi },
+    { id: 'Visual', label: 'Visual', icon: Eye },
+    { id: 'Emotional', label: 'Emotional', icon: Heart },
+    { id: 'Environmental', label: 'Environment', icon: Cloud },
+  ];
+
+  const filteredStaticLessons = activeCategory === 'All'
+    ? activeStaticLessons
+    : activeStaticLessons.filter(l =>
+        l.title?.toLowerCase().includes(activeCategory.toLowerCase()) ||
+        (l as any).lesson_category?.toLowerCase().includes(activeCategory.toLowerCase()) ||
+        l.description?.toLowerCase().includes(activeCategory.toLowerCase())
+      );
 
   const handleOpenStaticLesson = (lesson: any) => {
     const isCompleted = completedStaticIds.includes(lesson.id);
@@ -548,9 +570,9 @@ export default function LessonsPage() {
           </FadeUp>
 
           {isLoading ? (
-            <div className="grid gap-4 md:grid-cols-2">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-52 rounded animate-pulse" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-card)' }} />
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-52 rounded animate-pulse" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-card)', opacity: 1 - i * 0.12 }} />
               ))}
             </div>
           ) : (
@@ -623,7 +645,7 @@ export default function LessonsPage() {
                           <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border" style={{ background: 'var(--bg-canvas)', borderColor: 'var(--border-strong)', color: 'var(--text-primary)' }}>{otherActiveLessons.length} active</span>
                         </div>
                       </FadeUp>
-                      <div className="grid gap-4 md:grid-cols-2">
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {otherActiveLessons.map((lesson, i) => (
                           <AILessonCard key={lesson.id} lesson={lesson} index={i} onOpen={handleOpenAILesson} />
                         ))}
@@ -640,7 +662,7 @@ export default function LessonsPage() {
                           <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border" style={{ background: 'var(--bg-canvas)', borderColor: 'var(--border-subtle)', color: 'var(--text-muted)' }}>{completedAILessons.length}</span>
                         </div>
                       </FadeUp>
-                      <div className="grid gap-4 md:grid-cols-2">
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {completedAILessons.map((lesson, i) => (
                           <AILessonCard key={lesson.id} lesson={lesson} index={i} onOpen={handleOpenAILesson} />
                         ))}
@@ -654,7 +676,7 @@ export default function LessonsPage() {
                       <div className="p-10 border rounded text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-card)' }}>
                         <Brain className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
                         <h3 className="text-sm font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--text-primary)' }}>Your personalized curriculum awaits</h3>
-                        <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Click "Generate" above to create your first targeted AI lesson based on your behavioral data.</p>
+                        <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Click &quot;Generate&quot; above to create your first targeted AI lesson based on your behavioral data.</p>
                       </div>
                     </FadeUp>
                   )}
@@ -663,39 +685,156 @@ export default function LessonsPage() {
 
               {/* ── LIBRARY TAB ─────────────────────────────────────────────────── */}
               {activeTab === 'library' && (
-                <div className="space-y-10">
-                  <div>
-                    <FadeUp delay={0.1}>
-                      <h2 className="text-base font-bold uppercase tracking-tight mb-4" style={{ color: 'var(--text-primary)' }}>Recommended for You</h2>
-                    </FadeUp>
-                    {activeStaticLessons.length === 0 ? (
-                      <FadeUp delay={0.15}>
-                        <div className="p-6 border rounded text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-card)' }}>
-                          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>All recommended lessons have been completed.</p>
+                <div className="flex gap-6">
+                  {/* Left sidebar: category filters */}
+                  <div className="hidden lg:flex flex-col gap-1 w-44 flex-shrink-0">
+                    <p className="text-[10px] font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
+                      <Filter className="w-3 h-3" /> Filter
+                    </p>
+                    {LESSON_CATEGORIES.map(cat => {
+                      const Icon = cat.icon;
+                      const isActive = activeCategory === cat.id;
+                      return (
+                        <button
+                          key={cat.id}
+                          onClick={() => setActiveCategory(cat.id)}
+                          className="flex items-center gap-2.5 px-3 py-2 rounded text-left transition-all duration-150 text-xs font-medium"
+                          style={{
+                            background: isActive ? '#C8FF00' : 'transparent',
+                            color: isActive ? '#1A1814' : 'var(--text-secondary)',
+                            fontWeight: isActive ? 700 : 500,
+                          }}
+                        >
+                          <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                          {cat.label}
+                        </button>
+                      );
+                    })}
+
+                    {/* Completion stats */}
+                    <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                      <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>Completion</p>
+                      <div className="h-1.5 rounded-full overflow-hidden mb-1" style={{ background: 'rgba(255,255,255,0.07)' }}>
+                        <div
+                          className="h-1.5 rounded-full"
+                          style={{ width: `${completionRate}%`, background: '#C8FF00', transition: 'width 0.6s ease' }}
+                        />
+                      </div>
+                      <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{completedStaticIds.length} / {lessons.length} done</p>
+                    </div>
+                  </div>
+
+                  {/* Right: lesson grid */}
+                  <div className="flex-1 space-y-6">
+                    {/* Mobile category filter pills */}
+                    <div className="flex lg:hidden gap-2 flex-wrap">
+                      {LESSON_CATEGORIES.map(cat => (
+                        <button
+                          key={cat.id}
+                          onClick={() => setActiveCategory(cat.id)}
+                          className="text-[11px] font-bold px-3 py-1.5 rounded-full border transition-all"
+                          style={{
+                            background: activeCategory === cat.id ? '#C8FF00' : 'var(--bg-surface)',
+                            color: activeCategory === cat.id ? '#1A1814' : 'var(--text-secondary)',
+                            borderColor: activeCategory === cat.id ? '#C8FF00' : 'var(--border-card)',
+                          }}
+                        >
+                          {cat.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div>
+                      <FadeUp delay={0.1}>
+                        <div className="flex items-center justify-between mb-4">
+                          <h2 className="text-base font-bold uppercase tracking-tight" style={{ color: 'var(--text-primary)' }}>
+                            {activeCategory === 'All' ? 'Recommended for You' : `${activeCategory} Lessons`}
+                          </h2>
+                          <span className="text-[10px] font-medium" style={{ color: 'var(--text-muted)' }}>
+                            {filteredStaticLessons.length} lesson{filteredStaticLessons.length !== 1 ? 's' : ''}
+                          </span>
                         </div>
                       </FadeUp>
-                    ) : (
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        {activeStaticLessons.map((lesson, idx) => (
-                          <FadeUp key={lesson.id} delay={0.15 + idx * 0.05}>
-                            <div 
-                              onClick={() => handleOpenStaticLesson(lesson)}
-                              className="p-5 flex flex-col justify-between h-full cursor-pointer transition-transform hover:-translate-y-0.5 border rounded"
-                              style={{ background: 'var(--bg-card)', borderColor: 'var(--border-card)' }}
-                            >
-                              <div>
-                                <div className="flex items-start justify-between gap-3 mb-2">
-                                  <h4 className="text-sm font-bold uppercase tracking-wide leading-snug" style={{ color: 'var(--text-primary)' }}>{lesson.title}</h4>
-                                  <span className="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border shrink-0" style={{ background: 'var(--bg-canvas)', borderColor: 'var(--border-subtle)', color: 'var(--text-muted)' }}>{lesson.difficulty}</span>
+                      {filteredStaticLessons.length === 0 ? (
+                        <FadeUp delay={0.15}>
+                          <div className="p-10 border rounded text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-card)' }}>
+                            <BookOpen className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
+                            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                              {activeCategory === 'All' ? 'All lessons completed! Great work.' : `No ${activeCategory} lessons available yet.`}
+                            </p>
+                            {activeCategory !== 'All' && (
+                              <button onClick={() => setActiveCategory('All')} className="mt-3 text-[11px] font-bold" style={{ color: '#C8FF00' }}>View all lessons →</button>
+                            )}
+                          </div>
+                        </FadeUp>
+                      ) : (
+                        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                          {filteredStaticLessons.map((lesson, idx) => (
+                            <FadeUp key={lesson.id} delay={0.12 + idx * 0.04}>
+                              <div
+                                onClick={() => handleOpenStaticLesson(lesson)}
+                                className="group p-5 flex flex-col justify-between cursor-pointer transition-all duration-200 border rounded-xl hover:-translate-y-1 hover:shadow-lg"
+                                style={{
+                                  background: 'var(--bg-card)',
+                                  borderColor: 'var(--border-card)',
+                                  minHeight: '180px',
+                                }}
+                                onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border-strong)')}
+                                onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-card)')}
+                              >
+                                <div>
+                                  {/* Category badge */}
+                                  <div className="flex items-center justify-between gap-2 mb-3">
+                                    <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border" style={{ color: '#C8FF00', borderColor: 'rgba(200,255,0,0.3)', background: 'rgba(200,255,0,0.08)' }}>
+                                      {(lesson as any).lesson_category || 'Curriculum'}
+                                    </span>
+                                    <span className="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border" style={{ background: 'var(--bg-canvas)', borderColor: 'var(--border-subtle)', color: 'var(--text-muted)' }}>
+                                      {lesson.difficulty}
+                                    </span>
+                                  </div>
+                                  <h4 className="text-sm font-bold uppercase tracking-wide leading-snug mb-2" style={{ color: 'var(--text-primary)' }}>{lesson.title}</h4>
+                                  <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{lesson.description}</p>
                                 </div>
-                                <p className="text-[11px] leading-relaxed mb-4" style={{ color: 'var(--text-secondary)' }}>{lesson.description}</p>
+                                <div className="flex items-center justify-between mt-4 pt-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                                  <div className="flex items-center text-[10px] font-bold uppercase tracking-wider group-hover:gap-2 transition-all" style={{ color: 'var(--text-primary)' }}>
+                                    <PlayCircle className="w-3.5 h-3.5 mr-1.5" />
+                                    Start Lesson
+                                  </div>
+                                  <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--text-muted)' }} />
+                                </div>
                               </div>
-                              <div className="flex items-center text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-primary)' }}>
-                                <PlayCircle className="w-3.5 h-3.5 mr-1.5" /> Start Lesson
+                            </FadeUp>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Completed lessons section */}
+                    {completedStaticLessons.length > 0 && activeCategory === 'All' && (
+                      <div>
+                        <FadeUp>
+                          <div className="flex items-center gap-3 mb-4 pt-4" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                            <h2 className="text-sm font-bold uppercase tracking-tight" style={{ color: 'var(--text-muted)' }}>Completed</h2>
+                            <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border" style={{ background: 'var(--bg-canvas)', borderColor: 'var(--border-subtle)', color: 'var(--text-muted)' }}>{completedStaticLessons.length}</span>
+                          </div>
+                        </FadeUp>
+                        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 opacity-60">
+                          {completedStaticLessons.map((lesson, idx) => (
+                            <FadeUp key={lesson.id} delay={0.1 + idx * 0.03}>
+                              <div
+                                onClick={() => handleOpenStaticLesson(lesson)}
+                                className="p-4 flex items-center gap-3 cursor-pointer transition-all border rounded-xl"
+                                style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+                              >
+                                <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: '#10b981' }} />
+                                <div className="min-w-0">
+                                  <p className="text-xs font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{lesson.title}</p>
+                                  <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{lesson.difficulty}</p>
+                                </div>
                               </div>
-                            </div>
-                          </FadeUp>
-                        ))}
+                            </FadeUp>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>

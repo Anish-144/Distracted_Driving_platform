@@ -113,7 +113,7 @@ export default function SimulationPage() {
 
                 <h2 className="text-2xl font-bold tracking-tight mb-2 uppercase" style={{ color: 'var(--text-primary)', fontFamily: 'Space Grotesk, sans-serif' }}>Ready to Drive?</h2>
                 <p className="text-sm leading-relaxed max-w-sm mx-auto" style={{ color: 'var(--text-secondary)' }}>
-                  You'll face realistic driving distractions. For each event, decide to{' '}
+                  You&apos;ll face realistic driving distractions. For each event, decide to{' '}
                   <span className="font-bold underline decoration-[#C8FF00] decoration-2" style={{ color: 'var(--text-primary)' }}>ignore it safely</span> or{' '}
                   <span className="font-bold underline decoration-[#8B2020] decoration-2" style={{ color: 'var(--text-primary)' }}>interact with it</span>.
                   Your reaction time and choices affect your score.

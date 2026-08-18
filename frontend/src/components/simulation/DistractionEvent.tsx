@@ -64,7 +64,7 @@ export default function DistractionEvent({ scenario, escalationLevel }: Distract
         <span className="text-[10px] font-bold uppercase tracking-wider text-brand-400 block mb-1">
           Live Environment Context
         </span>
-        <p className="text-sm text-secondary leading-relaxed italic">
+        <p className="text-sm leading-relaxed italic" style={{ color: 'rgba(220,220,220,0.85)' }}>
           {scenario.narrative_context}
         </p>
       </div>
@@ -82,27 +82,27 @@ export default function DistractionEvent({ scenario, escalationLevel }: Distract
           </div>
           <div className="flex-1 pt-1">
             <div className="flex items-center gap-2">
-              <span className="text-primary font-bold text-sm tracking-wide capitalize">
-                {scenario.distraction_type.replace('_', ' ')}
+              <span className="font-bold text-sm tracking-wide capitalize" style={{ color: '#FFFFFF' }}>
+                {scenario.distraction_type.replace(/_/g, ' ')}
               </span>
               {escalationLevel >= 2 && (
                 <span className="w-2 h-2 bg-red-500 rounded-full animate-ping" />
               )}
             </div>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-[10px] font-mono text-muted bg-gray-900/50 px-1.5 py-0.5 rounded border border-gray-700">
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded border" style={{ color: 'rgba(180,180,180,0.9)', background: 'rgba(0,0,0,0.4)', borderColor: 'rgba(255,255,255,0.15)' }}>
                 Lvl {escalationLevel} Escalation
               </span>
-              <span className="text-[10px] font-mono text-brand-400 uppercase">
-                {scenario.emotional_pressure_type.replace('_', ' ')}
+              <span className="text-[10px] font-mono uppercase text-brand-400">
+                {scenario.emotional_pressure_type.replace(/_/g, ' ')}
               </span>
             </div>
           </div>
         </div>
 
         {/* Dynamic Escalation Text */}
-        <div className="relative z-10 bg-slate-900/80 rounded-xl p-4 border border-slate-700/50 min-h-[80px] flex items-center">
-          <p className="text-primary text-sm font-medium leading-relaxed">
+        <div className="relative z-10 rounded-xl p-4 border min-h-[80px] flex items-center" style={{ background: 'rgba(0,0,0,0.55)', borderColor: 'rgba(255,255,255,0.1)' }}>
+          <p className="text-sm font-medium leading-relaxed" style={{ color: '#F0F0F0' }}>
             {getActiveEscalation()}
           </p>
         </div>
@@ -110,11 +110,11 @@ export default function DistractionEvent({ scenario, escalationLevel }: Distract
 
       {/* Live Metrics HUD */}
       <div className="mt-4 flex justify-between px-2">
-        <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted tracking-wider">
+        <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-wider" style={{ color: 'rgba(160,160,160,0.8)' }}>
           <Activity className="w-3.5 h-3.5 text-blue-400" />
           COGNITIVE LOAD: {escalationLevel === 1 ? 'MODERATE' : escalationLevel === 2 ? 'ELEVATED' : 'CRITICAL'}
         </div>
-        <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted tracking-wider">
+        <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-wider" style={{ color: 'rgba(160,160,160,0.8)' }}>
           <ShieldAlert className="w-3.5 h-3.5 text-red-400" />
           TARGET: {scenario.target_weakness.toUpperCase().slice(0, 20)}...
         </div>

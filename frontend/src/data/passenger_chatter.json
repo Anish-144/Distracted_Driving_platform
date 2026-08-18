@@ -1,374 +1,590 @@
 [
   {
     "text": "Time is flying by so fast lately.",
-    "category": "Random observations"
-  },
-  {
-    "text": "I keep forgetting where i put my keys.",
-    "category": "Random observations"
-  },
-  {
-    "text": "It's surprisingly quiet out here.",
-    "category": "Local surroundings"
-  },
-  {
-    "text": "I need to go grocery shopping soon.",
-    "category": "Food"
-  },
-  {
-    "text": "Have you ever been to europe?",
-    "category": "Travel"
-  },
-  {
-    "text": "I should probably stretch more.",
-    "category": "Random observations"
-  },
-  {
-    "text": "I need to finish that report by friday.",
-    "category": "Work"
-  },
-  {
-    "text": "I've had this song stuck in my head all day.",
-    "category": "Music"
-  },
-  {
-    "text": "We should check out that new farmers market.",
-    "category": "Weekend plans"
-  },
-  {
-    "text": "I need to buy some new shoes.",
-    "category": "Shopping"
-  },
-  {
-    "text": "I really need to catch up with john.",
-    "category": "Friends"
-  },
-  {
-    "text": "That coffee shop always seems packed.",
-    "category": "Food"
-  },
-  {
-    "text": "My parents are thinking about moving.",
-    "category": "Family"
-  },
-  {
-    "text": "Have you ever been to Europe?",
-    "category": "Travel"
-  },
-  {
-    "text": "I love the trees in this neighborhood.",
-    "category": "Local surroundings"
-  },
-  {
-    "text": "It's supposed to be really nice tomorrow.",
-    "category": "Weather"
-  },
-  {
-    "text": "I can't wait for summer.",
-    "category": "Weather"
-  },
-  {
-    "text": "Thinking about going to the museum on sunday.",
-    "category": "Weekend plans"
-  },
-  {
-    "text": "I really need to drink more water.",
-    "category": "Random observations"
-  },
-  {
-    "text": "I'm still not sure what to eat tonight.",
-    "category": "Food"
-  },
-  {
-    "text": "I'm looking for a new winter coat.",
-    "category": "Shopping"
-  },
-  {
-    "text": "I tried a new recipe yesterday, it wasn't bad.",
-    "category": "Food"
-  },
-  {
-    "text": "I love exploring new cities.",
-    "category": "Travel"
-  },
-  {
-    "text": "I hate packing for trips.",
-    "category": "Travel"
-  },
-  {
-    "text": "I need a good comedy to watch.",
-    "category": "Movies"
-  },
-  {
-    "text": "I wonder how emily is doing.",
-    "category": "Friends"
-  },
-  {
-    "text": "I miss going to live music shows.",
-    "category": "Music"
-  },
-  {
-    "text": "I can't believe it's almost the end of the month.",
-    "category": "Random observations"
-  },
-  {
-    "text": "Did you see that new action movie?",
-    "category": "Movies"
-  },
-  {
-    "text": "My nephew is getting so tall.",
-    "category": "Family"
-  },
-  {
-    "text": "Look at that weird cloud.",
-    "category": "Local surroundings"
-  },
-  {
-    "text": "Do you think it'll rain later?",
-    "category": "Weather"
-  },
-  {
-    "text": "My mom is visiting this weekend.",
-    "category": "Family"
-  },
-  {
-    "text": "That documentary was really interesting.",
-    "category": "Movies"
-  },
-  {
-    "text": "I'm thinking about taking a day off soon.",
-    "category": "Work"
-  },
-  {
-    "text": "I fell asleep halfway through the movie yesterday.",
-    "category": "Movies"
-  },
-  {
-    "text": "I haven't seen my grandparents in a while.",
-    "category": "Family"
-  },
-  {
-    "text": "I have a lot of laundry to catch up on.",
-    "category": "Weekend plans"
-  },
-  {
-    "text": "I have a big meeting coming up on Monday.",
-    "category": "Work"
-  },
-  {
-    "text": "I usually just listen to playlists on shuffle.",
-    "category": "Music"
-  },
-  {
-    "text": "This area has changed so much.",
-    "category": "Local surroundings"
-  },
-  {
-    "text": "Are you going to that concert next week?",
-    "category": "Music"
-  },
-  {
-    "text": "I need to buy a birthday gift for my cousin.",
-    "category": "Family"
-  },
-  {
-    "text": "I really need to catch up on some sleep this weekend.",
-    "category": "Weekend plans"
-  },
-  {
-    "text": "I could really go for some tacos later.",
-    "category": "Food"
-  },
-  {
-    "text": "I can't wait for the sequel to come out.",
-    "category": "Movies"
-  },
-  {
-    "text": "Work was pretty stressful today.",
-    "category": "Work"
-  },
-  {
-    "text": "I should invite the guys over for dinner.",
-    "category": "Friends"
-  },
-  {
-    "text": "That new building went up really fast.",
-    "category": "Local surroundings"
-  },
-  {
-    "text": "I have so many chores to do this weekend.",
-    "category": "Weekend plans"
-  },
-  {
-    "text": "I should stop spending money on unnecessary things.",
-    "category": "Shopping"
-  },
-  {
-    "text": "I have a big meeting coming up on monday.",
-    "category": "Work"
-  },
-  {
-    "text": "I'm hoping to just relax and read a book.",
-    "category": "Weekend plans"
-  },
-  {
-    "text": "They've been doing construction there forever.",
-    "category": "Local surroundings"
-  },
-  {
-    "text": "Look at that cute dog walking over there.",
-    "category": "Local surroundings"
-  },
-  {
-    "text": "I think I'll just order pizza tonight.",
-    "category": "Food"
-  },
-  {
-    "text": "I'm not a big fan of horror films.",
-    "category": "Movies"
-  },
-  {
-    "text": "I have to return that jacket I bought.",
-    "category": "Shopping"
-  },
-  {
-    "text": "I think i'll just order pizza tonight.",
-    "category": "Food"
-  },
-  {
-    "text": "Mark's party last week was fun.",
-    "category": "Friends"
-  },
-  {
-    "text": "I really need to catch up with John.",
-    "category": "Friends"
-  },
-  {
-    "text": "I'm looking forward to the holidays.",
-    "category": "Work"
-  },
-  {
-    "text": "I might just stay in and watch movies.",
-    "category": "Weekend plans"
-  },
-  {
-    "text": "I really want to take a vacation soon.",
-    "category": "Travel"
-  },
-  {
-    "text": "My boss is actually pretty cool.",
-    "category": "Work"
-  },
-  {
-    "text": "Sarah said she might drop by later.",
-    "category": "Friends"
-  },
-  {
-    "text": "I need to find some new music to listen to.",
-    "category": "Music"
-  },
-  {
-    "text": "I love it when the weather is like this.",
-    "category": "Weather"
-  },
-  {
-    "text": "I've been craving sushi all day.",
-    "category": "Food"
-  },
-  {
-    "text": "It's been so chilly lately.",
-    "category": "Weather"
-  },
-  {
-    "text": "I saw some cheap flights to mexico.",
-    "category": "Travel"
-  },
-  {
-    "text": "Alex is moving to a new apartment.",
-    "category": "Friends"
-  },
-  {
-    "text": "I hope it doesn't snow this weekend.",
-    "category": "Weather"
-  },
-  {
-    "text": "I really like this band's old stuff.",
-    "category": "Music"
-  },
-  {
-    "text": "I need to cut back on the junk food.",
-    "category": "Food"
-  },
-  {
-    "text": "I'm thinking about going camping next month.",
-    "category": "Travel"
-  },
-  {
-    "text": "The wind is pretty strong today.",
-    "category": "Weather"
-  },
-  {
-    "text": "I spend way too much on online shopping.",
-    "category": "Shopping"
-  },
-  {
-    "text": "My sister just got a new dog.",
-    "category": "Family"
+    "category": "Random observations",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Your friend is chatting casually — a normal in-car social distraction."
   },
   {
     "text": "I keep forgetting where I put my keys.",
-    "category": "Random observations"
+    "category": "Random observations",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Small talk from your passenger — typical background chatter while driving."
   },
   {
-    "text": "I had the weirdest dream last night.",
-    "category": "Random observations"
+    "text": "It's surprisingly quiet out here.",
+    "category": "Local surroundings",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Passenger commenting on the environment — natural conversational distraction."
   },
   {
-    "text": "That store at the mall is having a sale.",
-    "category": "Shopping"
+    "text": "I need to go grocery shopping soon.",
+    "category": "Food",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Passenger sharing errands — a low-priority social distraction."
   },
   {
-    "text": "Thinking about going to the museum on Sunday.",
-    "category": "Weekend plans"
+    "text": "Have you ever been to Europe?",
+    "category": "Travel",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Casual conversation starter — requires mental engagement from the driver."
   },
   {
-    "text": "Maybe I'll go for a hike on Saturday.",
-    "category": "Weekend plans"
-  },
-  {
-    "text": "I'd love to go back to the beach.",
-    "category": "Travel"
-  },
-  {
-    "text": "Maybe i'll go for a hike on saturday.",
-    "category": "Weekend plans"
-  },
-  {
-    "text": "The traffic feels lighter today.",
-    "category": "Local surroundings"
-  },
-  {
-    "text": "I have to return that jacket i bought.",
-    "category": "Shopping"
-  },
-  {
-    "text": "I saw some cheap flights to Mexico.",
-    "category": "Travel"
-  },
-  {
-    "text": "Jane got that new job she wanted.",
-    "category": "Friends"
-  },
-  {
-    "text": "Do you like spicy food?",
-    "category": "Food"
+    "text": "I should probably stretch more.",
+    "category": "Random observations",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Light personal observation — low-distraction chatter typical in car rides."
   },
   {
     "text": "I need to finish that report by Friday.",
-    "category": "Work"
+    "category": "Work",
+    "speaker": "passenger",
+    "speakerLabel": "Colleague (passenger seat)",
+    "contextHint": "Work stress introduced by a colleague — cognitive load trigger."
+  },
+  {
+    "text": "I've had this song stuck in my head all day.",
+    "category": "Music",
+    "speaker": "radio",
+    "speakerLabel": "Car Radio",
+    "contextHint": "Radio background audio — auditory distraction competing for attention."
+  },
+  {
+    "text": "We should check out that new farmers market.",
+    "category": "Weekend plans",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Planning conversation — pulls mental focus toward future events."
+  },
+  {
+    "text": "I need to buy some new shoes.",
+    "category": "Shopping",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Casual passenger comment — background social noise."
+  },
+  {
+    "text": "I really need to catch up with John.",
+    "category": "Friends",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Social conversation — minor attentional pull from the road."
+  },
+  {
+    "text": "That coffee shop always seems packed.",
+    "category": "Food",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Casual observation about surroundings — passenger-initiated distraction."
+  },
+  {
+    "text": "My parents are thinking about moving.",
+    "category": "Family",
+    "speaker": "passenger",
+    "speakerLabel": "Family member (back seat)",
+    "contextHint": "Family news shared in-car — emotional topic that can occupy working memory."
+  },
+  {
+    "text": "I love the trees in this neighborhood.",
+    "category": "Local surroundings",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Scenic comment — draws visual and cognitive attention to roadside."
+  },
+  {
+    "text": "It's supposed to be really nice tomorrow.",
+    "category": "Weather",
+    "speaker": "radio",
+    "speakerLabel": "Car Radio (weather forecast)",
+    "contextHint": "Radio weather update — background audio from in-car entertainment."
+  },
+  {
+    "text": "I can't wait for summer.",
+    "category": "Weather",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Light seasonal comment — low-level conversational distraction."
+  },
+  {
+    "text": "Thinking about going to the museum on Sunday.",
+    "category": "Weekend plans",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Weekend planning — requires driver acknowledgment while focusing on road."
+  },
+  {
+    "text": "I really need to drink more water.",
+    "category": "Random observations",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Offhand remark — minimal distraction, but adds to conversational noise."
+  },
+  {
+    "text": "I'm still not sure what to eat tonight.",
+    "category": "Food",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Dinner decision chat — invites driver input, splitting attention."
+  },
+  {
+    "text": "I'm looking for a new winter coat.",
+    "category": "Shopping",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Shopping talk — routine passenger chatter while driving."
+  },
+  {
+    "text": "I tried a new recipe yesterday, it wasn't bad.",
+    "category": "Food",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Food conversation — pleasant but distracting social interaction."
+  },
+  {
+    "text": "I love exploring new cities.",
+    "category": "Travel",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Travel talk — engaging topic that requires driver participation."
+  },
+  {
+    "text": "I hate packing for trips.",
+    "category": "Travel",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Relatable gripe — emotionally engaging passenger comment."
+  },
+  {
+    "text": "I need a good comedy to watch.",
+    "category": "Movies",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Entertainment chat — casual topic competing for driver's attention."
   },
   {
     "text": "I wonder how Emily is doing.",
-    "category": "Friends"
+    "category": "Friends",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Social curiosity — minor cognitive distraction while driving."
+  },
+  {
+    "text": "I miss going to live music shows.",
+    "category": "Music",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Nostalgia-driven comment — emotionally engaging distraction."
+  },
+  {
+    "text": "I can't believe it's almost the end of the month.",
+    "category": "Random observations",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Time passing remark — low-distraction passenger background noise."
+  },
+  {
+    "text": "Did you see that new action movie?",
+    "category": "Movies",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Entertainment question — expects a response, splitting driver attention."
+  },
+  {
+    "text": "My nephew is getting so tall.",
+    "category": "Family",
+    "speaker": "passenger",
+    "speakerLabel": "Family member (back seat)",
+    "contextHint": "Family update shared in-car — warm emotional distraction from the road."
+  },
+  {
+    "text": "Look at that weird cloud.",
+    "category": "Local surroundings",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Passenger pointing out scenery — draws driver eyes off road."
+  },
+  {
+    "text": "Do you think it'll rain later?",
+    "category": "Weather",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Weather question — invites driver to engage in brief conversation."
+  },
+  {
+    "text": "My mom is visiting this weekend.",
+    "category": "Family",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Family news — your friend sharing weekend plans, a normal social distraction."
+  },
+  {
+    "text": "That documentary was really interesting.",
+    "category": "Movies",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Media recommendation — engaging topic requiring driver's mental participation."
+  },
+  {
+    "text": "I'm thinking about taking a day off soon.",
+    "category": "Work",
+    "speaker": "passenger",
+    "speakerLabel": "Colleague (passenger seat)",
+    "contextHint": "Work-life comment from a colleague — relatable topic that pulls focus."
+  },
+  {
+    "text": "I fell asleep halfway through the movie yesterday.",
+    "category": "Movies",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Casual anecdote — minor social distraction from driving task."
+  },
+  {
+    "text": "I haven't seen my grandparents in a while.",
+    "category": "Family",
+    "speaker": "passenger",
+    "speakerLabel": "Family member (back seat)",
+    "contextHint": "Emotional family topic — can trigger empathetic response in driver."
+  },
+  {
+    "text": "I have a lot of laundry to catch up on.",
+    "category": "Weekend plans",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Chores conversation — everyday planning chatter in the car."
+  },
+  {
+    "text": "I have a big meeting coming up on Monday.",
+    "category": "Work",
+    "speaker": "passenger",
+    "speakerLabel": "Colleague (passenger seat)",
+    "contextHint": "Work anxiety shared aloud — cognitive stressor introduced by a co-worker."
+  },
+  {
+    "text": "I usually just listen to playlists on shuffle.",
+    "category": "Music",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Music preference chat — mild conversational distraction."
+  },
+  {
+    "text": "This area has changed so much.",
+    "category": "Local surroundings",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Neighbourhood observation — invites driver to look around, off-road."
+  },
+  {
+    "text": "Are you going to that concert next week?",
+    "category": "Music",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Social invite question — expects a thoughtful driver response."
+  },
+  {
+    "text": "I need to buy a birthday gift for my cousin.",
+    "category": "Family",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Errand reminder — adds to the mental to-do list while driving."
+  },
+  {
+    "text": "I really need to catch up on some sleep this weekend.",
+    "category": "Weekend plans",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Rest plans — relatable fatigue topic that may amplify driver drowsiness."
+  },
+  {
+    "text": "I could really go for some tacos later.",
+    "category": "Food",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Food craving — casual hunger comment during the ride."
+  },
+  {
+    "text": "I can't wait for the sequel to come out.",
+    "category": "Movies",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Entertainment anticipation — lighthearted passenger distraction."
+  },
+  {
+    "text": "Work was pretty stressful today.",
+    "category": "Work",
+    "speaker": "passenger",
+    "speakerLabel": "Colleague (passenger seat)",
+    "contextHint": "Emotional debrief from a coworker — stress contagion risk for driver."
+  },
+  {
+    "text": "I should invite the guys over for dinner.",
+    "category": "Friends",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Social planning — driver's mind moves to future scenarios off the road."
+  },
+  {
+    "text": "That new building went up really fast.",
+    "category": "Local surroundings",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Visual observation — draws attention to roadside objects instead of traffic."
+  },
+  {
+    "text": "I have so many chores to do this weekend.",
+    "category": "Weekend plans",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Domestic planning — adds to cognitive load while driving."
+  },
+  {
+    "text": "I should stop spending money on unnecessary things.",
+    "category": "Shopping",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Financial self-reflection — mildly stressful topic raised in-car."
+  },
+  {
+    "text": "I'm hoping to just relax and read a book.",
+    "category": "Weekend plans",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Rest intention — low-stress passenger comment during the drive."
+  },
+  {
+    "text": "They've been doing construction there forever.",
+    "category": "Local surroundings",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Road observation — may cause driver to scan for construction zones."
+  },
+  {
+    "text": "Look at that cute dog walking over there.",
+    "category": "Local surroundings",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Passenger pointing out something outside — brief visual distraction trigger."
+  },
+  {
+    "text": "I think I'll just order pizza tonight.",
+    "category": "Food",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Evening meal plan — casual social chatter from a passenger."
+  },
+  {
+    "text": "I'm not a big fan of horror films.",
+    "category": "Movies",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Movie preference — light conversation requiring driver acknowledgment."
+  },
+  {
+    "text": "I have to return that jacket I bought.",
+    "category": "Shopping",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Errand mention — minor cognitive reminder added while driving."
+  },
+  {
+    "text": "Mark's party last week was fun.",
+    "category": "Friends",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Social recap — driver mentally engages with shared memory."
+  },
+  {
+    "text": "I'm looking forward to the holidays.",
+    "category": "Work",
+    "speaker": "passenger",
+    "speakerLabel": "Colleague (passenger seat)",
+    "contextHint": "Positive anticipation — upbeat comment that slightly lifts driver's mood off-task."
+  },
+  {
+    "text": "I might just stay in and watch movies.",
+    "category": "Weekend plans",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Rest plan — offhand comment from passenger during the ride."
+  },
+  {
+    "text": "I really want to take a vacation soon.",
+    "category": "Travel",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Vacation wishful thinking — mild mental escapism triggered by passenger."
+  },
+  {
+    "text": "My boss is actually pretty cool.",
+    "category": "Work",
+    "speaker": "passenger",
+    "speakerLabel": "Colleague (passenger seat)",
+    "contextHint": "Workplace chatter — casual conversation during a shared commute."
+  },
+  {
+    "text": "Sarah said she might drop by later.",
+    "category": "Friends",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Social update — minor planning comment that competes for driver attention."
+  },
+  {
+    "text": "I need to find some new music to listen to.",
+    "category": "Music",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Music suggestion request — may prompt driver to reach for phone or controls."
+  },
+  {
+    "text": "I love it when the weather is like this.",
+    "category": "Weather",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Pleasant weather remark — invites driver to enjoy scenery instead of focusing."
+  },
+  {
+    "text": "I've been craving sushi all day.",
+    "category": "Food",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Food craving shared aloud — light distraction but invites detour planning."
+  },
+  {
+    "text": "It's been so chilly lately.",
+    "category": "Weather",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Weather small talk — common but distracting in-car conversation."
+  },
+  {
+    "text": "I saw some cheap flights to Mexico.",
+    "category": "Travel",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Travel deal sharing — sparks planning conversation while driving."
+  },
+  {
+    "text": "Alex is moving to a new apartment.",
+    "category": "Friends",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Social news — mildly engaging update that splits attention."
+  },
+  {
+    "text": "I hope it doesn't snow this weekend.",
+    "category": "Weather",
+    "speaker": "radio",
+    "speakerLabel": "Car Radio (weather report)",
+    "contextHint": "Weather forecast from radio — background audio adding cognitive noise."
+  },
+  {
+    "text": "I really like this band's old stuff.",
+    "category": "Music",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Music opinion — conversational exchange requiring driver acknowledgment."
+  },
+  {
+    "text": "I need to cut back on the junk food.",
+    "category": "Food",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Health self-talk — relatable comment made during the journey."
+  },
+  {
+    "text": "I'm thinking about going camping next month.",
+    "category": "Travel",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Upcoming trip planning — mentally engaging, splits driver's focus."
+  },
+  {
+    "text": "The wind is pretty strong today.",
+    "category": "Weather",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Weather observation — may cause driver to adjust grip or scan road conditions."
+  },
+  {
+    "text": "I spend way too much on online shopping.",
+    "category": "Shopping",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Financial self-criticism — mild stress topic raised in conversation."
+  },
+  {
+    "text": "My sister just got a new dog.",
+    "category": "Family",
+    "speaker": "passenger",
+    "speakerLabel": "Family member (back seat)",
+    "contextHint": "Family news — joyful update shared in-car, emotionally engaging."
+  },
+  {
+    "text": "I had the weirdest dream last night.",
+    "category": "Random observations",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Dream recounting — mentally absorbing storytelling while driving."
+  },
+  {
+    "text": "That store at the mall is having a sale.",
+    "category": "Shopping",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Shopping tip — may trigger detour plans or phone searching."
+  },
+  {
+    "text": "Maybe I'll go for a hike on Saturday.",
+    "category": "Weekend plans",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Weekend activity planning — driver's mind shifts to future, off-road."
+  },
+  {
+    "text": "I'd love to go back to the beach.",
+    "category": "Travel",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Nostalgic travel wish — emotional daydreaming triggered by passenger."
+  },
+  {
+    "text": "The traffic feels lighter today.",
+    "category": "Local surroundings",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Traffic observation — driver may reduce alertness thinking road is clear."
+  },
+  {
+    "text": "Jane got that new job she wanted.",
+    "category": "Friends",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Friend's achievement news — happy distraction during the commute."
+  },
+  {
+    "text": "Do you like spicy food?",
+    "category": "Food",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Casual food question — requires driver verbal response while navigating."
+  },
+  {
+    "text": "I need to finish that report by Friday.",
+    "category": "Work",
+    "speaker": "passenger",
+    "speakerLabel": "Colleague (passenger seat)",
+    "contextHint": "Deadline stress shared by a coworker — adds cognitive load to driver."
+  },
+  {
+    "text": "I wonder how Emily is doing.",
+    "category": "Friends",
+    "speaker": "passenger",
+    "speakerLabel": "Passenger (front seat)",
+    "contextHint": "Social curiosity — minor attentional pull away from driving."
   }
 ]

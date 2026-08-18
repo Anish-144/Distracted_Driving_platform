@@ -86,12 +86,11 @@ async def generate_scenario(
     - Driver profile type
     - Recent session mistakes
     """
-    # Validate distraction type
-    valid_types = [e.value for e in EventType]
-    if request.distraction_type not in valid_types:
+    # Validate distraction_type is non-empty
+    if not request.distraction_type or not request.distraction_type.strip():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid distraction_type. Must be one of: {valid_types}",
+            detail="distraction_type cannot be empty",
         )
 
     # Fetch personality profile (for psychographic personalization)

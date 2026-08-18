@@ -13,7 +13,7 @@ import {
   Shield, TrendingUp, Clock, Car, PlayCircle, ChevronRight,
   Activity, Phone, MessageCircle, MapPin, AlertTriangle,
   Zap, Brain, BarChart2, BookOpen, FileText, Target, CheckCircle2,
-  ArrowRight,
+  ArrowRight, ArrowUp, ArrowDown, Wifi, Users, CloudRain, TrendingDown
 } from 'lucide-react';
 
 // ── Shared primitives ────────────────────────────────────────────────────────
@@ -28,40 +28,52 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 // ── KPI Stat Card ─────────────────────────────────────────────────────────────
 
-function StatCard({ label, value, sub, icon: Icon, isLoading, accent }: {
+function StatCard({ label, value, sub, icon: Icon, isLoading, accent, trend }: {
   label: string;
   value: any;
   sub: string;
   icon: React.ElementType;
   isLoading: boolean;
   accent?: boolean;
+  trend?: 'up' | 'down' | 'neutral';
 }) {
   return (
     <div
-      className="p-4 flex flex-col gap-2"
+      className="p-4 flex flex-col gap-2 relative overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
       style={{
         background: accent ? '#C8FF00' : 'var(--bg-card)',
-        border: '1px solid var(--border-card)',
-        borderRadius: '4px',
+        border: `1px solid ${accent ? '#C8FF00' : 'var(--border-card)'}`,
+        borderRadius: '8px',
       }}
     >
-      <div className="flex items-center justify-between">
+      {/* Subtle gradient shimmer on accent */}
+      {accent && (
+        <div className="absolute inset-0 opacity-20" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 60%)' }} />
+      )}
+      <div className="flex items-center justify-between relative z-10">
         <p
           className="text-[10px] font-semibold uppercase tracking-[0.10em]"
           style={{ color: accent ? '#1A1814' : 'var(--text-muted)' }}
         >
           {label}
         </p>
-        <Icon
-          className="w-3.5 h-3.5"
-          style={{ color: accent ? '#1A1814' : 'var(--text-muted)' }}
-        />
+        <div className="flex items-center gap-1">
+          {trend && trend !== 'neutral' && (
+            <span style={{ color: accent ? '#1A1814' : (trend === 'up' ? '#10b981' : '#ef4444') }}>
+              {trend === 'up' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+            </span>
+          )}
+          <Icon
+            className="w-3.5 h-3.5"
+            style={{ color: accent ? '#1A1814' : 'var(--text-muted)' }}
+          />
+        </div>
       </div>
       {isLoading && value === '—' ? (
-        <div className="h-6 w-16 skeleton rounded" />
+        <div className="h-6 w-16 skeleton rounded relative z-10" />
       ) : (
         <p
-          className="text-2xl font-bold mono-data capitalize"
+          className="text-2xl font-bold mono-data capitalize relative z-10"
           style={{
             color: accent ? '#1A1814' : 'var(--text-primary)',
             letterSpacing: '-0.03em',
@@ -71,7 +83,7 @@ function StatCard({ label, value, sub, icon: Icon, isLoading, accent }: {
           {value}
         </p>
       )}
-      <p className="text-[10px] font-medium" style={{ color: accent ? '#1A1814' : 'var(--text-muted)' }}>{sub}</p>
+      <p className="text-[10px] font-medium relative z-10" style={{ color: accent ? '#1A1814bb' : 'var(--text-muted)' }}>{sub}</p>
     </div>
   );
 }
@@ -133,16 +145,19 @@ export default function DashboardPage() {
   const firstName = user.name?.split(' ')[0] || 'User';
 
   const statCards = [
-    { label: 'Safety Score', value: displayScore, sub: 'session avg', icon: Shield, accent: true },
-    { label: 'Reaction Time', value: displayReaction, sub: 'last session', icon: Clock },
-    { label: 'Improvement', value: displayImprovement, sub: 'overall trend', icon: TrendingUp },
-    { label: 'Driver Profile', value: displayDriverType, sub: 'behavioral type', icon: Brain },
+    { label: 'Safety Score', value: displayScore, sub: 'session avg', icon: Shield, accent: true, trend: 'up' as const },
+    { label: 'Reaction Time', value: displayReaction, sub: 'last session', icon: Clock, trend: 'neutral' as const },
+    { label: 'Improvement', value: displayImprovement, sub: 'overall trend', icon: TrendingUp, trend: displayImprovement !== '—' && displayImprovement.startsWith('+') ? 'up' as const : 'down' as const },
+    { label: 'Driver Profile', value: displayDriverType, sub: 'behavioral type', icon: Brain, trend: 'neutral' as const },
   ];
 
   const scenarios = [
-    { icon: Phone,         name: 'Phone Call',  difficulty: 'Medium' },
-    { icon: MessageCircle, name: 'WhatsApp',     difficulty: 'Easy' },
-    { icon: MapPin,        name: 'GPS Alert',    difficulty: 'Hard' },
+    { icon: Phone,         name: 'Phone Call',       difficulty: 'High' },
+    { icon: MessageCircle, name: 'WhatsApp',          difficulty: 'Medium' },
+    { icon: MapPin,        name: 'GPS Alert',         difficulty: 'Hard' },
+    { icon: Wifi,          name: 'Social Media',      difficulty: 'Easy' },
+    { icon: Users,         name: 'Passenger Noise',   difficulty: 'Medium' },
+    { icon: CloudRain,     name: 'Weather Change',    difficulty: 'Hard' },
   ];
 
   const quickActions = [
@@ -250,16 +265,16 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  {/* Scenario chips */}
+                  {/* Scenario chips — expanded to 6 types */}
                   <div
-                    className="grid grid-cols-3 gap-2 pt-4"
+                    className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-4"
                     style={{ borderTop: '1px solid var(--border-subtle)' }}
                   >
                     {scenarios.map((s) => (
                       <div
                         key={s.name}
-                        className="flex items-center gap-2 p-2.5"
-                        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: '4px' }}
+                        className="flex items-center gap-2 p-2.5 transition-all duration-150 hover:-translate-y-0.5"
+                        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: '8px' }}
                       >
                         <s.icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
                         <div className="min-w-0">
@@ -268,6 +283,16 @@ export default function DashboardPage() {
                         </div>
                       </div>
                     ))}
+                  </div>
+                  {/* CTA */}
+                  <div className="pt-3 mt-1" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                    <Link
+                      href="/simulation"
+                      className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-all"
+                      style={{ color: '#C8FF00' }}
+                    >
+                      <PlayCircle className="w-3.5 h-3.5" /> Start Full Simulation →
+                    </Link>
                   </div>
                 </div>
               </div>

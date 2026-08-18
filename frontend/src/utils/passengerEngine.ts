@@ -16,6 +16,9 @@ export enum PassengerPersonality {
 export interface ChatterSnippet {
   text: string;
   category: string;
+  speaker?: string;
+  speakerLabel?: string;
+  contextHint?: string;
 }
 
 class PassengerEngine {

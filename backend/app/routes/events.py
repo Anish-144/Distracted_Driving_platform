@@ -25,8 +25,8 @@ router = APIRouter(prefix="/api/event", tags=["Events"])
 
 class PostEventRequest(BaseModel):
     session_id: str
-    event_type: EventType
-    user_response: UserResponseType
+    event_type: str
+    user_response: str
     response_time: float  # seconds since event triggered
     notes: str | None = None
 
@@ -45,25 +45,16 @@ class EventResponse(BaseModel):
 
 # ─── Helper: Evaluate Decision ───────────────────────────────────────────────
 
-def evaluate_decision(user_response: UserResponseType, response_time: float) -> tuple[DecisionType, float]:
+def evaluate_decision(user_response: str | UserResponseType, response_time: float) -> tuple[DecisionType, float]:
     """
     Determine decision type and score delta based on response and timing.
-    
-    Scoring:
-      - Safe (ignored / voice_command): +10
-      - Impulsive unsafe (interacted < 2s): -20
-      - Risky (interacted 2-5s): -15
-      - Delayed hesitant (interacted > 5s): -10
-      - No response (timed out): -5
-    
-    Returns:
-        (DecisionType, score_delta)
     """
-    is_safe = user_response in (UserResponseType.IGNORED, UserResponseType.VOICE_COMMAND)
+    resp_str = user_response.value if hasattr(user_response, 'value') else str(user_response)
+    is_safe = resp_str in ("ignored", "voice_command")
 
     if is_safe:
         return DecisionType.SAFE_IGNORE, +10.0
-    elif user_response == UserResponseType.NO_RESPONSE:
+    elif resp_str == "no_response":
         return DecisionType.DELAYED_HESITANT, -5.0
     elif response_time < 2.0:
         return DecisionType.IMPULSIVE_UNSAFE, -20.0
@@ -101,8 +92,8 @@ async def post_event(
     # Create event record
     event = Event(
         session_id=request.session_id,
-        event_type=request.event_type,
-        user_response=request.user_response,
+        event_type=str(request.event_type),
+        user_response=str(request.user_response),
         response_time=request.response_time,
         notes=request.notes,
         responded_at=datetime.now(timezone.utc),
@@ -131,16 +122,19 @@ async def post_event(
     await db.flush()
     await db.refresh(event)
 
+    ev_type_str = event.event_type.value if hasattr(event.event_type, 'value') else str(event.event_type)
+    usr_resp_str = event.user_response.value if hasattr(event.user_response, 'value') else str(event.user_response)
+
     return EventResponse(
         id=event.id,
         session_id=event.session_id,
-        event_type=event.event_type.value,
-        user_response=event.user_response.value,
+        event_type=ev_type_str,
+        user_response=usr_resp_str,
         response_time=event.response_time,
-        decision_type=decision_type.value,
+        decision_type=decision_type.value if hasattr(decision_type, 'value') else str(decision_type),
         score_delta=score_delta,
         new_score=updated_session.score,
-        triggered_at=event.triggered_at.isoformat(),
+        triggered_at=event.triggered_at.isoformat() if event.triggered_at else datetime.now(timezone.utc).isoformat(),
     )
 
 
@@ -163,16 +157,19 @@ async def get_event(
     if session is None or session.user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
-    decision_type, score_delta = evaluate_decision(event.user_response, event.response_time or 0)
+    decision_type, score_delta = evaluate_decision(event.user_response or "", event.response_time or 0)
+
+    ev_type_str = event.event_type.value if hasattr(event.event_type, 'value') else str(event.event_type)
+    usr_resp_str = event.user_response.value if hasattr(event.user_response, 'value') else str(event.user_response)
 
     return EventResponse(
         id=event.id,
         session_id=event.session_id,
-        event_type=event.event_type.value,
-        user_response=event.user_response.value,
+        event_type=ev_type_str,
+        user_response=usr_resp_str,
         response_time=event.response_time,
-        decision_type=decision_type.value,
+        decision_type=decision_type.value if hasattr(decision_type, 'value') else str(decision_type),
         score_delta=score_delta,
         new_score=session.score,
-        triggered_at=event.triggered_at.isoformat(),
+        triggered_at=event.triggered_at.isoformat() if event.triggered_at else datetime.now(timezone.utc).isoformat(),
     )

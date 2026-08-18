@@ -319,12 +319,14 @@ async def generate_lesson_from_session(
     events = event_result.scalars().all()
     mistakes = []
     for event in events:
-        is_unsafe = event.user_response == UserResponseType.INTERACTED
+        usr_resp = event.user_response.value if hasattr(event.user_response, 'value') else (str(event.user_response) if event.user_response else 'none')
+        is_unsafe = usr_resp == "interacted"
         is_slow = event.response_time and event.response_time > 2.0
         if is_unsafe or is_slow:
             tag = "UNSAFE INTERACTION" if is_unsafe else "SLOW REACTION"
+            ev_type = event.event_type.value if hasattr(event.event_type, 'value') else str(event.event_type)
             mistakes.append(
-                f"{tag}: {event.event_type.value} response was {event.user_response.value if event.user_response else 'none'} in {event.response_time or 0.0:.2f}s"
+                f"{tag}: {ev_type} response was {usr_resp} in {event.response_time or 0.0:.2f}s"
             )
             
     log_result = await db.execute(
@@ -441,12 +443,14 @@ async def _auto_generate_lesson(
         events = event_result.scalars().all()
         mistakes = []
         for event in events:
-            is_unsafe = event.user_response == UserResponseType.INTERACTED
+            usr_resp = event.user_response.value if hasattr(event.user_response, 'value') else (str(event.user_response) if event.user_response else 'none')
+            is_unsafe = usr_resp == "interacted"
             is_slow = event.response_time and event.response_time > 2.0
             if is_unsafe or is_slow:
                 tag = "UNSAFE INTERACTION" if is_unsafe else "SLOW REACTION"
+                ev_type = event.event_type.value if hasattr(event.event_type, 'value') else str(event.event_type)
                 mistakes.append(
-                    f"{tag}: {event.event_type.value} response was {event.user_response.value if event.user_response else 'none'} in {event.response_time or 0.0:.2f}s"
+                    f"{tag}: {ev_type} response was {usr_resp} in {event.response_time or 0.0:.2f}s"
                 )
 
         # 2. Fetch behavioral analysis tags

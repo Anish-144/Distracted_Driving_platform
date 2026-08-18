@@ -34,12 +34,8 @@ class Event(Base):
     session_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    event_type: Mapped[EventType] = mapped_column(
-        SAEnum(EventType, values_callable=lambda x: [e.value for e in x]), nullable=False
-    )
-    user_response: Mapped[UserResponseType | None] = mapped_column(
-        SAEnum(UserResponseType, values_callable=lambda x: [e.value for e in x]), nullable=True
-    )
+    event_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    user_response: Mapped[str | None] = mapped_column(String(50), nullable=True)
     response_time: Mapped[float | None] = mapped_column(
         Float, nullable=True, comment="Reaction time in seconds"
     )

@@ -110,9 +110,10 @@ async def get_latest_session(
 
     mistakes = []
     for e in events:
-        if e.user_response == UserResponseType.INTERACTED:
+        usr_resp = e.user_response.value if hasattr(e.user_response, 'value') else str(e.user_response)
+        if usr_resp == "interacted":
             mistakes.append({
-                "scenario": e.event_type.value,
+                "scenario": e.event_type.value if hasattr(e.event_type, 'value') else str(e.event_type),
                 "response": "Unsafe Interaction"
             })
 

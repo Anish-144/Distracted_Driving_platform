@@ -282,8 +282,8 @@ async def export_my_data(
             "events": [
                 {
                     "id": e.id,
-                    "event_type": e.event_type.value,
-                    "user_response": e.user_response.value if e.user_response else None,
+                    "event_type": e.event_type.value if hasattr(e.event_type, 'value') else str(e.event_type),
+                    "user_response": e.user_response.value if hasattr(e.user_response, 'value') else (str(e.user_response) if e.user_response else None),
                     "response_time": e.response_time,
                     "notes": e.notes,
                     "triggered_at": e.triggered_at.isoformat(),
