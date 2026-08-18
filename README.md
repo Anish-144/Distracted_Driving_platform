@@ -33,6 +33,14 @@ docker compose up --build -d
 ```
 Access the platform at `http://localhost:3000`. Test credentials are `test@example.com` / `password123`.
 
+Or use seperate step for frontend and backend
+
+go to frontend folder:
+npm run dev
+
+go to backend folder:
+python -m uvicorn app.main:app --reload
+
 ### 🔐 Admin Setup
 
 The platform does not create admin users by default. To bootstrap an admin account or grant admin privileges to an existing user, run the bootstrap script from the root directory:
