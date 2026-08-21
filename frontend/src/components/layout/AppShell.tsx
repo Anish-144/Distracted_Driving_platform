@@ -17,11 +17,16 @@ interface AppShellProps {
   children: ReactNode;
   className?: string;
   style?: React.CSSProperties;
-  maxWidth?: 'default' | 'wide';
+  maxWidth?: 'default' | 'wide' | 'full';
 }
 
 export default function AppShell({ children, className = '', style, maxWidth = 'default' }: AppShellProps) {
-  const contentMaxWidth = maxWidth === 'wide' ? 'max-w-7xl' : 'max-w-5xl';
+  let contentMaxWidth = 'max-w-7xl 2xl:max-w-[1600px]';
+  if (maxWidth === 'wide') {
+    contentMaxWidth = 'max-w-[1720px]';
+  } else if (maxWidth === 'full') {
+    contentMaxWidth = 'max-w-full';
+  }
 
   return (
     <div
@@ -35,7 +40,7 @@ export default function AppShell({ children, className = '', style, maxWidth = '
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Navbar sticks to the top of this column, not the full page */}
         <Navbar />
-        <main className="flex-1 overflow-y-auto px-6 py-8 lg:px-10 lg:py-10">
+        <main className="flex-1 overflow-y-auto px-6 py-6 lg:px-10 lg:py-8">
           <div className={`${contentMaxWidth} mx-auto w-full`}>
             {children}
           </div>

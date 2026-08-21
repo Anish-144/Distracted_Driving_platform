@@ -5,7 +5,10 @@ export type EventType =
   | 'whatsapp_notification'
   | 'gps_rerouting'
   | 'email_alert'
-  | 'social_media';
+  | 'social_media'
+  | 'passenger_question'
+  | 'radio_distraction'
+  | 'roadside_event';
 
 export type UserResponseType = 'ignored' | 'interacted' | 'voice_command' | 'no_response';
 

@@ -19,7 +19,11 @@ from app.schemas.feedback import (
     FeedbackCreate, FeedbackRead, FeedbackAdminRead, 
     FeedbackStatusUpdate, FeedbackNoteBase, FeedbackListResponse, FeedbackAnalyticsResponse
 )
-import magic
+import mimetypes
+try:
+    import magic
+except (ImportError, Exception):
+    magic = None
 from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/api/feedback", tags=["feedback"])
@@ -86,8 +90,15 @@ async def submit_feedback(
             content = await file.read()
             size = len(content)
             
-            # Magic byte verification
-            actual_mime = magic.from_buffer(content[:2048], mime=True)
+            # Magic byte verification with fallback if libmagic is unavailable
+            actual_mime = None
+            if magic is not None:
+                try:
+                    actual_mime = magic.from_buffer(content[:2048], mime=True)
+                except Exception:
+                    actual_mime = None
+            if not actual_mime:
+                actual_mime = file.content_type or mimetypes.guess_type(file.filename)[0] or "application/octet-stream"
             
             if actual_mime not in ALLOWED_MIME_TYPES:
                 continue # Skip invalid files

@@ -223,7 +223,7 @@ export default function SettingsPage() {
         <meta name="description" content="Manage your SafeDrive AI account settings and preferences." />
       </Head>
 
-      <AppShell>
+      <AppShell maxWidth="wide">
         <FadeUp className="mb-8">
           <p className={`${LABEL} text-brand-600 dark:text-brand-400 mb-1`}>Preferences</p>
           <div className="flex items-center gap-3">
@@ -235,7 +235,7 @@ export default function SettingsPage() {
           <p className="text-sm text-muted mt-2">Manage your account, privacy, and training preferences.</p>
         </FadeUp>
 
-        <div className="max-w-3xl space-y-6 pb-24">
+        <div className="max-w-5xl space-y-6 pb-24">
  {/* Account Info */}
           {/* Account Info Form */}
           <FadeUp delay={0.1}>

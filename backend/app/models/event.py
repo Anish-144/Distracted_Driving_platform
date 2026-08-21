@@ -16,6 +16,9 @@ class EventType(str, enum.Enum):
     GPS_REROUTING = "gps_rerouting"
     EMAIL_ALERT = "email_alert"
     SOCIAL_MEDIA = "social_media"
+    PASSENGER_QUESTION = "passenger_question"
+    RADIO_DISTRACTION = "radio_distraction"
+    ROADSIDE_EVENT = "roadside_event"
 
 
 class UserResponseType(str, enum.Enum):

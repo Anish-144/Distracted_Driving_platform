@@ -63,7 +63,7 @@ export default function ProgressPage() {
  <>
  <Head><title>Progress — SafeDrive AI</title></Head>
 
- <AppShell>
+ <AppShell maxWidth="wide">
  {/* Header */}
  <FadeUp className="mb-8">
  <p className={`${LABEL} text-brand-400 mb-1`}>Analytics</p>

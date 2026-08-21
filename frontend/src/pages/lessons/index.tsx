@@ -727,7 +727,7 @@ export default function LessonsPage() {
  <meta name="description" content="AI-powered personalized behavioral training lessons for SafeDrive AI." />
  </Head>
 
- <AppShell>
+ <AppShell maxWidth="wide">
  {/* Page header */}
  <FadeUp className="mb-8">
  <p className="label-caps mb-1">Behavioral Training Center</p>
@@ -787,8 +787,8 @@ export default function LessonsPage() {
  </FadeUp>
 
  {isLoading ? (
- <div className="grid gap-4 md:grid-cols-2">
- {[...Array(4)].map((_, i) => (
+ <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+ {[...Array(6)].map((_, i) => (
  <div key={i} className="h-52 bg-secondary border border-subtle rounded-2xl animate-pulse" />
  ))}
  </div>
@@ -797,18 +797,22 @@ export default function LessonsPage() {
  {/* ── AI LESSONS TAB ──────────────────────────────────────────────── */}
  {activeTab === 'ai' && (
  <div className="space-y-8">
- {/* Generate button */}
+ {/* Generate button & Path in wide top section */}
+ <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
  <FadeUp delay={0.1}>
- <div className={`${CARD} p-5 flex items-center justify-between gap-4 bg-secondary border border-subtle`}>
- <div className="flex items-center gap-3">
- <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center flex-shrink-0">
- <Sparkles className="w-5 h-5 text-primary" />
+ <div className={`${CARD} p-6 flex flex-col justify-between h-full bg-secondary border border-subtle`}>
+ <div className="flex items-start gap-4">
+ <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center flex-shrink-0">
+ <Sparkles className="w-6 h-6 text-primary" />
  </div>
  <div>
- <p className="font-bold text-primary">Generate New AI Lesson</p>
- <p className="text-xs text-primary mt-0.5">Based on your latest behavioral data and driver profile</p>
+ <p className="text-base font-bold text-primary">Generate New AI Lesson</p>
+ <p className="text-xs text-muted mt-1 leading-relaxed">
+ Synthesizes your latest telemetry, response times, and mistake patterns into a personalized behavioral intervention.
+ </p>
  </div>
  </div>
+ <div className="mt-5 pt-4 border-t border-subtle flex justify-end">
  <button
  onClick={async () => {
  try {
@@ -819,14 +823,15 @@ export default function LessonsPage() {
  }
  }}
  disabled={isGenerating}
- className="btn-primary flex items-center gap-2 disabled:opacity-60 flex-shrink-0"
+ className="btn-primary flex items-center gap-2 px-6 py-2.5 disabled:opacity-60"
  >
  {isGenerating ? (
  <><RefreshCw className="w-4 h-4 animate-spin" /> Generating...</>
  ) : (
- <><Sparkles className="w-4 h-4" /> Generate</>
+ <><Sparkles className="w-4 h-4" /> Generate Lesson</>
  )}
  </button>
+ </div>
  </div>
  {generateError && (
    <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-3">
@@ -834,93 +839,86 @@ export default function LessonsPage() {
      <div>
        <h4 className="text-sm font-bold text-red-400">Generation Failed</h4>
        <p className="text-xs text-red-300 mt-1">{generateError}</p>
-       <p className="text-xs text-muted mt-2">
-         The system encountered an error while processing your behavioral data. Please try again, or explore the Lesson Library for standard curriculum modules.
-       </p>
      </div>
    </div>
  )}
  </FadeUp>
 
-                {/* Behavior Improvement Path */}
-                {latestSessionSpecificLesson && (
-                  <FadeUp delay={0.12}>
-                    <div className={`${CARD} p-6 border-subtle bg-primary/5 mb-6`}>
-                      <p className="label-caps mb-3 text-primary flex items-center gap-1.5">
-                        <TrendingUp className="w-3.5 h-3.5" /> Behavior Improvement Path
-                      </p>
-                      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
-                        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 md:col-span-2">
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-red-400 mb-1 flex items-center gap-1">
-                            <AlertTriangle className="w-3 h-3" /> Session Mistake
-                          </p>
-                          <p className="text-xs font-semibold text-secondary">
-                            {latestSessionSpecificLesson.generated_reason || 'Detected trigger-response anomalies'}
-                          </p>
-                        </div>
-                        <div className="flex justify-center items-center md:rotate-0 rotate-90 md:col-span-1 opacity-60">
-                          <div className="flex items-center">
-                            <div className="w-6 h-[2px] bg-gradient-to-r from-transparent to-primary/40 rounded-full" />
-                            <ChevronRight className="w-4 h-4 text-primary/40 -ml-1" />
-                          </div>
-                        </div>
-                        <div className="p-4 rounded-xl bg-secondary border border-subtle md:col-span-2">
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-primary mb-1 flex items-center gap-1">
-                            <Target className="w-3 h-3" /> Recommended Lesson & Target Goal
-                          </p>
-                          <p className="text-xs font-bold text-primary mb-1">{latestSessionSpecificLesson.title}</p>
-                          <p className="text-xs text-primary font-semibold">{latestSessionSpecificLesson.personalized_improvement_strategy}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </FadeUp>
-                )}
+ {/* Behavior Improvement Path */}
+ {latestSessionSpecificLesson ? (
+   <FadeUp delay={0.12}>
+     <div className={`${CARD} p-6 border-subtle bg-primary/5 h-full flex flex-col justify-between`}>
+       <p className="label-caps mb-3 text-primary flex items-center gap-1.5">
+         <TrendingUp className="w-3.5 h-3.5" /> Behavior Improvement Path
+       </p>
+       <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-center flex-1">
+         <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 md:col-span-2">
+           <p className="text-[10px] font-bold uppercase tracking-wider text-red-400 mb-1 flex items-center gap-1">
+             <AlertTriangle className="w-3 h-3" /> Trigger Mistake
+           </p>
+           <p className="text-xs font-semibold text-secondary line-clamp-3">
+             {latestSessionSpecificLesson.generated_reason || 'Detected trigger-response anomalies'}
+           </p>
+         </div>
+         <div className="flex justify-center items-center md:rotate-0 rotate-90 md:col-span-1 opacity-60">
+           <ChevronRight className="w-5 h-5 text-primary" />
+         </div>
+         <div className="p-3.5 rounded-xl bg-secondary border border-subtle md:col-span-2">
+           <p className="text-[10px] font-bold uppercase tracking-wider text-primary mb-1 flex items-center gap-1">
+             <Target className="w-3 h-3" /> Target Goal
+           </p>
+           <p className="text-xs font-bold text-primary mb-1 truncate">{latestSessionSpecificLesson.title}</p>
+           <p className="text-[11px] text-primary font-semibold line-clamp-2">{latestSessionSpecificLesson.personalized_improvement_strategy}</p>
+         </div>
+       </div>
+     </div>
+   </FadeUp>
+ ) : (
+   <FadeUp delay={0.12}>
+     <div className={`${CARD} p-6 border-subtle bg-secondary/50 h-full flex flex-col items-center justify-center text-center`}>
+       <Target className="w-8 h-8 text-muted mb-2" />
+       <p className="text-sm font-bold text-primary">Continuous Calibration</p>
+       <p className="text-xs text-muted max-w-sm mt-1">Complete additional simulations to generate session-specific behavioral correction paths.</p>
+     </div>
+   </FadeUp>
+ )}
+ </div>
 
- {/* Generated From Your Last Session (Feature Card) */}
- {latestSessionSpecificLesson && (
+ {/* Generated From Your Last Session & Active Plan in 2-Column Responsive Grid */}
  <div>
  <FadeUp delay={0.14}>
- <div className="flex items-center gap-2 mb-4">
- <Sparkles className="w-4 h-4 text-primary" />
- <h2 className="text-lg font-bold text-primary">Generated From Your Last Session</h2>
- <span className="text-[10px] bg-red-500/10 text-red-400 border border-red-500/20 rounded-full px-2.5 py-0.5 font-bold uppercase tracking-wider">Correction Required</span>
+ <div className="flex items-center justify-between gap-2 mb-4">
+   <div className="flex items-center gap-2">
+     <Star className="w-4 h-4 text-amber-400" />
+     <h2 className="text-lg font-bold text-primary">Your Targeted AI Interventions</h2>
+   </div>
+   <span className="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full px-2.5 py-0.5 font-semibold">
+     {activeAILessons.length} Active Modules
+   </span>
  </div>
  </FadeUp>
- <div className="max-w-2xl">
- <AILessonCard lesson={latestSessionSpecificLesson} index={0} onOpen={handleOpenAILesson} />
- </div>
- </div>
- )}
 
- {/* Active lessons */}
- {otherActiveLessons.length > 0 && (
- <div>
- <FadeUp delay={0.15}>
- <div className="flex items-center gap-2 mb-4">
- <Star className="w-4 h-4 text-amber-400" />
- <h2 className="text-lg font-bold text-primary">Your Personalized Plan</h2>
- <span className="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full px-2 py-0.5 font-semibold">{otherActiveLessons.length} active</span>
- </div>
- </FadeUp>
- <div className="grid gap-5 md:grid-cols-2">
+ <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+ {latestSessionSpecificLesson && (
+   <AILessonCard lesson={latestSessionSpecificLesson} index={0} onOpen={handleOpenAILesson} />
+ )}
  {otherActiveLessons.map((lesson, i) => (
- <AILessonCard key={lesson.id} lesson={lesson} index={i} onOpen={handleOpenAILesson} />
+   <AILessonCard key={lesson.id} lesson={lesson} index={i + 1} onOpen={handleOpenAILesson} />
  ))}
  </div>
  </div>
- )}
 
  {/* Completed lessons */}
  {completedAILessons.length > 0 && (
  <div>
  <FadeUp>
- <div className="flex items-center gap-2 mb-4">
+ <div className="flex items-center gap-2 mb-4 mt-6">
  <CheckCircle2 className="w-4 h-4 text-brand-400" />
- <h2 className="text-lg font-bold text-primary">Completed</h2>
+ <h2 className="text-lg font-bold text-primary">Completed Interventions</h2>
  <span className="text-xs bg-brand-500/10 text-brand-400 border border-brand-500/20 rounded-full px-2 py-0.5 font-semibold">{completedAILessons.length}</span>
  </div>
  </FadeUp>
- <div className="grid gap-5 md:grid-cols-2">
+ <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
  {completedAILessons.map((lesson, i) => (
  <AILessonCard key={lesson.id} lesson={lesson} index={i} onOpen={handleOpenAILesson} />
  ))}
@@ -984,7 +982,7 @@ export default function LessonsPage() {
   </div>
   </FadeUp>
   ) : (
-  <div className="grid gap-5 md:grid-cols-2">
+  <div className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
   {activeStaticLessons.map((lesson, idx) => {
   return (
   <FadeUp key={lesson.id} delay={0.15 + idx * 0.05}>
@@ -1021,7 +1019,7 @@ export default function LessonsPage() {
   <h2 className="text-lg font-bold text-primary">Completed Recommendations</h2>
   </div>
   </FadeUp>
-  <div className="grid gap-5 md:grid-cols-2">
+  <div className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
   {completedStaticLessons.map((lesson, idx) => (
   <FadeUp key={lesson.id} delay={0.15 + idx * 0.05}>
   <div 
@@ -1055,7 +1053,7 @@ export default function LessonsPage() {
  <FadeUp delay={0.2}>
  <h2 className="text-lg font-bold text-primary mb-4">Browse All Modules</h2>
  </FadeUp>
- <div className="grid gap-5 md:grid-cols-2">
+ <div className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
  {allLessons.map((lesson, idx) => {
  const isCompleted = completedStaticIds.includes(lesson.id);
  return (

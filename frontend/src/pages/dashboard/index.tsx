@@ -163,7 +163,7 @@ export default function DashboardPage() {
         <meta name="description" content="Track your distracted driving training progress and behavioral intelligence." />
       </Head>
 
-      <AppShell>
+      <AppShell maxWidth="wide">
 
         {/* ── Welcome header ─────────────────────────────────────────────── */}
         <FadeUp className="mb-6">
