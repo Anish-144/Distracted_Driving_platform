@@ -360,6 +360,95 @@ export default function DashboardPage() {
                 </div>
               </div>
             </FadeUp>
+
+            {/* Recommended Lessons & Recent Mistakes — side-by-side below AI Coaching */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Recommended Lessons */}
+              <FadeUp delay={0.2}>
+                <div className="bg-primary rounded-xl border border-card p-5 h-full flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <SectionLabel>Recommended Lessons</SectionLabel>
+                      <Link href="/lessons" className="text-[10px] font-semibold text-accent hover:underline">
+                        View all
+                      </Link>
+                    </div>
+                    <div className="space-y-2">
+                      {lessons.length === 0 && !isLoading && (
+                        <div className="rounded-lg bg-secondary border border-subtle p-3 text-center">
+                          <p className="text-xs text-muted">No recommendations yet. Complete a session first.</p>
+                        </div>
+                      )}
+                      {isLoading && (
+                        <>
+                          <div className="h-14 rounded-lg bg-secondary animate-pulse" />
+                          <div className="h-14 rounded-lg bg-secondary animate-pulse opacity-60" />
+                        </>
+                      )}
+                      {lessons.slice(0, 2).map((lesson) => (
+                        <Link key={lesson.id} href="/lessons">
+                          <div className="p-3 rounded-lg border border-subtle bg-secondary hover:border-brand-500/40 hover:bg-tertiary transition-all duration-150 cursor-pointer group mb-2 last:mb-0">
+                            <div className="flex items-start justify-between gap-2 mb-1">
+                              <h4 className="text-xs font-semibold text-primary group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors leading-snug truncate">
+                                {lesson.title}
+                              </h4>
+                              <span className="text-[9px] uppercase font-bold text-muted px-1.5 py-0.5 rounded bg-tertiary border border-subtle shrink-0">
+                                {lesson.difficulty}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-muted line-clamp-2 leading-relaxed">{lesson.description}</p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </FadeUp>
+
+              {/* Recent Mistakes */}
+              <FadeUp delay={0.22}>
+                <div className="bg-primary rounded-xl border border-card p-5 h-full flex flex-col justify-between">
+                  <div>
+                    <CardHeader
+                      icon={AlertTriangle}
+                      iconColor="#fbbf24"
+                      iconBg="rgba(251,191,36,0.1)"
+                      title="Recent Mistakes"
+                    />
+                    <div className="space-y-2">
+                      {isFetchingLatest ? (
+                        <>
+                          <div className="h-10 rounded-lg bg-secondary animate-pulse" />
+                          <div className="h-10 rounded-lg bg-secondary animate-pulse opacity-60" />
+                        </>
+                      ) : !latestData || latestData.mistakes.length === 0 ? (
+                        <div className="flex items-center gap-2 p-3 rounded-lg bg-secondary border border-subtle">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-brand-500 flex-shrink-0" />
+                          <p className="text-xs text-secondary">No recent mistakes. Keep it up!</p>
+                        </div>
+                      ) : (
+                        latestData.mistakes.map((m, i) => (
+                          <div
+                            key={i}
+                            className="p-3 rounded-lg text-xs"
+                            style={{
+                              background: 'rgba(251,191,36,0.04)',
+                              border: '1px solid rgba(251,191,36,0.15)',
+                              borderLeft: '2px solid #fbbf24',
+                            }}
+                          >
+                            <p className="font-semibold text-primary capitalize">{m.scenario.replace('_', ' ')}</p>
+                            <p className={`mt-0.5 font-medium ${(m.response || '').includes('Unsafe') ? 'text-destructive' : 'text-warning'}`}>
+                              {m.response}
+                            </p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </FadeUp>
+            </div>
           </div>
 
           {/* ── Right column (1/3) ── */}
@@ -419,7 +508,6 @@ export default function DashboardPage() {
             </FadeUp>
 
             {/* Quick Actions */}
-
             <FadeUp delay={0.15}>
               <div className="bg-primary rounded-xl border border-card p-5">
                 <SectionLabel>Quick Navigation</SectionLabel>
@@ -436,88 +524,6 @@ export default function DashboardPage() {
                       </div>
                     </Link>
                   ))}
-                </div>
-              </div>
-            </FadeUp>
-
-            {/* Recommended Lessons */}
-            <FadeUp delay={0.2}>
-              <div className="bg-primary rounded-xl border border-card p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <SectionLabel>Recommended Lessons</SectionLabel>
-                  <Link href="/lessons" className="text-[10px] font-semibold text-accent hover:underline">
-                    View all
-                  </Link>
-                </div>
-                <div className="space-y-2">
-                  {lessons.length === 0 && !isLoading && (
-                    <div className="rounded-lg bg-secondary border border-subtle p-3 text-center">
-                      <p className="text-xs text-muted">No recommendations yet. Complete a session first.</p>
-                    </div>
-                  )}
-                  {isLoading && (
-                    <>
-                      <div className="h-14 rounded-lg bg-secondary animate-pulse" />
-                      <div className="h-14 rounded-lg bg-secondary animate-pulse opacity-60" />
-                    </>
-                  )}
-                  {lessons.slice(0, 2).map((lesson) => (
-                    <Link key={lesson.id} href="/lessons">
-                      <div className="p-3 rounded-lg border border-subtle bg-secondary hover:border-brand-500/40 hover:bg-tertiary transition-all duration-150 cursor-pointer group">
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                          <h4 className="text-xs font-semibold text-primary group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors leading-snug truncate">
-                            {lesson.title}
-                          </h4>
-                          <span className="text-[9px] uppercase font-bold text-muted px-1.5 py-0.5 rounded bg-tertiary border border-subtle shrink-0">
-                            {lesson.difficulty}
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-muted line-clamp-2 leading-relaxed">{lesson.description}</p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </FadeUp>
-
-            {/* Recent Mistakes */}
-            <FadeUp delay={0.25}>
-              <div className="bg-primary rounded-xl border border-card p-5">
-                <CardHeader
-                  icon={AlertTriangle}
-                  iconColor="#fbbf24"
-                  iconBg="rgba(251,191,36,0.1)"
-                  title="Recent Mistakes"
-                />
-                <div className="space-y-2">
-                  {isFetchingLatest ? (
-                    <>
-                      <div className="h-10 rounded-lg bg-secondary animate-pulse" />
-                      <div className="h-10 rounded-lg bg-secondary animate-pulse opacity-60" />
-                    </>
-                  ) : !latestData || latestData.mistakes.length === 0 ? (
-                    <div className="flex items-center gap-2 p-3 rounded-lg bg-secondary border border-subtle">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-brand-500 flex-shrink-0" />
-                      <p className="text-xs text-secondary">No recent mistakes. Keep it up!</p>
-                    </div>
-                  ) : (
-                    latestData.mistakes.map((m, i) => (
-                      <div
-                        key={i}
-                        className="p-3 rounded-lg text-xs"
-                        style={{
-                          background: 'rgba(251,191,36,0.04)',
-                          border: '1px solid rgba(251,191,36,0.15)',
-                          borderLeft: '2px solid #fbbf24',
-                        }}
-                      >
-                        <p className="font-semibold text-primary capitalize">{m.scenario.replace('_', ' ')}</p>
-                        <p className={`mt-0.5 font-medium ${(m.response || '').includes('Unsafe') ? 'text-destructive' : 'text-warning'}`}>
-                          {m.response}
-                        </p>
-                      </div>
-                    ))
-                  )}
                 </div>
               </div>
             </FadeUp>

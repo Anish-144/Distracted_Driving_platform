@@ -193,15 +193,142 @@ _FALLBACK_LESSON = (
 )
 
 
-def _get_fallback_post_session(driver_type: str, session_id: str = "") -> str:
-    """Return a rotating fallback narration keyed by session_id hash to prevent repetition."""
+_SCENARIO_DISPLAY: dict[str, str] = {
+    "incoming_call": "incoming phone calls",
+    "whatsapp_notification": "WhatsApp messages",
+    "social_media": "social media alerts",
+    "email_alert": "urgent email alerts",
+    "gps_rerouting": "GPS rerouting displays",
+    "passenger_question": "passenger conversations",
+    "radio_distraction": "radio and audio adjustments",
+    "roadside_event": "roadside distractions",
+}
+
+
+def _get_fallback_post_session(
+    driver_type: str,
+    session_id: str = "",
+    session_score: float = 70.0,
+    safe_pct: int = 70,
+    consecutive_mistakes: int = 0,
+    dominant_fail_scenario: str = "none",
+    dominant_pattern: str = "safe",
+) -> str:
+    """
+    Return dynamic, personalized behavioral debrief tailored to the user's actual answers,
+    score, and failure modes in this specific session.
+    """
     import hashlib
-    pool = _FALLBACK_POST_SESSION.get(driver_type, _FALLBACK_POST_SESSION["unknown"])
-    if session_id:
-        idx = int(hashlib.md5(session_id.encode()).hexdigest(), 16) % len(pool)
-    else:
-        idx = 0
-    return pool[idx]
+    h_idx = int(hashlib.md5(session_id.encode()).hexdigest(), 16) if session_id else 0
+    scenario_human = _SCENARIO_DISPLAY.get(dominant_fail_scenario, dominant_fail_scenario)
+
+    # ── Category 1: Flawless / High Score (Zero or minimal mistakes, safe >= 80%) ──
+    if safe_pct >= 80 or session_score >= 85 or consecutive_mistakes == 0:
+        high_score_pool = [
+            (
+                f"Exceptional cognitive control throughout this session. You safely neutralized high-risk alerts "
+                f"by refusing engagement, maintaining a {safe_pct}% safe decision rate. Your split-second road vigilance "
+                f"was sharp — continue applying this automatic refusal standard during real-world drives."
+            ),
+            (
+                f"Flawless road vigilance in this run. With a {safe_pct}% safe decision score, you proved that high-urgency "
+                f"alerts cannot easily hijack your attention. Carry this exact composure and discipline forward into everyday traffic."
+            ),
+            (
+                f"Strong session execution with consistent attention control across all scenarios. You demonstrated deliberate "
+                f"prefrontal restraint and resisted reflexive urges across both digital and passenger distractions. Maintain this standard."
+            ),
+            (
+                f"Outstanding focus. You filtered out sudden notifications and maintained full situational awareness with a {safe_pct}% safe score. "
+                f"Your cognitive threshold under pressure is solid."
+            ),
+        ]
+        return high_score_pool[h_idx % len(high_score_pool)]
+
+    # ── Category 2: Digital Notifications (Phone, WhatsApp, Social, Email) ──────
+    if dominant_fail_scenario in ("incoming_call", "whatsapp_notification", "social_media", "email_alert"):
+        if dominant_pattern == "impulsive" or driver_type == "impulsive":
+            digital_impulsive_pool = [
+                (
+                    f"Sub-2-second interactions on {scenario_human} were your defining vulnerability this session. "
+                    f"The immediate dopamine pull of an alert is overriding your prefrontal brake — that's a physiological process you can interrupt. "
+                    f"Practice counting 'one, two, three' silently every time you feel the urge to engage."
+                ),
+                (
+                    f"Reflexive tapping occurred immediately when {scenario_human} appeared. That reaction speed indicates an automated habit loop "
+                    f"rather than a deliberate safety decision. Before your next drive, pre-commit to a strict zero-touch standard for incoming alerts."
+                ),
+            ]
+            return digital_impulsive_pool[h_idx % len(digital_impulsive_pool)]
+        else:
+            digital_general_pool = [
+                (
+                    f"Digital alerts from {scenario_human} repeatedly pulled your gaze away from the roadway during this session. "
+                    f"Every in-drive glance creates a blind hazard window. Set your device to Do Not Disturb or keep it out of view before driving."
+                ),
+                (
+                    f"Your decision latency on {scenario_human} shows your brain was evaluating whether to answer mid-drive. "
+                    f"Eliminate evaluation entirely by pre-committing to ignore all incoming alerts while behind the wheel."
+                ),
+            ]
+            return digital_general_pool[h_idx % len(digital_general_pool)]
+
+    # ── Category 3: Passenger & Conversational Pressure ──────────────────────────
+    if dominant_fail_scenario in ("passenger_question", "roadside_event"):
+        passenger_pool = [
+            (
+                f"Conversational and social pressure caused your standards to drop during the passenger scenarios. "
+                f"The instinct to be socially accommodating cannot override roadway safety. Next session, practice verbal boundary-setting: "
+                f"inform passengers that road focus comes first."
+            ),
+            (
+                f"Passenger demands and roadside visual cues repeatedly split your attention. Context-switching under conversational pressure "
+                f"is your primary growth target — make your safe driving standard non-negotiable regardless of who is in the car."
+            ),
+        ]
+        return passenger_pool[h_idx % len(passenger_pool)]
+
+    # ── Category 4: GPS & Vehicle Controls ───────────────────────────────────────
+    if dominant_fail_scenario in ("gps_rerouting", "radio_distraction"):
+        cabin_pool = [
+            (
+                f"In-cabin navigation and audio adjustments compromised your visual attention during key driving moments. "
+                f"Glancing at rerouting displays in motion adds cognitive overload. Rely on audio-only navigation cues to keep your eyes forward."
+            ),
+            (
+                f"Secondary vehicle tasks like GPS rerouting and radio controls created attentional drift. Set navigation destinations "
+                f"and playlists before shifting into drive to eliminate in-motion distractions."
+            ),
+        ]
+        return cabin_pool[h_idx % len(cabin_pool)]
+
+    # ── Category 5: Hesitation / Anxiety ─────────────────────────────────────────
+    if dominant_pattern == "anxious" or dominant_pattern == "hesitant":
+        hesitant_pool = [
+            (
+                f"Extended hesitation exceeding 5 seconds was your primary cost pattern. Holding decisions open while in motion "
+                f"creates prolonged cognitive hazard windows. Train yourself on a decisive rule: when in doubt, immediately ignore."
+            ),
+            (
+                f"Uncertainty led to response delays across multiple alerts. The goal is not faster evaluation, but pre-committed decisions. "
+                f"Decide before the journey begins that non-critical alerts will be ignored without deliberation."
+            ),
+        ]
+        return hesitant_pool[h_idx % len(hesitant_pool)]
+
+    # ── Category 6: General Moderate/Low Performance ─────────────────────────────
+    general_pool = [
+        (
+            f"This session revealed vulnerability to rapid-fire distractions, with a {safe_pct}% safe decision rate. "
+            f"Incoming stimuli consistently overwhelmed your attention filters. Target one clear objective next time: keep your hands on the wheel "
+            f"and let every alert ring out without touching the screen."
+        ),
+        (
+            f"Multiple competing stimuli triggered lapses in focus across the scenario sequence. "
+            f"The psychological counter-measure is radical simplicity: treat every single in-drive alert as non-urgent."
+        ),
+    ]
+    return general_pool[h_idx % len(general_pool)]
 
 
 # ── Main Orchestrator ─────────────────────────────────────────────────────────
@@ -246,17 +373,27 @@ class VoiceOrchestrator:
             session_id=session_id,
         )
 
+        fallback_text = _get_fallback_post_session(
+            driver_type=driver_type,
+            session_id=session_id,
+            session_score=session_score,
+            safe_pct=safe_pct,
+            consecutive_mistakes=consecutive_mistakes,
+            dominant_fail_scenario=dominant_fail_scenario,
+            dominant_pattern=dominant_pattern,
+        )
+
         narration_text, provider = await self._generate_narration_text(
             prompt=prompt,
-            fallback_text=_get_fallback_post_session(driver_type, session_id),
+            fallback_text=fallback_text,
             max_tokens=120,
         )
 
         audio_b64 = await self._synthesize_to_b64(narration_text, with_audio)
 
         logger.info(
-            "VoiceOrchestrator[post_session] driver=%s score=%.0f provider=%s audio=%s",
-            driver_type, session_score, provider, "yes" if audio_b64 else "no",
+            "VoiceOrchestrator[post_session] driver=%s score=%.0f safe=%d%% provider=%s audio=%s",
+            driver_type, session_score, safe_pct, provider, "yes" if audio_b64 else "no",
         )
 
         return VoiceNarration(

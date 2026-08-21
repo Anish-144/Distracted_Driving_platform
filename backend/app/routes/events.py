@@ -17,6 +17,7 @@ from app.models.event import Event, EventType, UserResponseType
 from app.models.behavioral_log import BehavioralLog, DecisionType
 from app.routes.auth import get_current_user
 from app.services import session_service
+from app.services.behavior_analyzer import behavior_analyzer
 
 router = APIRouter(prefix="/api/event", tags=["Events"])
 
@@ -128,6 +129,21 @@ async def post_event(
 
     # Update session score
     updated_session = await session_service.update_session_score(db, request.session_id, score_delta)
+
+    # Update real-time behavioral state intelligence
+    try:
+        await behavior_analyzer.analyze_event(
+            db=db,
+            user_id=current_user.id,
+            event_type=request.event_type.value,
+            decision_type=decision_type.value,
+            response_time=request.response_time,
+            score_delta=score_delta,
+        )
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning("Could not update behavioral state: %s", e)
+
     await db.flush()
     await db.refresh(event)
 
