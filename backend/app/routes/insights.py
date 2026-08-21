@@ -159,7 +159,7 @@ async def get_weekly_brain_report(
         select(Session).where(
             and_(
                 Session.user_id == current_user.id,
-                Session.started_at >= week_start,
+                Session.start_time >= week_start,
                 Session.score.isnot(None),
             )
         )
@@ -171,8 +171,8 @@ async def get_weekly_brain_report(
         select(Session).where(
             and_(
                 Session.user_id == current_user.id,
-                Session.started_at >= prev_week_start,
-                Session.started_at < week_start,
+                Session.start_time >= prev_week_start,
+                Session.start_time < week_start,
                 Session.score.isnot(None),
             )
         )

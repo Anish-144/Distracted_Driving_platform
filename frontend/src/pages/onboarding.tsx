@@ -250,8 +250,7 @@ function NotificationStormScenario({ id, durationMs, onComplete }: any) {
     const i1 = setTimeout(() => setMessages([1]), 500);
     const i2 = setTimeout(() => setMessages([1, 2]), 1200);
     const i3 = setTimeout(() => setMessages([1, 2, 3]), 2000);
-    const end = setTimeout(() => handleEnd('timeout'), durationMs);
-    return () => { clearTimeout(i1); clearTimeout(i2); clearTimeout(i3); clearTimeout(end); };
+    return () => { clearTimeout(i1); clearTimeout(i2); clearTimeout(i3); };
   }, [durationMs]);
 
   const handleEnd = (choice: string) => {
@@ -291,9 +290,7 @@ function ConflictingDirectionsScenario({ id, durationMs, onComplete }: any) {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    const interval = setInterval(() => setTimeLeft(t => t - 0.1), 100);
-    const end = setTimeout(() => handleEnd('timeout'), durationMs);
-    return () => { clearInterval(interval); clearTimeout(end); };
+    // Removed timer per request
   }, [durationMs]);
 
   const handleEnd = (choice: string) => {
@@ -306,7 +303,6 @@ function ConflictingDirectionsScenario({ id, durationMs, onComplete }: any) {
 
   return (
     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="text-center">
-      <div className="h-2 bg-secondary rounded-full mb-8 overflow-hidden"><motion.div className="h-full bg-red-500" style={{ width: `${(timeLeft / (durationMs/1000)) * 100}%` }} /></div>
       <div className="mb-8 p-8 rounded-3xl bg-blue-500/10 border border-blue-500/20">
         <Navigation className="w-16 h-16 text-blue-500 mx-auto mb-4" />
         <h2 className="text-xl font-black text-blue-400">MAP: TURN LEFT</h2>
@@ -329,8 +325,7 @@ function FomoChoiceScenario({ id, durationMs, onComplete }: any) {
   
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    const end = setTimeout(() => handleEnd('timeout'), durationMs);
-    return () => clearTimeout(end);
+    // Timer removed
   }, [durationMs]);
 
   const handleEnd = (choice: string) => {
@@ -381,14 +376,9 @@ function PlaylistShuffleScenario({ id, durationMs, onComplete }: any) {
       alertTime.current = Date.now();
     }, 3200);
 
-    const endTimer = setTimeout(() => {
-      handleEnd('timeout');
-    }, durationMs);
-
     return () => {
       clearTimeout(notifTimer);
       clearTimeout(alertTimer);
-      clearTimeout(endTimer);
     };
   }, [durationMs]);
 

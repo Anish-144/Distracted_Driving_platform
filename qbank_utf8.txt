@@ -1,0 +1,205 @@
+﻿=== PARAGRAPHS ===
+'Calibration Question Bank'
+'Proposed Additions ù Layer 1 Self-Report Priors'
+''
+''
+'Existing Questions (Reference)'
+''
+''
+''
+'Proposed New Questions'
+''
+''
+''
+''
+''
+''
+''
+''
+''
+''
+''
+''
+''
+''
+''
+''
+''
+''
+''
+''
+'Summary by Dimension Coverage'
+''
+''
+''
+''
+=== TABLES ===
+--- TABLE 0 ---
+Design Philosophy (unchanged from existing system) Questions must use scenario framing, never direct introspection ('Are you impulsive?') All answer options must appear equally reasonable ù no option should feel like the 'wrong' answer The hidden dimension is never shown to the user Questions must not be about driving ù driving-context questions produce socially desirable answers Measure actual behavioral tendencies revealed through everyday situations
+--- TABLE 1 ---
+ID | Hidden Dimension | Surface Topic
+q1 | attention_notification | Notification during task
+q2 | cognitive_overload | Navigation rerouting stress
+q3 | urgency_time_pressure | Coworker favor before meeting
+q4 | notification_fixation | Ignoring a notification mentally
+--- TABLE 2 ---
+Q5   Hidden: impulsiveness  ╖  cognitive_patience
+You're filling out an important form online and realize one field might affect the final result. What do you do?
+A)  Fill it in with my best guess and move on ù I can always correct it later
+B)  Pause, re-read the surrounding instructions, then decide
+C)  Leave it blank and submit ù I'll deal with the consequences if any
+D)  Start the form over from the beginning to make sure I understand everything
+Rationale: A = high impulsiveness / low patience. B = deliberate, high patience. C = avoidance under uncertainty (risk tolerance signal). D = overcorrection / low stress resilience.
+--- TABLE 3 ---
+Q6   Hidden: authority_compliance
+You're waiting in a queue. Someone walks up and says 'I was here before ù I just stepped away for a moment.' How do you typically respond?
+A)  Let them in without question ù they probably were there
+B)  Ask them to wait at the back ù fairness matters
+C)  Look around to see if others agree, then decide
+D)  Step aside quietly even if I'm not sure ù confrontation isn't worth it
+Rationale: A = high authority compliance to social claims. B = low compliance, rule-oriented. C = consensus-seeking (authority compliance via group). D = conflict-avoidant, socially pressured compliance.
+--- TABLE 4 ---
+Q7   Hidden: emotional_reactivity  ╖  stress_resilience
+You send an important message and notice a typo immediately after. How do you feel in the next 60 seconds?
+A)  Mildly annoyed but I move on almost immediately
+B)  I replay it in my head a few times and feel genuinely embarrassed
+C)  I send a follow-up correction right away ù I can't let it sit
+D)  It doesn't affect me ù small errors happen, it's fine
+Rationale: A = moderate resilience. B = high emotional reactivity. C = impulsiveness driven by emotional discomfort. D = high resilience, low reactivity.
+--- TABLE 5 ---
+Q8   Hidden: multitasking_tendency  ╖  attention_control
+Someone is explaining directions to you while you're also trying to remember something unrelated. What usually happens?
+A)  I absorb both fairly well ù my mind can split focus
+B)  I lose one of them completely ù I have to choose
+C)  I nod along to the directions but I'm mostly thinking about the other thing
+D)  I ask them to pause so I can write down what I was trying to remember first
+Rationale: A = high multitasking tendency. B = low multitasking, high single-focus. C = attention drift, low attention control. D = high cognitive patience, deliberate attention management.
+--- TABLE 6 ---
+Q9   Hidden: risk_tolerance  ╖  impulsiveness
+You're at a restaurant and the dish you wanted is sold out. What's your usual move?
+A)  Pick something I've never tried ù could be great
+B)  Go with the next safest thing I recognize
+C)  Ask the waiter what they recommend and go with that
+D)  Spend a few minutes reading through everything before deciding
+Rationale: A = high risk tolerance, impulsive. B = low risk tolerance. C = authority compliance (waiter as authority). D = high cognitive patience, low impulsiveness.
+--- TABLE 7 ---
+Q10   Hidden: urgency_susceptibility  ╖  emotional_reactivity
+You get a message that just says 'Call me when you can ù no rush.' How quickly do you call back?
+A)  Within minutes ù even 'no rush' makes me feel like I should respond soon
+B)  When it's genuinely convenient for me ù could be hours
+C)  I think about it constantly until I call ù it stays in the back of my mind
+D)  I send a quick 'will call soon' reply and schedule it for later
+Rationale: A = high urgency susceptibility despite explicit de-escalation. B = low urgency susceptibility. C = notification fixation + emotional reactivity. D = deliberate, structured response behavior.
+--- TABLE 8 ---
+Q11   Hidden: authority_compliance  ╖  cognitive_patience
+An expert confidently gives you advice that contradicts your own research. What's your default reaction?
+A)  I defer to them ù they probably know more than I do
+B)  I politely push back and explain what I found
+C)  I go along with it in the moment but privately second-guess it later
+D)  I go home and do more research before deciding what to actually do
+Rationale: A = high authority compliance. B = low compliance, independent. C = social compliance masking low internal compliance (useful mismatch signal). D = high cognitive patience, deliberate verification.
+--- TABLE 9 ---
+Q12   Hidden: attention_control  ╖  notification_fixation
+You're in a focused conversation with someone and your phone lights up on the table (screen down). What happens to your attention?
+A)  It barely registers ù I'm focused on the person in front of me
+B)  I notice it but don't break eye contact
+C)  My eyes flick toward it and I partially lose track of what they said
+D)  I flip it face-down or put it away if I haven't already
+Rationale: A = high attention control. B = moderate ù aware but controlled. C = low attention control, high notification fixation. D = proactive attention management, high deliberateness.
+--- TABLE 10 ---
+Q13   Hidden: stress_resilience  ╖  cognitive_patience
+You're working on something with a hard deadline and realize you've made an error that will take 20 minutes to fix. How do you react?
+A)  Take a deep breath, fix it systematically, and stay focused
+B)  Feel a wave of panic, then push through it
+C)  Immediately start fixing it while already worrying about what else might be wrong
+D)  Step away for 2û3 minutes to reset before touching it
+Rationale: A = high resilience, high patience. B = high emotional reactivity but functional. C = high reactivity, impulsive response to stress. D = deliberate self-regulation ù high patience, high resilience.
+--- TABLE 11 ---
+Q14   Hidden: impulsiveness  ╖  risk_tolerance
+You're about to book travel and notice a much cheaper flight ù but it has a 45-minute layover in an unfamiliar airport. What do you typically do?
+A)  Book it without overthinking ù it's worth the risk for the savings
+B)  Research the airport layout before deciding
+C)  Pass on it ù the stress isn't worth saving the money
+D)  Book it but immediately start planning contingencies in case of delay
+Rationale: A = high impulsiveness + high risk tolerance. B = deliberate, moderate risk. C = low risk tolerance, stress-avoidant. D = high risk tolerance + high cognitive patience (strategic risk-taker).
+--- TABLE 12 ---
+Q15   Hidden: emotional_reactivity  ╖  authority_compliance
+A friend gives you critical feedback on something you worked hard on. Your most honest first reaction is:
+A)  Feel defensive for a moment, then try to hear it out
+B)  Feel genuinely hurt ù honest feedback from people I care about lands hard
+C)  Thank them and immediately want to revise everything they mentioned
+D)  Consider it calmly ù feedback is useful data, nothing personal
+Rationale: A = moderate reactivity, controlled. B = high emotional reactivity. C = high authority compliance (immediate deference to feedback-giver). D = low reactivity, analytical.
+--- TABLE 13 ---
+Q16   Hidden: multitasking_tendency  ╖  stress_resilience
+When you have three things happening at once in your personal life, how do you usually feel?
+A)  Energized ù I actually work better when I have a lot going on
+B)  Stretched but managing ù I'll get through it
+C)  Overwhelmed ù I prefer to close out one thing before starting another
+D)  Anxious ù I start making lists or organizing before I can do anything
+Rationale: A = high multitasking tendency, high resilience. B = moderate. C = low multitasking tendency, low resilience. D = anxiety-driven coping, low resilience.
+--- TABLE 14 ---
+Q17   Hidden: cognitive_patience  ╖  impulsiveness
+You're reading the terms before agreeing to something. What usually happens?
+A)  I scroll straight to 'Accept' ù no one reads those
+B)  I skim the key sections, then agree
+C)  I read all of it ù I want to know what I'm agreeing to
+D)  I start reading, get bored halfway, and agree anyway
+Rationale: A = high impulsiveness, low patience. B = moderate, pragmatic. C = high cognitive patience, low impulsiveness. D = impulsiveness + moderate attention control (attention degrades under low-interest tasks).
+--- TABLE 15 ---
+Q18   Hidden: urgency_susceptibility  ╖  impulsiveness
+You see a 'limited time offer' countdown on something you were already considering buying. How does it affect your decision?
+A)  It pushes me to decide faster ù I don't want to miss it
+B)  It makes me suspicious ù pressure tactics usually mean it's not that good
+C)  It doesn't change my timeline much either way
+D)  I close the tab and come back later to think about it without the pressure
+Rationale: A = high urgency susceptibility. B = low susceptibility, skeptical. C = moderate. D = deliberate resistance to urgency framing, high cognitive patience.
+--- TABLE 16 ---
+Q19   Hidden: authority_compliance  ╖  emotional_reactivity
+You've made a decision you feel good about. Someone senior to you expresses doubt about it ù not criticism, just doubt. How do you feel?
+A)  Immediately start second-guessing my own reasoning
+B)  Feel unsettled but maintain my position unless they give a specific reason
+C)  Confident ù their doubt doesn't change my assessment
+D)  Ask them to elaborate so I can factor in whatever they might know
+Rationale: A = high authority compliance, high reactivity. B = moderate compliance, emotionally aware. C = low compliance, high resilience. D = deliberate information-seeking before deciding.
+--- TABLE 17 ---
+Q20   Hidden: attention_control  ╖  cognitive_patience
+You're partway through a task and someone sends you something 'really interesting' to look at. What happens?
+A)  I look immediately ù curiosity wins
+B)  I finish what I'm doing first, even if it takes another 15 minutes
+C)  I open a new tab for it but tell myself I'll look later (and sometimes do)
+D)  I send a quick reply saying I'll check it after I'm done
+Rationale: A = low attention control, high impulsiveness. B = high attention control, high patience. C = moderate ù behaviorally impulsive but self-aware. D = deliberate, structured self-management.
+--- TABLE 18 ---
+Q21   Hidden: risk_tolerance  ╖  stress_resilience
+Your plans for something important fall through the day before. How do you typically handle it?
+A)  Improvise on the spot ù I actually enjoy figuring it out in real time
+B)  Feel stressed but start working on alternatives systematically
+C)  Feel quite derailed ù I need more time to recalibrate
+D)  Had a backup plan already ù this doesn't surprise me
+Rationale: A = high risk tolerance, high resilience. B = moderate resilience, structured response. C = low resilience. D = very high cognitive patience + resilience (anticipatory planner).
+--- TABLE 19 ---
+Q22   Hidden: notification_fixation  ╖  impulsiveness
+You're watching something you're genuinely enjoying, and a notification sound goes off on a different device across the room. What do you do?
+A)  Get up and check it ù the curiosity is immediate
+B)  Make a mental note but finish the scene I'm watching first
+C)  Ignore it completely without much effort
+D)  Feel the pull but resist it ù I've trained myself to check later
+Rationale: A = high notification fixation + high impulsiveness. B = moderate, controlled. C = high attention control, low fixation. D = effortful regulation ù behaviorally trained, suggests awareness of the tendency (important self-awareness signal).
+--- TABLE 20 ---
+Dimension | Questions Covering It
+impulsiveness_score | Q5, Q9, Q13, Q14, Q17, Q18, Q22
+attention_control_score | Q8, Q12, Q20, Q22
+emotional_reactivity_score | Q7, Q10, Q13, Q15, Q19
+authority_compliance_score | Q6, Q9, Q11, Q15, Q19
+cognitive_patience_score | Q5, Q8, Q11, Q13, Q17, Q18, Q20, Q21
+risk_tolerance_score | Q9, Q14, Q21
+stress_resilience_score | Q7, Q13, Q16, Q21
+multitasking_tendency_score | Q8, Q16
+notification_fixation (behavioral prior) | Q10, Q12, Q22
+urgency_susceptibility (behavioral prior) | Q10, Q18
+cognitive_overload (behavioral prior) | Q8, Q16
+--- TABLE 21 ---
+NOTE ù The system currently uses only 4 questions. Adding more questions increases prior accuracy but also increases drop-off risk. Recommended batch size for final selection: 6û8 questions from this bank, prioritizing coverage of dimensions not already well-covered by the behavioral scenarios (S1ûS6).
+--- TABLE 22 ---
+IMPORTANT ù Questions that most effectively avoid 'ideal answer' detection: Q6, Q10, Q11, Q17, Q18, Q22 ù these are the most disguised because they use universally relatable situations (restaurant, online forms, waiting in line) where no response reads as reckless or irresponsible.
