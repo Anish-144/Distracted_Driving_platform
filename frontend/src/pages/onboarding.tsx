@@ -551,37 +551,8 @@ function NavigationSimScenario({ scenarioId, title, instruction, durationMs, onC
 
 function CountdownChoiceScenario({ scenarioId, title, instruction, durationMs, onComplete }: ScenarioProps) {
  const startTime = useRef(Date.now());
- const [timeLeft, setTimeLeft] = useState(Math.floor(durationMs / 1000));
  const [chosen, setChosen] = useState<string | null>(null);
  const [firstChoice, setFirstChoice] = useState<string | null>(null);
-
- const chosenRef = useRef(chosen);
- chosenRef.current = chosen;
-
- useEffect(() => {
- const interval = setInterval(() => {
- setTimeLeft(t => {
- if (t <= 1) {
- clearInterval(interval);
- if (!chosenRef.current) {
- onComplete({
- scenario_id: scenarioId,
- first_response_ms: durationMs,
- time_to_choice_ms: durationMs,
- interaction_count: 0,
- distraction_clicks: 0,
- re_read_count: 0,
- choice_made: 'timeout',
- abandoned: true,
- });
- }
- return 0;
- }
- return t - 1;
- });
- }, 1000);
- return () => clearInterval(interval);
- }, [durationMs, onComplete, scenarioId]);
 
  const handleChoice = (val: string, isRisk: boolean) => {
  if (chosen) {
@@ -609,33 +580,8 @@ function CountdownChoiceScenario({ scenarioId, title, instruction, durationMs, o
  }, 500);
  };
 
- const urgencyColor = timeLeft <= 4 ? '#ef4444' : timeLeft <= 8 ? '#f59e0b' : '#60a5fa';
- const total = Math.floor(durationMs / 1000);
- const pct = (timeLeft / total) * 100;
-
  return (
  <ScenarioShell title={title} instruction={instruction} scenarioId={scenarioId}>
- {/* Timer */}
- <div className="mb-5">
- <div className="flex items-center justify-between mb-2">
- <span className="text-xs text-muted font-medium">Time remaining</span>
- <motion.span
- className="text-2xl font-black tabular-nums"
- style={{ color: urgencyColor }}
- animate={{ scale: timeLeft <= 4 ? [1, 1.1, 1] : 1 }}
- transition={{ duration: 0.3, repeat: timeLeft <= 4 ? Infinity : 0 }}
- >
- {timeLeft}s
- </motion.span>
- </div>
- <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--bg-subtle)' }}>
- <motion.div
- className="h-full rounded-full transition-all"
- style={{ width: `${pct}%`, background: urgencyColor }}
- />
- </div>
- </div>
-
  {/* Decision */}
  <div className="rounded-2xl border border-subtle p-5 mb-4"
  style={{ background: 'var(--bg-surface)' }}>
@@ -1147,26 +1093,25 @@ function TradeoffChoiceScenario({ scenarioId, title, instruction, durationMs, on
 // ── Fallback (unknown ui_type) ─────────────────────────────────────────────────
 
 function FallbackScenario({ scenarioId, title, instruction, durationMs, onComplete }: ScenarioProps) {
- useEffect(() => {
- const timer = setTimeout(() => {
- onComplete({
+ return (
+ <ScenarioShell title={title} instruction={instruction} scenarioId={scenarioId}>
+ <div className="flex flex-col items-center justify-center py-8">
+ <p className="text-sm text-secondary mb-4">Click below to continue.</p>
+ <button
+ onClick={() => onComplete({
  scenario_id: scenarioId,
  first_response_ms: durationMs / 2,
  time_to_choice_ms: durationMs / 2,
  interaction_count: 1,
  distraction_clicks: 0,
  re_read_count: 0,
- choice_made: 'auto_complete',
+ choice_made: 'manual_continue',
  abandoned: false,
- });
- }, 3000);
- return () => clearTimeout(timer);
- }, [durationMs, onComplete, scenarioId]);
-
- return (
- <ScenarioShell title={title} instruction={instruction} scenarioId={scenarioId}>
- <div className="flex items-center justify-center py-12">
- <Loader2 className="w-6 h-6 text-violet-400 animate-spin" />
+ })}
+ className="px-6 py-3 rounded-xl bg-violet-600 text-white font-bold text-sm"
+ >
+ Continue
+ </button>
  </div>
  </ScenarioShell>
  );
