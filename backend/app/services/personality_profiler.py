@@ -54,751 +54,1496 @@ logger = logging.getLogger(__name__)
 # All answer options are designed to appear equally reasonable.
 # The `dimension` field is server-side ONLY — never sent to frontend.
 
-ASSESSMENT_QUESTIONS = [
-    {
-        "id": "q1_fomo",
-        "text": "Your squad just dropped a crazy meme in the group chat, but you're studying for finals. What's your move?",
-        "options": [
-            {
-                "value": "ignore",
-                "text": "Ignore it. The grind never stops.",
-                "scores": {
-                    "attention_control_score": 0.8,
-                    "impulsiveness_score": 0.2
-                }
-            },
-            {
-                "value": "quick_peek",
-                "text": "Just a quick peek to see what it is.",
-                "scores": {
-                    "attention_control_score": 0.4,
-                    "impulsiveness_score": 0.6,
-                    "behavioral_notification_fixation_prior": 0.7
-                }
-            },
-            {
-                "value": "reply",
-                "text": "Reply immediately. Can't leave them hanging.",
-                "scores": {
-                    "attention_control_score": 0.2,
-                    "impulsiveness_score": 0.9,
-                    "behavioral_notification_fixation_prior": 0.9
-                }
-            }
-        ]
-    },
-    {
-        "id": "q2_risk",
-        "text": "You're running 5 minutes late to a hangout, and the GPS says taking a 'sketchy shortcut' saves 2 minutes. Do you take it?",
-        "options": [
-            {
-                "value": "no_way",
-                "text": "No way, stick to the main road.",
-                "scores": {
-                    "risk_tolerance_score": 0.2,
-                    "cognitive_patience_score": 0.8
-                }
-            },
-            {
-                "value": "maybe",
-                "text": "Only if I know the area well.",
-                "scores": {
-                    "risk_tolerance_score": 0.5,
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "send_it",
-                "text": "Send it. 2 minutes is 2 minutes.",
-                "scores": {
-                    "risk_tolerance_score": 0.9,
-                    "cognitive_patience_score": 0.2,
-                    "behavioral_urgency_susceptibility_prior": 0.8
-                }
-            }
-        ]
-    },
-    {
-        "id": "q3_multitask",
-        "text": "How many tabs do you usually have open while watching a YouTube video?",
-        "options": [
-            {
-                "value": "one",
-                "text": "Just the video. I like to focus.",
-                "scores": {
-                    "multitasking_tendency_score": 0.2,
-                    "attention_control_score": 0.8
-                }
-            },
-            {
-                "value": "few",
-                "text": "A couple for browsing.",
-                "scores": {
-                    "multitasking_tendency_score": 0.6,
-                    "attention_control_score": 0.5
-                }
-            },
-            {
-                "value": "million",
-                "text": "Like 20. And I'm probably scrolling TikTok too.",
-                "scores": {
-                    "multitasking_tendency_score": 0.9,
-                    "attention_control_score": 0.2,
-                    "behavioral_cognitive_overload_prior": 0.8
-                }
-            }
-        ]
-    },
-    {
-        "id": "q4_stress",
-        "text": "Your friend starts arguing with you about something silly while you're trying to figure out where to park. How do you react?",
-        "options": [
-            {
-                "value": "calm",
-                "text": "Tell them nicely to wait a sec so I can focus.",
-                "scores": {
-                    "emotional_reactivity_score": 0.2,
-                    "stress_resilience_score": 0.8,
-                    "authority_compliance_score": 0.3
-                }
-            },
-            {
-                "value": "stress",
-                "text": "Get a little stressed but keep looking.",
-                "scores": {
-                    "emotional_reactivity_score": 0.6,
-                    "stress_resilience_score": 0.5,
-                    "authority_compliance_score": 0.6
-                }
-            },
-            {
-                "value": "argue",
-                "text": "Argue back. Parking can wait.",
-                "scores": {
-                    "emotional_reactivity_score": 0.9,
-                    "stress_resilience_score": 0.2,
-                    "authority_compliance_score": 0.8
-                }
-            }
-        ]
-    },
-    {
-        "id": "q5",
-        "text": "You're filling out an important form online and realize one field might affect the final result. What do you do?",
-        "options": [
-            {
-                "value": "a",
-                "text": "Fill it in with my best guess and move on \u00f9 I can always correct it later",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "b",
-                "text": "Pause, re-read the surrounding instructions, then decide",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "c",
-                "text": "Leave it blank and submit \u00f9 I'll deal with the consequences if any",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "d",
-                "text": "Start the form over from the beginning to make sure I understand everything",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            }
-        ]
-    },
-    {
-        "id": "q6",
-        "text": "You're waiting in a queue. Someone walks up and says 'I was here before \u00f9 I just stepped away for a moment.' How do you typically respond?",
-        "options": [
-            {
-                "value": "a",
-                "text": "Let them in without question \u00f9 they probably were there",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "b",
-                "text": "Ask them to wait at the back \u00f9 fairness matters",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "c",
-                "text": "Look around to see if others agree, then decide",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "d",
-                "text": "Step aside quietly even if I'm not sure \u00f9 confrontation isn't worth it",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            }
-        ]
-    },
-    {
-        "id": "q7",
-        "text": "You send an important message and notice a typo immediately after. How do you feel in the next 60 seconds?",
-        "options": [
-            {
-                "value": "a",
-                "text": "Mildly annoyed but I move on almost immediately",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "b",
-                "text": "I replay it in my head a few times and feel genuinely embarrassed",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "c",
-                "text": "I send a follow-up correction right away \u00f9 I can't let it sit",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "d",
-                "text": "It doesn't affect me \u00f9 small errors happen, it's fine",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            }
-        ]
-    },
-    {
-        "id": "q8",
-        "text": "Someone is explaining directions to you while you're also trying to remember something unrelated. What usually happens?",
-        "options": [
-            {
-                "value": "a",
-                "text": "I absorb both fairly well \u00f9 my mind can split focus",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "b",
-                "text": "I lose one of them completely \u00f9 I have to choose",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "c",
-                "text": "I nod along to the directions but I'm mostly thinking about the other thing",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "d",
-                "text": "I ask them to pause so I can write down what I was trying to remember first",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            }
-        ]
-    },
-    {
-        "id": "q9",
-        "text": "You're at a restaurant and the dish you wanted is sold out. What's your usual move?",
-        "options": [
-            {
-                "value": "a",
-                "text": "Pick something I've never tried \u00f9 could be great",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "b",
-                "text": "Go with the next safest thing I recognize",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "c",
-                "text": "Ask the waiter what they recommend and go with that",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "d",
-                "text": "Spend a few minutes reading through everything before deciding",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            }
-        ]
-    },
-    {
-        "id": "q10",
-        "text": "You get a message that just says 'Call me when you can \u00f9 no rush.' How quickly do you call back?",
-        "options": [
-            {
-                "value": "a",
-                "text": "Within minutes \u00f9 even 'no rush' makes me feel like I should respond soon",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "b",
-                "text": "When it's genuinely convenient for me \u00f9 could be hours",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "c",
-                "text": "I think about it constantly until I call \u00f9 it stays in the back of my mind",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "d",
-                "text": "I send a quick 'will call soon' reply and schedule it for later",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            }
-        ]
-    },
-    {
-        "id": "q11",
-        "text": "An expert confidently gives you advice that contradicts your own research. What's your default reaction?",
-        "options": [
-            {
-                "value": "a",
-                "text": "I defer to them \u00f9 they probably know more than I do",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "b",
-                "text": "I politely push back and explain what I found",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "c",
-                "text": "I go along with it in the moment but privately second-guess it later",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "d",
-                "text": "I go home and do more research before deciding what to actually do",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            }
-        ]
-    },
-    {
-        "id": "q12",
-        "text": "You're in a focused conversation with someone and your phone lights up on the table (screen down). What happens to your attention?",
-        "options": [
-            {
-                "value": "a",
-                "text": "It barely registers \u00f9 I'm focused on the person in front of me",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "b",
-                "text": "I notice it but don't break eye contact",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "c",
-                "text": "My eyes flick toward it and I partially lose track of what they said",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "d",
-                "text": "I flip it face-down or put it away if I haven't already",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            }
-        ]
-    },
-    {
-        "id": "q13",
-        "text": "You're working on something with a hard deadline and realize you've made an error that will take 20 minutes to fix. How do you react?",
-        "options": [
-            {
-                "value": "a",
-                "text": "Take a deep breath, fix it systematically, and stay focused",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "b",
-                "text": "Feel a wave of panic, then push through it",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "c",
-                "text": "Immediately start fixing it while already worrying about what else might be wrong",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "d",
-                "text": "Step away for 2\u00fb3 minutes to reset before touching it",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            }
-        ]
-    },
-    {
-        "id": "q14",
-        "text": "You're about to book travel and notice a much cheaper flight \u00f9 but it has a 45-minute layover in an unfamiliar airport. What do you typically do?",
-        "options": [
-            {
-                "value": "a",
-                "text": "Book it without overthinking \u00f9 it's worth the risk for the savings",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "b",
-                "text": "Research the airport layout before deciding",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "c",
-                "text": "Pass on it \u00f9 the stress isn't worth saving the money",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "d",
-                "text": "Book it but immediately start planning contingencies in case of delay",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            }
-        ]
-    },
-    {
-        "id": "q15",
-        "text": "A friend gives you critical feedback on something you worked hard on. Your most honest first reaction is:",
-        "options": [
-            {
-                "value": "a",
-                "text": "Feel defensive for a moment, then try to hear it out",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "b",
-                "text": "Feel genuinely hurt \u00f9 honest feedback from people I care about lands hard",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "c",
-                "text": "Thank them and immediately want to revise everything they mentioned",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "d",
-                "text": "Consider it calmly \u00f9 feedback is useful data, nothing personal",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            }
-        ]
-    },
-    {
-        "id": "q16",
-        "text": "When you have three things happening at once in your personal life, how do you usually feel?",
-        "options": [
-            {
-                "value": "a",
-                "text": "Energized \u00f9 I actually work better when I have a lot going on",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "b",
-                "text": "Stretched but managing \u00f9 I'll get through it",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "c",
-                "text": "Overwhelmed \u00f9 I prefer to close out one thing before starting another",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "d",
-                "text": "Anxious \u00f9 I start making lists or organizing before I can do anything",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            }
-        ]
-    },
-    {
-        "id": "q17",
-        "text": "You're reading the terms before agreeing to something. What usually happens?",
-        "options": [
-            {
-                "value": "a",
-                "text": "I scroll straight to 'Accept' \u00f9 no one reads those",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "b",
-                "text": "I skim the key sections, then agree",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "c",
-                "text": "I read all of it \u00f9 I want to know what I'm agreeing to",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "d",
-                "text": "I start reading, get bored halfway, and agree anyway",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            }
-        ]
-    },
-    {
-        "id": "q18",
-        "text": "You see a 'limited time offer' countdown on something you were already considering buying. How does it affect your decision?",
-        "options": [
-            {
-                "value": "a",
-                "text": "It pushes me to decide faster \u00f9 I don't want to miss it",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "b",
-                "text": "It makes me suspicious \u00f9 pressure tactics usually mean it's not that good",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "c",
-                "text": "It doesn't change my timeline much either way",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "d",
-                "text": "I close the tab and come back later to think about it without the pressure",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            }
-        ]
-    },
-    {
-        "id": "q19",
-        "text": "You've made a decision you feel good about. Someone senior to you expresses doubt about it \u00f9 not criticism, just doubt. How do you feel?",
-        "options": [
-            {
-                "value": "a",
-                "text": "Immediately start second-guessing my own reasoning",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "b",
-                "text": "Feel unsettled but maintain my position unless they give a specific reason",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "c",
-                "text": "Confident \u00f9 their doubt doesn't change my assessment",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "d",
-                "text": "Ask them to elaborate so I can factor in whatever they might know",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            }
-        ]
-    },
-    {
-        "id": "q20",
-        "text": "You're partway through a task and someone sends you something 'really interesting' to look at. What happens?",
-        "options": [
-            {
-                "value": "a",
-                "text": "I look immediately \u00f9 curiosity wins",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "b",
-                "text": "I finish what I'm doing first, even if it takes another 15 minutes",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "c",
-                "text": "I open a new tab for it but tell myself I'll look later (and sometimes do)",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "d",
-                "text": "I send a quick reply saying I'll check it after I'm done",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            }
-        ]
-    },
-    {
-        "id": "q21",
-        "text": "Your plans for something important fall through the day before. How do you typically handle it?",
-        "options": [
-            {
-                "value": "a",
-                "text": "Improvise on the spot \u00f9 I actually enjoy figuring it out in real time",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "b",
-                "text": "Feel stressed but start working on alternatives systematically",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "c",
-                "text": "Feel quite derailed \u00f9 I need more time to recalibrate",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "d",
-                "text": "Had a backup plan already \u00f9 this doesn't surprise me",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            }
-        ]
-    },
-    {
-        "id": "q22",
-        "text": "You're watching something you're genuinely enjoying, and a notification sound goes off on a different device across the room. What do you do?",
-        "options": [
-            {
-                "value": "a",
-                "text": "Get up and check it \u00f9 the curiosity is immediate",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "b",
-                "text": "Make a mental note but finish the scene I'm watching first",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "c",
-                "text": "Ignore it completely without much effort",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            },
-            {
-                "value": "d",
-                "text": "Feel the pull but resist it \u00f9 I've trained myself to check later",
-                "scores": {
-                    "cognitive_patience_score": 0.5
-                }
-            }
-        ]
-    }
-]
-
-
-# ΓöÇΓöÇ Trait Dimensions ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
-
+ASSESSMENT_QUESTIONS = [
+
+    {
+
+        "id": "q1_fomo",
+
+        "text": "Your squad just dropped a crazy meme in the group chat, but you're studying for finals. What's your move?",
+
+        "options": [
+
+            {
+
+                "value": "ignore",
+
+                "text": "Ignore it. The grind never stops.",
+
+                "scores": {
+
+                    "attention_control_score": 0.8,
+
+                    "impulsiveness_score": 0.2
+
+                }
+
+            },
+
+            {
+
+                "value": "quick_peek",
+
+                "text": "Just a quick peek to see what it is.",
+
+                "scores": {
+
+                    "attention_control_score": 0.4,
+
+                    "impulsiveness_score": 0.6,
+
+                    "behavioral_notification_fixation_prior": 0.7
+
+                }
+
+            },
+
+            {
+
+                "value": "reply",
+
+                "text": "Reply immediately. Can't leave them hanging.",
+
+                "scores": {
+
+                    "attention_control_score": 0.2,
+
+                    "impulsiveness_score": 0.9,
+
+                    "behavioral_notification_fixation_prior": 0.9
+
+                }
+
+            }
+
+        ]
+
+    },
+
+    {
+
+        "id": "q2_risk",
+
+        "text": "You're running 5 minutes late to a hangout, and the GPS says taking a 'sketchy shortcut' saves 2 minutes. Do you take it?",
+
+        "options": [
+
+            {
+
+                "value": "no_way",
+
+                "text": "No way, stick to the main road.",
+
+                "scores": {
+
+                    "risk_tolerance_score": 0.2,
+
+                    "cognitive_patience_score": 0.8
+
+                }
+
+            },
+
+            {
+
+                "value": "maybe",
+
+                "text": "Only if I know the area well.",
+
+                "scores": {
+
+                    "risk_tolerance_score": 0.5,
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "send_it",
+
+                "text": "Send it. 2 minutes is 2 minutes.",
+
+                "scores": {
+
+                    "risk_tolerance_score": 0.9,
+
+                    "cognitive_patience_score": 0.2,
+
+                    "behavioral_urgency_susceptibility_prior": 0.8
+
+                }
+
+            }
+
+        ]
+
+    },
+
+    {
+
+        "id": "q3_multitask",
+
+        "text": "How many tabs do you usually have open while watching a YouTube video?",
+
+        "options": [
+
+            {
+
+                "value": "one",
+
+                "text": "Just the video. I like to focus.",
+
+                "scores": {
+
+                    "multitasking_tendency_score": 0.2,
+
+                    "attention_control_score": 0.8
+
+                }
+
+            },
+
+            {
+
+                "value": "few",
+
+                "text": "A couple for browsing.",
+
+                "scores": {
+
+                    "multitasking_tendency_score": 0.6,
+
+                    "attention_control_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "million",
+
+                "text": "Like 20. And I'm probably scrolling TikTok too.",
+
+                "scores": {
+
+                    "multitasking_tendency_score": 0.9,
+
+                    "attention_control_score": 0.2,
+
+                    "behavioral_cognitive_overload_prior": 0.8
+
+                }
+
+            }
+
+        ]
+
+    },
+
+    {
+
+        "id": "q4_stress",
+
+        "text": "Your friend starts arguing with you about something silly while you're trying to figure out where to park. How do you react?",
+
+        "options": [
+
+            {
+
+                "value": "calm",
+
+                "text": "Tell them nicely to wait a sec so I can focus.",
+
+                "scores": {
+
+                    "emotional_reactivity_score": 0.2,
+
+                    "stress_resilience_score": 0.8,
+
+                    "authority_compliance_score": 0.3
+
+                }
+
+            },
+
+            {
+
+                "value": "stress",
+
+                "text": "Get a little stressed but keep looking.",
+
+                "scores": {
+
+                    "emotional_reactivity_score": 0.6,
+
+                    "stress_resilience_score": 0.5,
+
+                    "authority_compliance_score": 0.6
+
+                }
+
+            },
+
+            {
+
+                "value": "argue",
+
+                "text": "Argue back. Parking can wait.",
+
+                "scores": {
+
+                    "emotional_reactivity_score": 0.9,
+
+                    "stress_resilience_score": 0.2,
+
+                    "authority_compliance_score": 0.8
+
+                }
+
+            }
+
+        ]
+
+    },
+
+    {
+
+        "id": "q5",
+
+        "text": "You're filling out an important form online and realize one field might affect the final result. What do you do?",
+
+        "options": [
+
+            {
+
+                "value": "a",
+
+                "text": "Fill it in with my best guess and move on — I can always correct it later",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "b",
+
+                "text": "Pause, re-read the surrounding instructions, then decide",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "c",
+
+                "text": "Leave it blank and submit — I'll deal with the consequences if any",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "d",
+
+                "text": "Start the form over from the beginning to make sure I understand everything",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            }
+
+        ]
+
+    },
+
+    {
+
+        "id": "q6",
+
+        "text": "You're waiting in a queue. Someone walks up and says 'I was here before — I just stepped away for a moment.' How do you typically respond?",
+
+        "options": [
+
+            {
+
+                "value": "a",
+
+                "text": "Let them in without question — they probably were there",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "b",
+
+                "text": "Ask them to wait at the back — fairness matters",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "c",
+
+                "text": "Look around to see if others agree, then decide",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "d",
+
+                "text": "Step aside quietly even if I'm not sure — confrontation isn't worth it",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            }
+
+        ]
+
+    },
+
+    {
+
+        "id": "q7",
+
+        "text": "You send an important message and notice a typo immediately after. How do you feel in the next 60 seconds?",
+
+        "options": [
+
+            {
+
+                "value": "a",
+
+                "text": "Mildly annoyed but I move on almost immediately",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "b",
+
+                "text": "I replay it in my head a few times and feel genuinely embarrassed",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "c",
+
+                "text": "I send a follow-up correction right away — I can't let it sit",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "d",
+
+                "text": "It doesn't affect me — small errors happen, it's fine",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            }
+
+        ]
+
+    },
+
+    {
+
+        "id": "q8",
+
+        "text": "Someone is explaining directions to you while you're also trying to remember something unrelated. What usually happens?",
+
+        "options": [
+
+            {
+
+                "value": "a",
+
+                "text": "I absorb both fairly well — my mind can split focus",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "b",
+
+                "text": "I lose one of them completely — I have to choose",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "c",
+
+                "text": "I nod along to the directions but I'm mostly thinking about the other thing",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "d",
+
+                "text": "I ask them to pause so I can write down what I was trying to remember first",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            }
+
+        ]
+
+    },
+
+    {
+
+        "id": "q9",
+
+        "text": "You're at a restaurant and the dish you wanted is sold out. What's your usual move?",
+
+        "options": [
+
+            {
+
+                "value": "a",
+
+                "text": "Pick something I've never tried — could be great",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "b",
+
+                "text": "Go with the next safest thing I recognize",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "c",
+
+                "text": "Ask the waiter what they recommend and go with that",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "d",
+
+                "text": "Spend a few minutes reading through everything before deciding",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            }
+
+        ]
+
+    },
+
+    {
+
+        "id": "q10",
+
+        "text": "You get a message that just says 'Call me when you can — no rush.' How quickly do you call back?",
+
+        "options": [
+
+            {
+
+                "value": "a",
+
+                "text": "Within minutes — even 'no rush' makes me feel like I should respond soon",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "b",
+
+                "text": "When it's genuinely convenient for me — could be hours",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "c",
+
+                "text": "I think about it constantly until I call — it stays in the back of my mind",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "d",
+
+                "text": "I send a quick 'will call soon' reply and schedule it for later",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            }
+
+        ]
+
+    },
+
+    {
+
+        "id": "q11",
+
+        "text": "An expert confidently gives you advice that contradicts your own research. What's your default reaction?",
+
+        "options": [
+
+            {
+
+                "value": "a",
+
+                "text": "I defer to them — they probably know more than I do",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "b",
+
+                "text": "I politely push back and explain what I found",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "c",
+
+                "text": "I go along with it in the moment but privately second-guess it later",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "d",
+
+                "text": "I go home and do more research before deciding what to actually do",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            }
+
+        ]
+
+    },
+
+    {
+
+        "id": "q12",
+
+        "text": "You're in a focused conversation with someone and your phone lights up on the table. What happens to your attention?",
+
+        "options": [
+
+            {
+
+                "value": "a",
+
+                "text": "It barely registers — I'm focused on the person in front of me",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "b",
+
+                "text": "I notice it but don't break eye contact",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "c",
+
+                "text": "My eyes flick toward it and I partially lose track of what they said",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "d",
+
+                "text": "I flip it face-down or put it away if I haven't already",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            }
+
+        ]
+
+    },
+
+    {
+
+        "id": "q13",
+
+        "text": "You're working on something with a hard deadline and realize you've made an error that will take 20 minutes to fix. How do you react?",
+
+        "options": [
+
+            {
+
+                "value": "a",
+
+                "text": "Take a deep breath, fix it systematically, and stay focused",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "b",
+
+                "text": "Feel a wave of panic, then push through it",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "c",
+
+                "text": "Immediately start fixing it while already worrying about what else might be wrong",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "d",
+
+                "text": "Step away for 2-3 minutes to reset before touching it",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            }
+
+        ]
+
+    },
+
+    {
+
+        "id": "q14",
+
+        "text": "You're about to book travel and notice a much cheaper flight — but it has a 45-minute layover in an unfamiliar airport. What do you typically do?",
+
+        "options": [
+
+            {
+
+                "value": "a",
+
+                "text": "Book it without overthinking — it's worth the risk for the savings",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "b",
+
+                "text": "Research the airport layout before deciding",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "c",
+
+                "text": "Pass on it — the stress isn't worth saving the money",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "d",
+
+                "text": "Book it but immediately start planning contingencies in case of delay",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            }
+
+        ]
+
+    },
+
+    {
+
+        "id": "q15",
+
+        "text": "A friend gives you critical feedback on something you worked hard on. Your most honest first reaction is:",
+
+        "options": [
+
+            {
+
+                "value": "a",
+
+                "text": "Feel defensive for a moment, then try to hear it out",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "b",
+
+                "text": "Feel genuinely hurt — honest feedback from people I care about lands hard",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "c",
+
+                "text": "Thank them and immediately want to revise everything they mentioned",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "d",
+
+                "text": "Consider it calmly — feedback is useful data, nothing personal",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            }
+
+        ]
+
+    },
+
+    {
+
+        "id": "q16",
+
+        "text": "When you have three things happening at once in your personal life, how do you usually feel?",
+
+        "options": [
+
+            {
+
+                "value": "a",
+
+                "text": "Energized — I actually work better when I have a lot going on",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "b",
+
+                "text": "Stretched but managing — I'll get through it",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "c",
+
+                "text": "Overwhelmed — I prefer to close out one thing before starting another",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "d",
+
+                "text": "Anxious — I start making lists or organizing before I can do anything",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            }
+
+        ]
+
+    },
+
+    {
+
+        "id": "q17",
+
+        "text": "You're reading the terms before agreeing to something. What usually happens?",
+
+        "options": [
+
+            {
+
+                "value": "a",
+
+                "text": "I scroll straight to 'Accept' — no one reads those",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "b",
+
+                "text": "I skim the key sections, then agree",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "c",
+
+                "text": "I read all of it — I want to know what I'm agreeing to",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "d",
+
+                "text": "I start reading, get bored halfway, and agree anyway",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            }
+
+        ]
+
+    },
+
+    {
+
+        "id": "q18",
+
+        "text": "You see a 'limited time offer' countdown on something you were already considering buying. How does it affect your decision?",
+
+        "options": [
+
+            {
+
+                "value": "a",
+
+                "text": "It pushes me to decide faster — I don't want to miss it",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "b",
+
+                "text": "It makes me suspicious — pressure tactics usually mean it's not that good",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "c",
+
+                "text": "It doesn't change my timeline much either way",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "d",
+
+                "text": "I close the tab and come back later to think about it without the pressure",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            }
+
+        ]
+
+    },
+
+    {
+
+        "id": "q19",
+
+        "text": "You've made a decision you feel good about. Someone senior to you expresses doubt about it — not criticism, just doubt. How do you feel?",
+
+        "options": [
+
+            {
+
+                "value": "a",
+
+                "text": "Immediately start second-guessing my own reasoning",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "b",
+
+                "text": "Feel unsettled but maintain my position unless they give a specific reason",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "c",
+
+                "text": "Confident — their doubt doesn't change my assessment",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "d",
+
+                "text": "Ask them to elaborate so I can factor in whatever they might know",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            }
+
+        ]
+
+    },
+
+    {
+
+        "id": "q20",
+
+        "text": "You're partway through a task and someone sends you something 'really interesting' to look at. What happens?",
+
+        "options": [
+
+            {
+
+                "value": "a",
+
+                "text": "I look immediately — curiosity wins",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "b",
+
+                "text": "I finish what I'm doing first, even if it takes another 15 minutes",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "c",
+
+                "text": "I open a new tab for it but tell myself I'll look later (and sometimes do)",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "d",
+
+                "text": "I send a quick reply saying I'll check it after I'm done",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            }
+
+        ]
+
+    },
+
+    {
+
+        "id": "q21",
+
+        "text": "Your plans for something important fall through the day before. How do you typically handle it?",
+
+        "options": [
+
+            {
+
+                "value": "a",
+
+                "text": "Improvise on the spot — I actually enjoy figuring it out in real time",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "b",
+
+                "text": "Feel stressed but start working on alternatives systematically",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "c",
+
+                "text": "Feel quite derailed — I need more time to recalibrate",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "d",
+
+                "text": "Had a backup plan already — this doesn't surprise me",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            }
+
+        ]
+
+    },
+
+    {
+
+        "id": "q22",
+
+        "text": "You're watching something you're genuinely enjoying, and a notification sound goes off on a different device across the room. What do you do?",
+
+        "options": [
+
+            {
+
+                "value": "a",
+
+                "text": "Get up and check it — the curiosity is immediate",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "b",
+
+                "text": "Make a mental note but finish the scene I'm watching first",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "c",
+
+                "text": "Ignore it completely without much effort",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            },
+
+            {
+
+                "value": "d",
+
+                "text": "Feel the pull but resist it — I've trained myself to check later",
+
+                "scores": {
+
+                    "cognitive_patience_score": 0.5
+
+                }
+
+            }
+
+        ]
+
+    }
+
+]
+
+
+
+
+
+# ΓöÇΓöÇ Trait Dimensions ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+
+
 TRAIT_DIMENSIONS = [
     "impulsiveness_score",
     "attention_control_score",

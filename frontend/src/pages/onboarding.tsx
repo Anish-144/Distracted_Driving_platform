@@ -744,12 +744,12 @@ function DualTaskScenario({ scenarioId, title, instruction, durationMs, onComple
  const [checked, setChecked] = useState<boolean[]>([false, false, false]);
 
  useEffect(() => {
- // Notification pulses at 5s, 12s, 20s
+ // Notification pulses at 0.5s, 7.5s, 15.5s
  const pulseTimers = [
- setTimeout(() => setPulse(1), 5000),
- setTimeout(() => setPulse(2), 12000),
- setTimeout(() => setPulse(3), 20000),
- setTimeout(() => setPulse(0), 23000),
+ setTimeout(() => setPulse(1), 500),
+ setTimeout(() => setPulse(2), 7500),
+ setTimeout(() => setPulse(3), 15500),
+ setTimeout(() => setPulse(0), 18500),
  ];
  return () => pulseTimers.forEach(clearTimeout);
  }, []);
@@ -1447,7 +1447,11 @@ export default function OnboardingPage() {
  const res = await client.post('/onboarding/calibration/submit', { events });
  const profile: PersonalityProfileResponse = res.data;
 
- // Map to backend profile type
+ // Map onboarding labels → backend ProfileType enum values.
+ // 'balanced' intentionally maps to 'unknown' — it is the catch-all
+ // fallback from the profiler when no specific trait threshold is met,
+ // NOT a distinct driver type. Assigning it to 'rule_following' caused
+ // every default-scoring user to incorrectly show as rule_following.
  const profileMap: Record<string, string> = {
  impulsive: 'impulsive',
  notification_distracted: 'distractible',
@@ -1457,17 +1461,19 @@ export default function OnboardingPage() {
  cautious: 'rule_following',
  emotionally_reactive: 'anxious',
  authority_driven: 'rule_following',
- balanced: 'rule_following',
+ balanced: 'unknown',
  };
- const mappedProfile = profileMap[profile.onboarding_profile_label] || 'unknown';
+ const mappedProfile = profileMap[profile.onboarding_profile_label] ?? 'unknown';
 
  try {
  const updateRes = await updateProfile(mappedProfile);
  if (user && token) {
  dispatch(loginSuccess({ user: { ...user, profile_type: updateRes.profile_type }, token }));
  }
- } catch {
- // Non-fatal — profile display still works
+ } catch (profileErr) {
+ // Non-fatal — onboarding result is still displayed.
+ // Log warning so sync failures are visible during debugging.
+ console.warn('[Onboarding] Failed to sync profile_type to backend:', profileErr);
  }
 
  setProfileResult(profile);

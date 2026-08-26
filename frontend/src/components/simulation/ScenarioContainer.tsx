@@ -12,7 +12,6 @@ import toast from 'react-hot-toast';
 import DistractionEvent from './DistractionEvent';
 import DecisionButtons, { ResponseChoice } from './DecisionButtons';
 import AIDialogue from './AIDialogue';
-import Timer from './Timer';
 import VoiceInput from '@/components/VoiceInput';
 import {
   CheckCircle, XCircle, Car, Trophy, ThumbsUp, Activity, BookOpen,
@@ -279,6 +278,7 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
   // Immersion Audio Refs
   const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
   const chatterTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isResolvingRef = useRef<boolean>(false);
 
   const history = recentHistoryRef.current;
   const avgPerformance =
@@ -518,7 +518,8 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
     userResponse: 'ignored' | 'interacted' | 'no_response',
     risk?: string
   ) => {
-    if (simState !== 'EVENT_ACTIVE' || !currentEvent) return;
+    if (simState !== 'EVENT_ACTIVE' || !currentEvent || isResolvingRef.current) return;
+    isResolvingRef.current = true;
     setSimState('DECISION_PENDING');
     if (escalationTimerRef.current) clearInterval(escalationTimerRef.current);
     if (chatterTimerRef.current) clearTimeout(chatterTimerRef.current);
@@ -601,12 +602,21 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
           toast.error('Session completed, but failed to sync final analytics.');
           setFinalScore(result.new_score);
           setSimState('SESSION_COMPLETE');
+        } finally {
+          isResolvingRef.current = false;
         }
       } else {
+        isResolvingRef.current = false;
         setSimState('IDLE');
       }
-    } catch {
-      toast.error('Failed to record response. Try again.');
+    } catch (err: any) {
+      isResolvingRef.current = false;
+      const status = err?.response?.status;
+      const detail = err?.response?.data?.detail;
+      console.error('[Simulation] postEvent failed:', status, detail);
+      toast.error(status === 400 && detail 
+        ? `Event error: ${detail}` 
+        : 'Failed to record response. Try again.');
       setSimState('EVENT_ACTIVE');
     }
   };
@@ -679,16 +689,6 @@ export default function ScenarioContainer({ sessionId }: ScenarioContainerProps)
             )}
           </div>
 
-          {/* Timer — pinned to bottom of left panel */}
-          {isEventActive && (
-            <div className="relative z-10 px-6 pb-5">
-              <Timer
-                duration={Math.round(10 - 5 * difficultyFactor)}
-                onExpire={() => handleDecision('no_response')}
-                key={currentEvent!.id}
-              />
-            </div>
-          )}
         </div>
 
         {/* ── RIGHT: Decision Panel (2 cols) ───────────────────────────── */}

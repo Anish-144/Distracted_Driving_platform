@@ -92,7 +92,7 @@ export default function Sidebar() {
       ]
     : [
         { label: 'Dashboard',  href: '/dashboard',          icon: LayoutDashboard },
-        { label: 'Simulation', href: '/simulation',          icon: Car,       badge: 'Go' },
+        { label: 'Simulation', href: '/simulation',          icon: Car },
         { label: 'Lessons',    href: '/lessons',             icon: BookOpen },
         { label: 'Progress',   href: '/dashboard/progress',  icon: BarChart2 },
         { label: 'Research',   href: '/dashboard/research',  icon: Microscope },

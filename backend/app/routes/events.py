@@ -129,6 +129,11 @@ async def post_event(
 
     # Update session score
     updated_session = await session_service.update_session_score(db, request.session_id, score_delta)
+    if updated_session is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session not found during score update — it may have already been closed"
+        )
 
     # Update real-time behavioral state intelligence
     try:
