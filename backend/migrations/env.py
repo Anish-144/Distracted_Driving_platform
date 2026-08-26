@@ -30,13 +30,17 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
-# IMPORTANT: Alembic MUST use the synchronous DB URL (psycopg2).
-# The asyncpg driver (DATABASE_URL) is incompatible with Alembic sync runner
-# and causes "RuntimeError: no running event loop" on `alembic upgrade head`.
-_migration_url = settings.SYNC_DATABASE_URL or settings.DATABASE_URL.replace(
-    "postgresql+asyncpg://", "postgresql://"
+# IMPORTANT: Alembic MUST use a synchronous DB driver (postgresql:// or sqlite://).
+# If an async driver (postgresql+asyncpg:// or sqlite+aiosqlite://) is passed, convert it to sync.
+_raw_url = settings.SYNC_DATABASE_URL or settings.DATABASE_URL
+_migration_url = (
+    _raw_url
+    .replace("postgresql+asyncpg://", "postgresql://")
+    .replace("postgres://", "postgresql://")
+    .replace("sqlite+aiosqlite://", "sqlite://")
 )
 config.set_main_option("sqlalchemy.url", _migration_url)
+
 
 
 def run_migrations_offline() -> None:
