@@ -53,4 +53,31 @@ export function isRequestCancelled(err: unknown): boolean {
   return axios.isCancel(err);
 }
 
+/**
+ * Safely extracts a human-readable error string from an API response / Axios error.
+ * Handles FastAPI 422 validation detail arrays, string details, and object details.
+ */
+export function extractErrorMessage(err: any, fallbackMessage: string = 'An unexpected error occurred'): string {
+  const detail = err?.response?.data?.detail;
+  if (typeof detail === 'string') {
+    return detail;
+  }
+  if (Array.isArray(detail)) {
+    // FastAPI validation errors: [{ loc: [...], msg: "...", type: "..." }]
+    const messages = detail.map((d: any) => d?.msg || d?.message).filter(Boolean);
+    if (messages.length > 0) {
+      return messages.join('. ');
+    }
+  }
+  if (detail && typeof detail === 'object') {
+    if (typeof detail.message === 'string') return detail.message;
+    if (typeof detail.msg === 'string') return detail.msg;
+  }
+  if (typeof err?.message === 'string' && err.message) {
+    return err.message;
+  }
+  return fallbackMessage;
+}
+
 export default client;
+

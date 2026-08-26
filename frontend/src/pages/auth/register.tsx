@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import { useAppDispatch } from '@/store';
 import { loginSuccess, setLoading, setError } from '@/store/authSlice';
 import { register as registerUser } from '@/api/auth';
+import { extractErrorMessage } from '@/api/client';
 import { Car, User, Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ThemeToggle from '@/components/common/ThemeToggle';
@@ -16,7 +17,7 @@ import ThemeToggle from '@/components/common/ThemeToggle';
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string(),
 }).refine((d) => d.password === d.confirmPassword, {
   message: "Passwords don't match",
@@ -89,7 +90,7 @@ export default function RegisterPage() {
       toast.success(`Welcome aboard, ${response.name}!`);
       router.push('/onboarding');
     } catch (err: any) {
-      const msg = err?.response?.data?.detail || 'Registration failed. Please try again.';
+      const msg = extractErrorMessage(err, 'Registration failed. Please try again.');
       dispatch(setError(msg));
       toast.error(msg);
     } finally {
@@ -337,7 +338,7 @@ export default function RegisterPage() {
                   <input
                     id="password"
                     type="password"
-                    placeholder="Min. 6 characters"
+                    placeholder="Min. 8 characters"
                     className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl transition-all duration-150 outline-none"
                     style={getInputStyle('password')}
                     onFocus={() => setFocusedField('password')}

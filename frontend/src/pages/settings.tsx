@@ -5,6 +5,7 @@ import { useAppSelector, useAppDispatch } from '@/store';
 import { logout, updateUserProfile, updateProfileType } from '@/store/authSlice';
 import { loadSettings, updateSettings, optimisticUpdate } from '@/store/settingsSlice';
 import { updatePassword, deleteAccount, exportMyData, resetProgress } from '@/api/auth';
+import { extractErrorMessage } from '@/api/client';
 import { UserSettingsUpdate } from '@/api/settings';
 import AppShell from '@/components/layout/AppShell';
 import { FadeUp } from '@/components/motion/ScrollReveal';
@@ -154,7 +155,7 @@ export default function SettingsPage() {
       toast.success('Password updated successfully');
       setPasswordForm({ current: '', new: '', confirm: '' });
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || 'Failed to update password');
+      toast.error(extractErrorMessage(err, 'Failed to update password'));
     } finally {
       setSavingPassword(false);
     }
@@ -166,7 +167,7 @@ export default function SettingsPage() {
       const filename = await exportMyData();
       toast.success(`Download started: ${filename}`);
     } catch (err: any) {
-      const msg = err?.response?.data?.detail || 'Failed to export data. Please try again.';
+      const msg = extractErrorMessage(err, 'Failed to export data. Please try again.');
       toast.error(msg);
     } finally {
       setExportingData(false);
@@ -186,7 +187,7 @@ export default function SettingsPage() {
       toast.success('Account permanently deleted.');
       router.replace('/auth/login');
     } catch (err: any) {
-      const msg = err?.response?.data?.detail || 'Failed to delete account. Please try again.';
+      const msg = extractErrorMessage(err, 'Failed to delete account. Please try again.');
       toast.error(msg);
     } finally {
       setDeletingAccount(false);
@@ -205,7 +206,7 @@ export default function SettingsPage() {
       // Navigate to dashboard so progress metrics reload immediately
       router.push('/dashboard');
     } catch (err: any) {
-      const msg = err?.response?.data?.detail || 'Failed to reset progress. Please try again.';
+      const msg = extractErrorMessage(err, 'Failed to reset progress. Please try again.');
       toast.error(msg);
     } finally {
       setResettingProgress(false);

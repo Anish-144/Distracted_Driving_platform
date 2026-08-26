@@ -9,13 +9,14 @@ import toast from 'react-hot-toast';
 import { useAppDispatch } from '@/store';
 import { loginSuccess, setLoading, setError } from '@/store/authSlice';
 import { login } from '@/api/auth';
+import { extractErrorMessage } from '@/api/client';
 import { Car, Mail, Lock, Loader2, ArrowRight, Zap, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ThemeToggle from '@/components/common/ThemeToggle';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -82,7 +83,7 @@ export default function LoginPage() {
         router.push('/dashboard');
       }
     } catch (err: any) {
-      const msg = err?.response?.data?.detail || 'Login failed. Please check your credentials.';
+      const msg = extractErrorMessage(err, 'Login failed. Please check your credentials.');
       dispatch(setError(msg));
       toast.error(msg);
     } finally {
