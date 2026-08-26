@@ -19,5 +19,7 @@ COPY . .
 # Expose port
 EXPOSE 8000
 
-# Run migrations and then start the application
-CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+# Run migrations then start the application.
+# `set -e` ensures the container exits immediately if alembic fails
+# (prevents app starting against a database with no schema).
+CMD ["sh", "-c", "set -e && alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2"]
