@@ -37,8 +37,8 @@ export interface EventResult {
  * Returns the evaluation result including score delta and decision type.
  */
 export async function postEvent(payload: PostEventPayload): Promise<EventResult> {
-  // Increase timeout to 30s to allow cold-starting backends to spin up and respond
-  const response = await client.post<EventResult>('/event', payload, { timeout: 30000 });
+  // Reverted timeout to 15s (15000ms) as requested
+  const response = await client.post<EventResult>('/event', payload, { timeout: 15000 });
   return response.data;
 }
 
