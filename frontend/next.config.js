@@ -22,7 +22,7 @@ const nextConfig = {
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob:",
               "media-src 'self' blob:",
-              "connect-src 'self'",
+              "connect-src 'self' https://*.onrender.com",
               "frame-ancestors 'none'",
             ].join('; '),
           },
