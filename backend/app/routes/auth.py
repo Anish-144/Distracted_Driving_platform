@@ -31,16 +31,21 @@ class RegisterRequest(BaseModel):
     @field_validator("password")
     @classmethod
     def password_min_length(cls, v: str) -> str:
-        if len(v) < 6:
-            raise ValueError("Password must be at least 6 characters")
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters")
+        if len(v) > 128:
+            raise ValueError("Password must not exceed 128 characters")
         return v
 
     @field_validator("name")
     @classmethod
     def name_not_empty(cls, v: str) -> str:
-        if not v.strip():
+        stripped = v.strip()
+        if not stripped:
             raise ValueError("Name cannot be empty")
-        return v.strip()
+        if len(stripped) > 100:
+            raise ValueError("Name must not exceed 100 characters")
+        return stripped
 
 
 class LoginResponse(BaseModel):
@@ -121,9 +126,21 @@ async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db),
 ):
-    """Authenticate with email + password; returns JWT token."""
+    """Authenticate with email + password; returns JWT token.
+
+    Timing-safe: a dummy bcrypt verify is performed even when the user is not
+    found, so the response time is constant regardless of whether the email
+    exists. This prevents user-enumeration via timing side-channels.
+    """
     user = await user_service.get_user_by_email(db, form_data.username)
-    if user is None or not auth_service.verify_password(form_data.password, user.hashed_password):
+
+    # Constant-time check: always run bcrypt even for unknown users
+    # to prevent timing-based user enumeration.
+    _DUMMY_HASH = "$2b$12$invaliddummyhashfortimingprotectionXXXXXXXXXXXXXXXXXXX"
+    candidate_hash = user.hashed_password if user else _DUMMY_HASH
+    password_ok = auth_service.verify_password(form_data.password, candidate_hash)
+
+    if user is None or not password_ok:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",

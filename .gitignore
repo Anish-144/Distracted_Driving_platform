@@ -112,6 +112,15 @@ build/
 *.node
 
 local_feedback.csv
+local_feedback.json
 
 # Generated Documents
 *.docx
+
+# SQLite database files — contain user data, NEVER commit
+*.db
+*.sqlite3
+distracted_driving.db
+
+# Upload directories — may contain user-uploaded files
+backend/uploads/

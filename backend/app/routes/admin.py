@@ -254,7 +254,9 @@ async def get_platform_ai_insights(
             "cached_at": new_cache.created_at.isoformat()
         }
     except Exception as e:
-        return {"error": str(e)}
+        import logging as _logging
+        _logging.getLogger(__name__).error("AI insights generation failed: %s", e, exc_info=True)
+        return {"error": "AI insights generation failed. Please try again later."}
 
 @router.post("/ai-insights/regenerate")
 async def regenerate_platform_ai_insights(

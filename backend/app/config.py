@@ -5,25 +5,35 @@ Loads from .env file automatically.
 
 # pyrefly: ignore [missing-import]
 from pydantic_settings import BaseSettings
+from pydantic import model_validator
 from functools import lru_cache
+from typing import Any
+
+
+_KNOWN_BAD_SECRETS = {
+    "change-this-secret-key-in-production",
+    "your-super-secret-jwt-key-change-in-production-please",
+    "local-dev-jwt-secret-do-not-use-in-prod",
+}
 
 
 class Settings(BaseSettings):
     # App
     APP_NAME: str = "Distracted Driving Platform API"
     APP_VERSION: str = "1.0.0"
-    DEBUG: bool = True
+    # ⚠️  DEBUG defaults to False — never set True in production
+    DEBUG: bool = False
 
     # Database
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/distracted_driving_db"
-    SYNC_DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/distracted_driving_db"
+    DATABASE_URL: str = "sqlite+aiosqlite:///./distracted_driving.db"
+    SYNC_DATABASE_URL: str = "sqlite:///./distracted_driving.db"
 
     # JWT
     JWT_SECRET_KEY: str = "change-this-secret-key-in-production"
     JWT_ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60  # 1 hour (was 24h — reduced for security)
 
-    # CORS
+    # CORS — restrict to your actual frontend origin in production
     ALLOWED_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
 
     # ── LLM Providers (set at least one) ────────────────────────────────────
@@ -40,7 +50,27 @@ class Settings(BaseSettings):
 
     @property
     def origins_list(self) -> list[str]:
-        return [o.strip() for o in self.ALLOWED_ORIGINS.split(",")]
+        return [o.strip() for o in self.ALLOWED_ORIGINS.split(",") if o.strip()]
+
+    @model_validator(mode="after")
+    def validate_secret_key(self) -> "Settings":
+        """Refuse to start in production with a weak or placeholder JWT secret."""
+        if not self.DEBUG:
+            if self.JWT_SECRET_KEY in _KNOWN_BAD_SECRETS:
+                raise ValueError(
+                    "JWT_SECRET_KEY is set to a known-insecure placeholder. "
+                    "Generate a strong key: python -c \"import secrets; print(secrets.token_hex(32))\""
+                )
+            if "REPLACE_WITH" in self.JWT_SECRET_KEY:
+                raise ValueError(
+                    "JWT_SECRET_KEY still contains placeholder text. Set a real secret."
+                )
+            if len(self.JWT_SECRET_KEY) < 32:
+                raise ValueError(
+                    f"JWT_SECRET_KEY is too short ({len(self.JWT_SECRET_KEY)} chars). "
+                    "Minimum 32 characters required."
+                )
+        return self
 
     model_config = {
         "env_file": ".env",

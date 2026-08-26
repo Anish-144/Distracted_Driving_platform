@@ -52,15 +52,32 @@ async def submit_feedback(
     app_version: Optional[str] = Form(None),
     session_id: Optional[str] = Form(None),
     files: List[UploadFile] = File(default=[]),
-    current_user: Optional[User] = Depends(get_current_user), # Allow anonymous feedback if desired, or make required
+    current_user: User = Depends(get_current_user),  # Auth required — no anonymous feedback
     db: AsyncSession = Depends(get_db)
 ):
-    # Sanitize and validate
+    # ── Input validation ────────────────────────────────────────────────────
     if len(comment) > 5000:
-        raise HTTPException(status_code=400, detail="Comment too long")
+        raise HTTPException(status_code=400, detail="Comment too long (max 5000 chars)")
+    if comment.strip() == "":
+        raise HTTPException(status_code=400, detail="Comment cannot be empty")
+    if rating is not None and rating not in range(1, 6):
+        raise HTTPException(status_code=400, detail="Rating must be between 1 and 5")
+    # Truncate freeform string fields to safe lengths to prevent DB bloat
+    if page_url and len(page_url) > 2048:
+        raise HTTPException(status_code=400, detail="page_url too long")
+    if browser and len(browser) > 200:
+        browser = browser[:200]
+    if device_type and len(device_type) > 100:
+        device_type = device_type[:100]
+    if user_agent and len(user_agent) > 500:
+        user_agent = user_agent[:500]
+    if screen_size and len(screen_size) > 50:
+        screen_size = screen_size[:50]
+    if app_version and len(app_version) > 50:
+        app_version = app_version[:50]
 
     new_feedback = Feedback(
-        user_id=current_user.id if current_user else None,
+        user_id=current_user.id,
         type=type,
         rating=rating,
         comment=comment,
@@ -311,7 +328,7 @@ async def regenerate_ai_insights(
 ):
     data, count = await _generate_ai_insights(db)
     if "error" in data:
-        raise HTTPException(status_code=500, detail=data["error"])
+        raise HTTPException(status_code=500, detail="AI insights generation failed. Please try again later.")
         
     if "insights" in data:
         # Expire old caches

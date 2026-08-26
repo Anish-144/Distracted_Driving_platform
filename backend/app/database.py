@@ -9,6 +9,8 @@ from app.config import settings
 # Async engine configuration
 is_sqlite = settings.DATABASE_URL.startswith("sqlite")
 engine_args = {
+    # Only echo SQL queries in debug mode — never in production
+    # (SQL echo exposes schema structure and query patterns to log readers)
     "echo": settings.DEBUG,
 }
 
