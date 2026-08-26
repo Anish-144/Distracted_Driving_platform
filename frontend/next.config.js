@@ -1,4 +1,4 @@
-/** @type {import('next').NextConfig} */
+// SafeDrive AI Frontend Next.js Configuration
 const nextConfig = {
   reactStrictMode: true,
 
