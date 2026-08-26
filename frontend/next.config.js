@@ -31,10 +31,10 @@ const nextConfig = {
     ];
   },
 
-  // ── API Proxy (rewrites) ──────────────────────────────────────────────────
   async rewrites() {
-    // Use NEXT_PUBLIC_API_URL for local dev, fall back to the Docker service name
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000';
+    // Use NEXT_PUBLIC_API_URL for local dev, fall back to default
+    const rawBackendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000';
+    const backendUrl = rawBackendUrl.replace(/\/+$/, '');
     return [
       {
         source: '/api/:path*',

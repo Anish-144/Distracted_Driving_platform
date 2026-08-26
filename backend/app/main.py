@@ -33,10 +33,14 @@ logger = logging.getLogger(__name__)
 
 # ─── Security Headers Middleware ──────────────────────────────────────────────
 
+import re
+
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    """Adds security headers to every HTTP response."""
+    """Adds security headers and normalizes URL path slashes to every HTTP response."""
 
     async def dispatch(self, request: Request, call_next) -> Response:
+        if request.scope.get("path", "").startswith("//"):
+            request.scope["path"] = re.sub(r"^/+", "/", request.scope["path"])
         response = await call_next(request)
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-Content-Type-Options"] = "nosniff"
