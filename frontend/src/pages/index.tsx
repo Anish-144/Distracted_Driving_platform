@@ -22,6 +22,18 @@ export default function Home() {
         <meta name="description" content="AI-powered behavioral training to help you recognize and overcome distracted driving habits." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
+        {/*
+          Fast-path redirect: runs synchronously while the browser parses <head>,
+          well before the deferred JS bundle loads/hydrates React. Avoids the
+          visible loading-spinner flash for the common case. The useEffect below
+          is the correctness fallback (e.g. if this inline script fails for any
+          reason) and still fires normally after hydration.
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=window.localStorage.getItem('access_token');window.location.replace(t?'/dashboard':'/auth/login');}catch(e){}})();`,
+          }}
+        />
       </Head>
       {/* Loading state while redirect happens */}
       <div className="min-h-screen flex items-center justify-center bg-primary">

@@ -22,7 +22,9 @@ const nextConfig = {
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob:",
               "media-src 'self' blob:",
-              "connect-src 'self' https://*.onrender.com",
+              // API calls go through the Next.js /api/:path* rewrite (same-origin),
+              // never directly to the Render backend from the browser.
+              "connect-src 'self'",
               "frame-ancestors 'none'",
             ].join('; '),
           },

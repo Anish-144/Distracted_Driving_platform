@@ -6,11 +6,15 @@ Includes all routers, CORS middleware, security headers, and startup hooks.
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
 import logging
 from app.config import settings
 from app.database import Base
+from app.rate_limiter import limiter
 from app.routes import auth, user, sessions, events, lessons, progress, ai, feedback
 from app.routes import onboarding, scenarios, cognitive_reports, settings as settings_router, admin, admin_users
 from app.routes import voice
@@ -195,6 +199,22 @@ app = FastAPI(
 )
 
 
+# ─── Rate Limiting ────────────────────────────────────────────────────────────
+
+app.state.limiter = limiter
+
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
+    logger.warning(f"Rate limit exceeded on {request.method} {request.url.path}: {exc.detail}")
+    response = JSONResponse(
+        status_code=429,
+        content={"detail": "Too many requests. Please wait a moment and try again."},
+    )
+    response.headers["Retry-After"] = "60"
+    return response
+
+
 # ─── Middleware ───────────────────────────────────────────────────────────────
 
 app.add_middleware(SecurityHeadersMiddleware)
@@ -206,6 +226,8 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "Accept", "X-Requested-With"],
 )
+
+app.add_middleware(SlowAPIMiddleware)
 
 
 # ─── Routers ──────────────────────────────────────────────────────────────────
@@ -225,6 +247,16 @@ app.include_router(admin.router)
 app.include_router(admin_users.router)
 app.include_router(settings_router.router, prefix="/api/settings", tags=["Settings"])
 app.include_router(voice.router)
+
+
+# ─── Global Exception Handler ────────────────────────────────────────────────
+# Ensures any unhandled exception returns the same {"detail": ...} JSON shape
+# the frontend already expects, instead of a bare text/plain 500 response.
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    logger.error(f"Unhandled exception on {request.method} {request.url.path}", exc_info=exc)
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 
 # ─── Health Check ─────────────────────────────────────────────────────────────

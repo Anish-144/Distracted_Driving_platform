@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Allow: /auth/login
+Allow: /auth/register
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /settings
+Disallow: /simulation
+Disallow: /lessons
+Disallow: /onboarding
+
+Sitemap: https://distracted-driving-platform.vercel.app/sitemap.xml

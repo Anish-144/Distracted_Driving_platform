@@ -7,14 +7,19 @@ Endpoints:
   GET  /api/auth/me        — Get current user info (protected)
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+import logging
+
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel, EmailStr, field_validator
 
 from app.database import get_db
 from app.models.user import User
+from app.rate_limiter import limiter
 from app.services import auth_service, user_service
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -96,10 +101,11 @@ async def get_current_admin(current_user: User = Depends(get_current_user)) -> U
 # ─── Routes ──────────────────────────────────────────────────────────────────
 
 @router.post("/register", response_model=LoginResponse, status_code=status.HTTP_201_CREATED)
-async def register(request: RegisterRequest, db: AsyncSession = Depends(get_db)):
+@limiter.limit("10/hour")
+async def register(request: Request, payload: RegisterRequest, db: AsyncSession = Depends(get_db)):
     """Register a new user and return a JWT token immediately."""
     # Check for existing email
-    existing = await user_service.get_user_by_email(db, request.email)
+    existing = await user_service.get_user_by_email(db, payload.email)
     if existing:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -107,7 +113,7 @@ async def register(request: RegisterRequest, db: AsyncSession = Depends(get_db))
         )
 
     user = await user_service.create_user(
-        db, name=request.name, email=request.email, plain_password=request.password
+        db, name=payload.name, email=payload.email, plain_password=payload.password
     )
 
     token = auth_service.create_access_token({"sub": user.id})
@@ -122,7 +128,9 @@ async def register(request: RegisterRequest, db: AsyncSession = Depends(get_db))
 
 
 @router.post("/login", response_model=LoginResponse)
+@limiter.limit("5/minute")
 async def login(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db),
 ):
@@ -135,10 +143,16 @@ async def login(
     user = await user_service.get_user_by_email(db, form_data.username)
 
     # Constant-time check: always run bcrypt even for unknown users
-    # to prevent timing-based user enumeration.
-    _DUMMY_HASH = "$2b$12$invaliddummyhashfortimingprotectionXXXXXXXXXXXXXXXXXXX"
+    # to prevent timing-based user enumeration. Must be a real bcrypt hash
+    # (not a handwritten placeholder) so passlib actually performs the full
+    # verify computation instead of raising on a malformed hash.
+    _DUMMY_HASH = "$2b$12$.UvBEXl6sU4C/4D3g.rheuxrdJDs0hJBXcxgBujCbkUw2wNwOXjGy"
     candidate_hash = user.hashed_password if user else _DUMMY_HASH
-    password_ok = auth_service.verify_password(form_data.password, candidate_hash)
+    try:
+        password_ok = auth_service.verify_password(form_data.password, candidate_hash)
+    except Exception:
+        logger.warning("Password verification raised unexpectedly during login", exc_info=True)
+        password_ok = False
 
     if user is None or not password_ok:
         raise HTTPException(

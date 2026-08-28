@@ -22,4 +22,6 @@ EXPOSE 8000
 # Run migrations then start the application.
 # `set -e` ensures the container exits immediately if alembic fails
 # (prevents app starting against a database with no schema).
-CMD ["sh", "-c", "set -e && alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2"]
+# --proxy-headers/--forwarded-allow-ips trust Render's reverse proxy so
+# request.client.host reflects the real client IP (needed for per-IP rate limiting).
+CMD ["sh", "-c", "set -e && alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2 --proxy-headers --forwarded-allow-ips='*'"]
