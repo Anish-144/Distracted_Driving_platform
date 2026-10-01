@@ -1,8 +1,8 @@
 # SECURITY_REPORT.md — SafeDrive AI Platform
 
-**Audit date:** 2026-08-26
+**Audit date:** 2026-08-26 (updated 2026-10-01)
 **Auditor:** Antigravity Security Analysis
-**Scope:** Full MVP codebase — backend (FastAPI/Python), frontend (Next.js/TypeScript), Docker
+**Scope:** Full MVP codebase — backend (FastAPI/Python), frontend (Next.js/TypeScript), Docker, Supabase Database
 
 ---
 
@@ -14,6 +14,7 @@
 | HIGH | 5 | Fixed in code |
 | MEDIUM | 7 | 6 fixed in code, 1 in TODO |
 | LOW | 6 | 4 fixed in code, 2 in TODO |
+| DB SECURITY (Supabase) | 27 lints | Fixed — RLS migration applied (2026-10-01) |
 
 ---
 
@@ -129,6 +130,30 @@
 
 ---
 
+## Supabase Database Security (2026-10-01)
+
+### DB-01 — RLS Disabled on All 20 Public Tables (ERROR severity)
+- **Lint:** `rls_disabled_in_public` — all 20 public schema tables lacked Row Level Security
+- **Risk:** Any unauthenticated or under-privileged PostgREST API call could read or write any row
+- **Fix:** `supabase/migrations/20261001_enable_rls_all_tables.sql` enables RLS on all tables and adds ownership-scoped policies
+- **Tables fixed:** users, sessions, user_settings, behavioral_states, personality_profiles, calibration_events, behavioral_logs, cognitive_reports, events, feedbacks, feedback_attachments, feedback_notes, generated_scenarios, intervention_logs, user_lessons, scenarios, lessons, alembic_version, ai_feedback_insights_cache, admin_platform_insights_cache
+
+### DB-02 — Sensitive Columns Exposed via API without RLS (ERROR severity)
+- **Lint:** `sensitive_columns_exposed` — `session_id` column exposed without RLS on 7 tables
+- **Risk:** Session IDs (PII linkage data) could be enumerated via PostgREST API
+- **Affected tables:** behavioral_logs, cognitive_reports, events, feedbacks, generated_scenarios, intervention_logs, user_lessons
+- **Fix:** Covered by DB-01 migration — session-joined policies for tables without direct user_id (behavioral_logs, events); user_id-scoped policies for others
+
+### DB-03 — Admin Helper Function
+- **Added:** `public.is_admin()` SECURITY DEFINER function for safe, non-recursive admin policy checks
+- **Pattern:** All admin dashboard tables use `USING (public.is_admin())` instead of inline subqueries
+
+### DB-04 — Anon Role Privilege Revocation
+- **Added:** `REVOKE ALL ... FROM anon` on all 18 sensitive tables
+- **Retained:** `scenarios` and `lessons` remain readable by anon (public lookup tables)
+
+---
+
 ## Files Modified
 
 | File | Changes |
@@ -143,3 +168,4 @@
 | backend/app/routes/admin.py | Error detail suppression |
 | frontend/next.config.js | Security headers block |
 | .gitignore | Added *.db, uploads/ |
+| supabase/migrations/20261001_enable_rls_all_tables.sql | **NEW** — RLS enabled on all 20 tables, 50+ policies, is_admin() helper, role grants |
